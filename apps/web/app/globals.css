@@ -1,0 +1,96 @@
+@import 'tailwindcss';
+
+/* Identidad visual Arena: oscuro, deportivo y tecnológico con acentos neón */
+@theme {
+  --color-bg: #07080d;
+  --color-surface: #0e1018;
+  --color-surface-2: #151826;
+  --color-surface-3: #1c2033;
+  --color-line: #262b40;
+  --color-ink: #e8ebf5;
+  --color-muted: #8b93ad;
+  --color-neon: #22d3ee; /* cian principal */
+  --color-neon-2: #e879f9; /* magenta */
+  --color-lime: #a3e635;
+  --color-amber: #fbbf24;
+  --color-danger: #f43f5e;
+  --color-verified: #3b82f6; /* insignia azul de verificación */
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-rajdhani), var(--font-inter), ui-sans-serif, sans-serif;
+
+  --shadow-neon: 0 0 0 1px rgb(34 211 238 / 0.35), 0 0 24px -4px rgb(34 211 238 / 0.45);
+  --shadow-neon-2: 0 0 0 1px rgb(232 121 249 / 0.35), 0 0 24px -4px rgb(232 121 249 / 0.4);
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgb(34 211 238 / 0.08), transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, rgb(232 121 249 / 0.07), transparent 60%),
+      var(--color-bg);
+    color: var(--color-ink);
+    min-height: 100dvh;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: 0.01em;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-neon);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: rgb(34 211 238 / 0.35);
+  }
+}
+
+/* Componentes reutilizables (Tailwind v4: @utility permite componer con @apply) */
+@utility card {
+  @apply rounded-2xl border border-line bg-surface/80 backdrop-blur-sm;
+}
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition
+    disabled:cursor-not-allowed disabled:opacity-50;
+}
+@utility btn-primary {
+  @apply btn bg-neon text-bg hover:bg-cyan-300 hover:shadow-neon;
+}
+@utility btn-accent {
+  @apply btn bg-neon-2 text-bg hover:bg-fuchsia-300 hover:shadow-neon-2;
+}
+@utility btn-ghost {
+  @apply btn border border-line bg-surface-2 text-ink hover:border-neon/60 hover:text-neon;
+}
+@utility btn-danger {
+  @apply btn border border-danger/50 bg-danger/10 text-danger hover:bg-danger/20;
+}
+@utility input {
+  @apply w-full rounded-xl border border-line bg-surface-2 px-3.5 py-2.5 text-sm text-ink placeholder:text-muted/70
+    transition focus:border-neon focus:outline-none focus:ring-2 focus:ring-neon/25;
+}
+@utility label {
+  @apply mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted;
+}
+@utility chip {
+  @apply inline-flex items-center gap-1 rounded-full border border-line bg-surface-2 px-2.5 py-1 text-xs font-medium text-muted;
+}
+@utility section-title {
+  @apply font-display text-2xl font-bold uppercase tracking-wide md:text-3xl;
+}
+@utility neon-text {
+  @apply bg-gradient-to-r from-neon via-sky-300 to-neon-2 bg-clip-text text-transparent;
+}
+
+/* Scrollbar discreta */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line) transparent;
+}

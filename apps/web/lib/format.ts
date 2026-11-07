@@ -1,0 +1,127 @@
+import type { CompetitiveLevel, ReputationLevel, TournamentFormat, TournamentStatus, VerificationStatus } from './types';
+
+export const STATUS_LABEL: Record<TournamentStatus, string> = {
+  DRAFT: 'Borrador',
+  OPEN: 'Abierta',
+  IN_PROGRESS: 'En curso',
+  FINISHED: 'Finalizada',
+  CANCELLED: 'Cancelada',
+};
+
+export const FORMAT_LABEL: Record<TournamentFormat, string> = {
+  SINGLE_ELIMINATION: 'Eliminación directa',
+  DOUBLE_ELIMINATION: 'Doble eliminación',
+  ROUND_ROBIN: 'Liga (todos contra todos)',
+  GROUPS: 'Fase de grupos',
+  GROUPS_PLAYOFFS: 'Grupos y playoffs',
+};
+
+export const MODE_LABEL = { INDIVIDUAL: 'Individual', TEAM: 'Por equipos' } as const;
+
+export const LEVEL_LABEL: Record<CompetitiveLevel, string> = {
+  BEGINNER: 'Principiante',
+  INTERMEDIATE: 'Intermedio',
+  ADVANCED: 'Avanzado',
+  EXPERT: 'Experto',
+  PROFESSIONAL: 'Profesional',
+};
+
+export const REPUTATION_LABEL: Record<ReputationLevel, string> = {
+  NEW: 'Nuevo organizador',
+  INITIAL: 'Reputación inicial',
+  GOOD: 'Buen organizador',
+  EXCELLENT: 'Excelente organizador',
+  TOP: 'Organizador destacado',
+};
+
+export const VERIFICATION_LABEL: Record<VerificationStatus, string> = {
+  NOT_REQUESTED: 'No solicitada',
+  PENDING: 'Pendiente',
+  UNDER_REVIEW: 'En revisión',
+  VERIFIED: 'Verificado',
+  REJECTED: 'Rechazada',
+  SUSPENDED: 'Suspendida',
+  EXPIRED: 'Vencida',
+};
+
+export const ORGANIZER_TYPE_LABEL: Record<string, string> = {
+  PERSON: 'Persona',
+  TEAM: 'Equipo',
+  CLUB: 'Club',
+  ACADEMY: 'Academia',
+  COMPANY: 'Empresa',
+};
+
+export const PLATFORM_LABEL: Record<string, string> = {
+  PC: 'PC',
+  PLAYSTATION: 'PlayStation',
+  XBOX: 'Xbox',
+  NINTENDO: 'Nintendo',
+  MOBILE: 'Móvil',
+  CROSSPLAY: 'Crossplay',
+  NONE: '—',
+};
+
+export const COUNTRIES: Record<string, string> = {
+  AR: 'Argentina',
+  BO: 'Bolivia',
+  BR: 'Brasil',
+  CL: 'Chile',
+  CO: 'Colombia',
+  CR: 'Costa Rica',
+  EC: 'Ecuador',
+  ES: 'España',
+  GT: 'Guatemala',
+  MX: 'México',
+  PA: 'Panamá',
+  PE: 'Perú',
+  PY: 'Paraguay',
+  DO: 'República Dominicana',
+  US: 'Estados Unidos',
+  UY: 'Uruguay',
+  VE: 'Venezuela',
+};
+
+export const CURRENCIES = ['USD', 'PEN', 'CLP', 'MXN', 'COP', 'ARS', 'BOB', 'UYU', 'EUR', 'BRL'];
+
+export function flag(code?: string | null) {
+  if (!code || code.length !== 2) return '';
+  return String.fromCodePoint(...[...code.toUpperCase()].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65));
+}
+
+const TZ = 'America/Lima';
+
+export function formatDate(iso: string, opts: Intl.DateTimeFormatOptions = {}) {
+  return new Intl.DateTimeFormat('es-PE', { dateStyle: 'medium', timeZone: TZ, ...opts }).format(new Date(iso));
+}
+
+export function formatDateTime(iso: string) {
+  return new Intl.DateTimeFormat('es-PE', { dateStyle: 'medium', timeStyle: 'short', timeZone: TZ }).format(new Date(iso));
+}
+
+export function formatMoney(amount: string | number, currency: string) {
+  const n = Number(amount);
+  if (n === 0) return 'Gratis';
+  try {
+    return new Intl.NumberFormat('es-PE', { style: 'currency', currency, maximumFractionDigits: n % 1 ? 2 : 0 }).format(n);
+  } catch {
+    return `${currency} ${n.toFixed(2)}`;
+  }
+}
+
+/** Valor para <input type="datetime-local"> en la zona horaria del navegador. */
+export function toLocalInput(iso?: string | null) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+export function initials(name: string) {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]!.toUpperCase())
+    .join('');
+}

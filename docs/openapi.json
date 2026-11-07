@@ -1,0 +1,2543 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/health": {
+      "get": {
+        "operationId": "HealthController_health",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Salud"
+        ]
+      }
+    },
+    "/api/me/notifications": {
+      "get": {
+        "operationId": "NotificationsController_list",
+        "parameters": [
+          {
+            "name": "unread",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Notificaciones"
+        ]
+      }
+    },
+    "/api/me/notifications/{id}/read": {
+      "patch": {
+        "operationId": "NotificationsController_read",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Notificaciones"
+        ]
+      }
+    },
+    "/api/me/notifications/read-all": {
+      "post": {
+        "operationId": "NotificationsController_readAll",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Notificaciones"
+        ]
+      }
+    },
+    "/api/plans": {
+      "get": {
+        "operationId": "PlansController_plans",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Planes y suscripción"
+        ]
+      }
+    },
+    "/api/me/subscription": {
+      "get": {
+        "operationId": "PlansController_mySubscription",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Planes y suscripción"
+        ]
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "operationId": "AuthController_register",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Autenticación"
+        ]
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "operationId": "AuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Autenticación"
+        ]
+      }
+    },
+    "/api/auth/refresh": {
+      "post": {
+        "operationId": "AuthController_refresh",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Autenticación"
+        ]
+      }
+    },
+    "/api/auth/logout-all": {
+      "post": {
+        "operationId": "AuthController_logoutAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Autenticación"
+        ]
+      }
+    },
+    "/api/auth/change-password": {
+      "post": {
+        "operationId": "AuthController_changePassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Autenticación"
+        ]
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "operationId": "AuthController_me",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Autenticación"
+        ]
+      }
+    },
+    "/api/me/profile": {
+      "patch": {
+        "operationId": "MeController_updateProfile",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Perfil de usuario"
+        ]
+      }
+    },
+    "/api/me/avatar": {
+      "post": {
+        "operationId": "MeController_avatar",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Perfil de usuario"
+        ]
+      }
+    },
+    "/api/me/become-organizer": {
+      "post": {
+        "operationId": "MeController_become",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BecomeOrganizerDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Perfil de usuario"
+        ]
+      }
+    },
+    "/api/me/organizer": {
+      "get": {
+        "operationId": "MeController_organizer",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Perfil de usuario"
+        ]
+      },
+      "patch": {
+        "operationId": "MeController_updateOrganizer",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOrganizerDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Perfil de usuario"
+        ]
+      }
+    },
+    "/api/me/organizer/logo": {
+      "post": {
+        "operationId": "MeController_logo",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Perfil de usuario"
+        ]
+      }
+    },
+    "/api/me/organizer/banner": {
+      "post": {
+        "operationId": "MeController_banner",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Perfil de usuario"
+        ]
+      }
+    },
+    "/api/organizers": {
+      "get": {
+        "operationId": "OrganizersController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Organizadores"
+        ]
+      }
+    },
+    "/api/organizers/{username}": {
+      "get": {
+        "operationId": "OrganizersController_profile",
+        "parameters": [
+          {
+            "name": "username",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Organizadores"
+        ]
+      }
+    },
+    "/api/sports": {
+      "get": {
+        "operationId": "CatalogController_sports",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Catálogo"
+        ]
+      }
+    },
+    "/api/games": {
+      "get": {
+        "operationId": "CatalogController_games",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Catálogo"
+        ]
+      }
+    },
+    "/api/games/{id}/ranks": {
+      "get": {
+        "operationId": "CatalogController_ranks",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Catálogo"
+        ]
+      }
+    },
+    "/api/admin/sports": {
+      "get": {
+        "operationId": "CatalogAdminController_sports",
+        "parameters": [
+          {
+            "name": "all",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Admin · Catálogo"
+        ]
+      },
+      "post": {
+        "operationId": "CatalogAdminController_createSport",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SportDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Admin · Catálogo"
+        ]
+      }
+    },
+    "/api/admin/sports/{id}": {
+      "patch": {
+        "operationId": "CatalogAdminController_updateSport",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSportDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Admin · Catálogo"
+        ]
+      }
+    },
+    "/api/admin/games": {
+      "get": {
+        "operationId": "CatalogAdminController_games",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Admin · Catálogo"
+        ]
+      },
+      "post": {
+        "operationId": "CatalogAdminController_createGame",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GameDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Admin · Catálogo"
+        ]
+      }
+    },
+    "/api/admin/games/{id}": {
+      "patch": {
+        "operationId": "CatalogAdminController_updateGame",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateGameDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Admin · Catálogo"
+        ]
+      }
+    },
+    "/api/admin/games/{id}/ranks": {
+      "post": {
+        "operationId": "CatalogAdminController_createRank",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GameRankDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Admin · Catálogo"
+        ]
+      }
+    },
+    "/api/admin/ranks/{rankId}": {
+      "patch": {
+        "operationId": "CatalogAdminController_updateRank",
+        "parameters": [
+          {
+            "name": "rankId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateGameRankDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Admin · Catálogo"
+        ]
+      }
+    },
+    "/api/home": {
+      "get": {
+        "operationId": "TournamentsController_home",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Partidas y torneos"
+        ]
+      }
+    },
+    "/api/tournaments": {
+      "get": {
+        "operationId": "TournamentsController_list",
+        "parameters": [
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Búsqueda por nombre de partida, torneo u organizador",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "category",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "SPORT",
+                "ESPORT"
+              ]
+            }
+          },
+          {
+            "name": "sport",
+            "required": false,
+            "in": "query",
+            "description": "slug del deporte",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "game",
+            "required": false,
+            "in": "query",
+            "description": "slug del videojuego",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "country",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "city",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "mode",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "INDIVIDUAL",
+                "TEAM"
+              ]
+            }
+          },
+          {
+            "name": "format",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "SINGLE_ELIMINATION",
+                "DOUBLE_ELIMINATION",
+                "ROUND_ROBIN",
+                "GROUPS",
+                "GROUPS_PLAYOFFS"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "DRAFT",
+                "OPEN",
+                "IN_PROGRESS",
+                "FINISHED",
+                "CANCELLED"
+              ]
+            }
+          },
+          {
+            "name": "feeMin",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "feeMax",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "online",
+            "required": false,
+            "in": "query",
+            "description": "Solo online (true) o presencial (false)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "organizer",
+            "required": false,
+            "in": "query",
+            "description": "username del organizador",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "featured",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "verifiedOnly",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "upcoming",
+                "recent",
+                "fee_asc",
+                "fee_desc",
+                "popular"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Partidas y torneos"
+        ]
+      },
+      "post": {
+        "operationId": "TournamentsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTournamentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Partidas y torneos"
+        ]
+      }
+    },
+    "/api/tournaments/{slugOrId}": {
+      "get": {
+        "operationId": "TournamentsController_detail",
+        "parameters": [
+          {
+            "name": "slugOrId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Partidas y torneos"
+        ]
+      }
+    },
+    "/api/tournaments/{id}": {
+      "patch": {
+        "operationId": "TournamentsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTournamentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Partidas y torneos"
+        ]
+      }
+    },
+    "/api/tournaments/{id}/status": {
+      "patch": {
+        "operationId": "TournamentsController_status",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Partidas y torneos"
+        ]
+      }
+    },
+    "/api/tournaments/{id}/cancel": {
+      "post": {
+        "operationId": "TournamentsController_cancel",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelTournamentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Partidas y torneos"
+        ]
+      }
+    },
+    "/api/tournaments/{id}/cover": {
+      "post": {
+        "operationId": "TournamentsController_cover",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Partidas y torneos"
+        ]
+      }
+    },
+    "/api/me/tournaments": {
+      "get": {
+        "operationId": "TournamentsController_mine",
+        "parameters": [
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "DRAFT",
+                "OPEN",
+                "IN_PROGRESS",
+                "FINISHED",
+                "CANCELLED"
+              ]
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Partidas y torneos"
+        ]
+      }
+    },
+    "/api/tournaments/{id}/registrations": {
+      "post": {
+        "operationId": "TournamentsController_register",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestRegistrationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Partidas y torneos"
+        ]
+      },
+      "get": {
+        "operationId": "TournamentsController_registrations",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "APPROVED",
+                "REJECTED",
+                "WITHDRAWN"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Partidas y torneos"
+        ]
+      }
+    },
+    "/api/registrations/{id}": {
+      "patch": {
+        "operationId": "TournamentsController_decide",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecideRegistrationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Partidas y torneos"
+        ]
+      },
+      "delete": {
+        "operationId": "TournamentsController_withdraw",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Partidas y torneos"
+        ]
+      }
+    },
+    "/api/me/registrations": {
+      "get": {
+        "operationId": "TournamentsController_myRegistrations",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Partidas y torneos"
+        ]
+      }
+    },
+    "/api/me/teams": {
+      "get": {
+        "operationId": "TeamsController_mine",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Equipos"
+        ]
+      }
+    },
+    "/api/teams/{slug}": {
+      "get": {
+        "operationId": "TeamsController_get",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Equipos"
+        ]
+      }
+    },
+    "/api/teams": {
+      "post": {
+        "operationId": "TeamsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTeamDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Equipos"
+        ]
+      }
+    },
+    "/api/teams/{id}": {
+      "patch": {
+        "operationId": "TeamsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTeamDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Equipos"
+        ]
+      },
+      "delete": {
+        "operationId": "TeamsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Equipos"
+        ]
+      }
+    },
+    "/api/teams/{id}/logo": {
+      "post": {
+        "operationId": "TeamsController_logo",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Equipos"
+        ]
+      }
+    },
+    "/api/teams/{id}/members": {
+      "post": {
+        "operationId": "TeamsController_add",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddMemberDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Equipos"
+        ]
+      }
+    },
+    "/api/teams/{id}/members/{playerId}": {
+      "delete": {
+        "operationId": "TeamsController_removeMember",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "playerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Equipos"
+        ]
+      }
+    },
+    "/api/teams/{id}/captain": {
+      "patch": {
+        "operationId": "TeamsController_captain",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetCaptainDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Equipos"
+        ]
+      }
+    },
+    "/api/me/dashboard": {
+      "get": {
+        "operationId": "DashboardController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Dashboard"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Arena Torneos API",
+    "description": "API REST de la plataforma de torneos deportivos y eSports. Autenticación JWT (Bearer). Tiempo real vía socket.io en el namespace /realtime.",
+    "version": "0.1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {
+      "RegisterDto": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string",
+            "description": "3-24 caracteres: letras, números, guion bajo o guion"
+          },
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string",
+            "description": "Mínimo 8 caracteres, con letras y números"
+          },
+          "country": {
+            "type": "string",
+            "example": "PE"
+          },
+          "city": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "description": "Descripción del organizador / biografía"
+          },
+          "asOrganizer": {
+            "type": "boolean",
+            "description": "Crear también el perfil de organizador",
+            "default": true
+          },
+          "organizerName": {
+            "type": "string",
+            "description": "Nombre público del organizador (por defecto nombre y apellido)"
+          },
+          "organizerType": {
+            "type": "string",
+            "enum": [
+              "PERSON",
+              "TEAM",
+              "CLUB",
+              "ACADEMY",
+              "COMPANY"
+            ]
+          }
+        },
+        "required": [
+          "firstName",
+          "lastName",
+          "username",
+          "email",
+          "password",
+          "country",
+          "city"
+        ]
+      },
+      "LoginDto": {
+        "type": "object",
+        "properties": {
+          "identifier": {
+            "type": "string",
+            "description": "Correo o nombre de usuario"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "identifier",
+          "password"
+        ]
+      },
+      "RefreshDto": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "refreshToken"
+        ]
+      },
+      "ChangePasswordDto": {
+        "type": "object",
+        "properties": {
+          "currentPassword": {
+            "type": "string"
+          },
+          "newPassword": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "currentPassword",
+          "newPassword"
+        ]
+      },
+      "UpdateUserProfileDto": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "bio": {
+            "type": "string"
+          },
+          "nickname": {
+            "type": "string"
+          },
+          "privacy": {
+            "type": "object",
+            "description": "Visibilidad del perfil público de jugador"
+          }
+        }
+      },
+      "BecomeOrganizerDto": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string"
+          },
+          "organizerType": {
+            "type": "string",
+            "enum": [
+              "PERSON",
+              "TEAM",
+              "CLUB",
+              "ACADEMY",
+              "COMPANY"
+            ]
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "displayName"
+        ]
+      },
+      "UpdateOrganizerDto": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string"
+          },
+          "legalName": {
+            "type": "string"
+          },
+          "organizerType": {
+            "type": "string",
+            "enum": [
+              "PERSON",
+              "TEAM",
+              "CLUB",
+              "ACADEMY",
+              "COMPANY"
+            ]
+          },
+          "description": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "website": {
+            "type": "string"
+          },
+          "socialLinks": {
+            "type": "object",
+            "description": "Redes sociales: { instagram, x, youtube, twitch, tiktok, facebook, discord }"
+          },
+          "primaryColor": {
+            "type": "string",
+            "description": "Color de acento (#RRGGBB). Requiere personalización completa (PRO+)"
+          }
+        }
+      },
+      "SportDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "iconUrl": {
+            "type": "string"
+          },
+          "allowsDraw": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE"
+            ]
+          },
+          "sortOrder": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateSportDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "iconUrl": {
+            "type": "string"
+          },
+          "allowsDraw": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE"
+            ]
+          },
+          "sortOrder": {
+            "type": "number"
+          }
+        }
+      },
+      "GameDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "logoUrl": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "example": "FPS"
+          },
+          "platforms": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "PC",
+                "PLAYSTATION",
+                "XBOX",
+                "NINTENDO",
+                "MOBILE",
+                "CROSSPLAY",
+                "NONE"
+              ]
+            }
+          },
+          "allowsDraw": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE"
+            ]
+          },
+          "sortOrder": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateGameDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "logoUrl": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "example": "FPS"
+          },
+          "platforms": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "PC",
+                "PLAYSTATION",
+                "XBOX",
+                "NINTENDO",
+                "MOBILE",
+                "CROSSPLAY",
+                "NONE"
+              ]
+            }
+          },
+          "allowsDraw": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE"
+            ]
+          },
+          "sortOrder": {
+            "type": "number"
+          }
+        }
+      },
+      "GameRankDto": {
+        "type": "object",
+        "properties": {
+          "rankName": {
+            "type": "string"
+          },
+          "rankLevel": {
+            "type": "number"
+          },
+          "rankOrder": {
+            "type": "number"
+          },
+          "iconUrl": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE"
+            ]
+          }
+        },
+        "required": [
+          "rankName",
+          "rankLevel",
+          "rankOrder"
+        ]
+      },
+      "UpdateGameRankDto": {
+        "type": "object",
+        "properties": {
+          "rankName": {
+            "type": "string"
+          },
+          "rankLevel": {
+            "type": "number"
+          },
+          "rankOrder": {
+            "type": "number"
+          },
+          "iconUrl": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE"
+            ]
+          }
+        }
+      },
+      "CreateTournamentDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nombre de la partida"
+          },
+          "competitionName": {
+            "type": "string",
+            "description": "Nombre del torneo / competición que agrupa la partida"
+          },
+          "description": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "SPORT",
+              "ESPORT"
+            ]
+          },
+          "sportId": {
+            "type": "string"
+          },
+          "gameId": {
+            "type": "string"
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "PC",
+              "PLAYSTATION",
+              "XBOX",
+              "NINTENDO",
+              "MOBILE",
+              "CROSSPLAY",
+              "NONE"
+            ]
+          },
+          "startsAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fecha y hora de inicio (ISO 8601)"
+          },
+          "registrationDeadline": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fecha límite de inscripción (ISO 8601)"
+          },
+          "maxParticipants": {
+            "type": "number",
+            "minimum": 2,
+            "maximum": 1024
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "INDIVIDUAL",
+              "TEAM"
+            ]
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "SINGLE_ELIMINATION",
+              "DOUBLE_ELIMINATION",
+              "ROUND_ROBIN",
+              "GROUPS",
+              "GROUPS_PLAYOFFS"
+            ]
+          },
+          "groupCount": {
+            "type": "number"
+          },
+          "qualifiersPerGroup": {
+            "type": "number"
+          },
+          "isOnline": {
+            "type": "boolean"
+          },
+          "location": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "entryFee": {
+            "type": "number",
+            "description": "Cuota informativa de inscripción",
+            "default": 0
+          },
+          "currency": {
+            "type": "string",
+            "default": "USD"
+          },
+          "rules": {
+            "type": "string"
+          },
+          "refundPolicy": {
+            "type": "string"
+          },
+          "minLevel": {
+            "type": "string",
+            "enum": [
+              "BEGINNER",
+              "INTERMEDIATE",
+              "ADVANCED",
+              "EXPERT",
+              "PROFESSIONAL"
+            ]
+          },
+          "maxLevel": {
+            "type": "string",
+            "enum": [
+              "BEGINNER",
+              "INTERMEDIATE",
+              "ADVANCED",
+              "EXPERT",
+              "PROFESSIONAL"
+            ]
+          },
+          "pointsWin": {
+            "type": "number",
+            "default": 3
+          },
+          "pointsDraw": {
+            "type": "number",
+            "default": 1
+          },
+          "pointsLoss": {
+            "type": "number",
+            "default": 0
+          },
+          "draft": {
+            "type": "boolean",
+            "description": "Guardar como borrador (no visible públicamente)"
+          }
+        },
+        "required": [
+          "name",
+          "category",
+          "startsAt",
+          "registrationDeadline",
+          "maxParticipants",
+          "mode",
+          "format"
+        ]
+      },
+      "UpdateTournamentDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nombre de la partida"
+          },
+          "competitionName": {
+            "type": "string",
+            "description": "Nombre del torneo / competición que agrupa la partida"
+          },
+          "description": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "SPORT",
+              "ESPORT"
+            ]
+          },
+          "sportId": {
+            "type": "string"
+          },
+          "gameId": {
+            "type": "string"
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "PC",
+              "PLAYSTATION",
+              "XBOX",
+              "NINTENDO",
+              "MOBILE",
+              "CROSSPLAY",
+              "NONE"
+            ]
+          },
+          "startsAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fecha y hora de inicio (ISO 8601)"
+          },
+          "registrationDeadline": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fecha límite de inscripción (ISO 8601)"
+          },
+          "maxParticipants": {
+            "type": "number",
+            "minimum": 2,
+            "maximum": 1024
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "INDIVIDUAL",
+              "TEAM"
+            ]
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "SINGLE_ELIMINATION",
+              "DOUBLE_ELIMINATION",
+              "ROUND_ROBIN",
+              "GROUPS",
+              "GROUPS_PLAYOFFS"
+            ]
+          },
+          "groupCount": {
+            "type": "number"
+          },
+          "qualifiersPerGroup": {
+            "type": "number"
+          },
+          "isOnline": {
+            "type": "boolean"
+          },
+          "location": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "entryFee": {
+            "type": "number",
+            "description": "Cuota informativa de inscripción",
+            "default": 0
+          },
+          "currency": {
+            "type": "string",
+            "default": "USD"
+          },
+          "rules": {
+            "type": "string"
+          },
+          "refundPolicy": {
+            "type": "string"
+          },
+          "minLevel": {
+            "type": "string",
+            "enum": [
+              "BEGINNER",
+              "INTERMEDIATE",
+              "ADVANCED",
+              "EXPERT",
+              "PROFESSIONAL"
+            ]
+          },
+          "maxLevel": {
+            "type": "string",
+            "enum": [
+              "BEGINNER",
+              "INTERMEDIATE",
+              "ADVANCED",
+              "EXPERT",
+              "PROFESSIONAL"
+            ]
+          },
+          "pointsWin": {
+            "type": "number",
+            "default": 3
+          },
+          "pointsDraw": {
+            "type": "number",
+            "default": 1
+          },
+          "pointsLoss": {
+            "type": "number",
+            "default": 0
+          },
+          "changeReason": {
+            "type": "string",
+            "description": "Motivo del cambio (se notifica a los inscritos si cambia el horario)"
+          }
+        }
+      },
+      "ChangeStatusDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "OPEN",
+              "IN_PROGRESS",
+              "FINISHED"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "CancelTournamentDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
+      "RequestRegistrationDto": {
+        "type": "object",
+        "properties": {
+          "teamId": {
+            "type": "string",
+            "description": "Equipo a inscribir (torneos por equipos)"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "acceptRules": {
+            "type": "boolean",
+            "description": "Confirma haber leído reglamento, cuota y condiciones"
+          }
+        },
+        "required": [
+          "acceptRules"
+        ]
+      },
+      "DecideRegistrationDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "APPROVED",
+              "REJECTED"
+            ]
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "CreateTeamDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "tag": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "sportId": {
+            "type": "string"
+          },
+          "gameId": {
+            "type": "string"
+          },
+          "recruitmentStatus": {
+            "type": "string",
+            "enum": [
+              "NOT_LOOKING",
+              "LOOKING_FOR_TEAM",
+              "LOOKING_FOR_PLAYERS"
+            ]
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateTeamDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "tag": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "sportId": {
+            "type": "string"
+          },
+          "gameId": {
+            "type": "string"
+          },
+          "recruitmentStatus": {
+            "type": "string",
+            "enum": [
+              "NOT_LOOKING",
+              "LOOKING_FOR_TEAM",
+              "LOOKING_FOR_PLAYERS"
+            ]
+          }
+        }
+      },
+      "AddMemberDto": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "description": "username del jugador con cuenta"
+          },
+          "role": {
+            "type": "string"
+          },
+          "jerseyNumber": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "username"
+        ]
+      },
+      "SetCaptainDto": {
+        "type": "object",
+        "properties": {
+          "playerId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerId"
+        ]
+      }
+    }
+  }
+}

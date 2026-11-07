@@ -1,0 +1,74 @@
+# Arena Torneos - stack completo
+#   Desarrollo (solo infraestructura):  docker compose up -d db storage
+#   Stack completo:                     docker compose --profile app up -d --build
+name: arena
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-arena}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-arena_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-arena}
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-arena} -d ${POSTGRES_DB:-arena}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # Almacenamiento S3-compatible local (SeaweedFS). En producción: AWS S3 / R2 / Cloudinary-S3.
+  # La API crea los buckets al arrancar: arena-public (logos, avatares) y arena-private (documentos).
+  storage:
+    image: chrislusf/seaweedfs:3.97
+    restart: unless-stopped
+    command: server -dir=/data -s3 -s3.port=8333 -s3.config=/etc/seaweedfs/s3.json -master.volumeSizeLimitMB=256
+    ports:
+      - "${S3_PORT:-8333}:8333"
+    volumes:
+      - storage_data:/data
+      - ./infra/seaweedfs/s3.json:/etc/seaweedfs/s3.json:ro
+
+  api:
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      storage:
+        condition: service_started
+    env_file:
+      - ./apps/api/.env.production
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-arena}:${POSTGRES_PASSWORD:-arena_dev_password}@db:5432/${POSTGRES_DB:-arena}?schema=public
+      S3_ENDPOINT: http://storage:8333
+    ports:
+      - "${API_PORT:-4100}:4100"
+
+  web:
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:4100}
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      API_INTERNAL_URL: http://api:4100
+      NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:4100}
+    ports:
+      - "${WEB_PORT:-3100}:3000"
+
+volumes:
+  db_data:
+  storage_data:

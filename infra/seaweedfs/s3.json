@@ -1,0 +1,13 @@
+{
+  "identities": [
+    {
+      "name": "arena_api",
+      "credentials": [{ "accessKey": "arena_s3_key", "secretKey": "arena_s3_secret_dev" }],
+      "actions": ["Admin", "Read", "Write", "List", "Tagging"]
+    },
+    {
+      "name": "anonymous",
+      "actions": ["Read:arena-public"]
+    }
+  ]
+}
