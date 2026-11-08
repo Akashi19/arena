@@ -51,6 +51,7 @@ export interface Discipline {
   slug: string;
   iconUrl?: string | null;
   logoUrl?: string | null;
+  platforms?: string[];
 }
 
 export interface TournamentCard {
@@ -533,4 +534,120 @@ export interface TournamentFeedback {
   rating: (Omit<RatingItem, 'author'> & { editableUntil: string; moderationStatus: ModerationStatus }) | null;
   canReportIncident: boolean;
   incidents: { id: string; incidentType: IncidentType; status: IncidentStatus; createdAt: string; resolution: string | null }[];
+}
+
+// ============================================================================ Rankings (módulo 22)
+
+export type RankingType = 'PLAYER' | 'TEAM';
+export type SeasonStatus = 'DRAFT' | 'SCHEDULED' | 'ACTIVE' | 'COMPLETED' | 'ARCHIVED';
+export type RuleStatus = 'DRAFT' | 'ACTIVE' | 'RETIRED';
+export type TrendStatus = 'UP' | 'DOWN' | 'SAME' | 'NEW';
+
+export interface RankingParticipant {
+  id: string;
+  name: string;
+  avatarUrl: string | null;
+  country: string | null;
+  username: string | null;
+  slug: string | null;
+  tag: string | null;
+}
+
+export interface RankingRowData {
+  participantId: string;
+  countryCode: string | null;
+  points: number;
+  wins: number;
+  losses: number;
+  draws: number;
+  matchesPlayed: number;
+  tournamentsPlayed: number;
+  tournamentsWon: number;
+  isProvisional: boolean;
+  positionGlobal: number | null;
+  positionCountry: number | null;
+  lastCalculatedAt: string;
+}
+
+export interface RankingSeason {
+  id: string;
+  name: string;
+  description: string | null;
+  gameId: string;
+  countryCode: string | null;
+  startDate: string;
+  endDate: string;
+  status: SeasonStatus;
+  minimumMatches: number;
+  scoringRulesVersion: number;
+  championPlayerId: string | null;
+  championTeamId: string | null;
+  champions?: { player: RankingParticipant | null; team: RankingParticipant | null };
+  game?: { id: string; name: string; slug?: string };
+}
+
+export interface RankingTableRow extends RankingRowData {
+  position: number | null;
+  participant: RankingParticipant | null;
+  trend: { status: TrendStatus; delta: number } | null;
+}
+
+export interface RankingTable extends Paginated<RankingTableRow> {
+  game: { id: string; name: string; slug: string; logoUrl: string | null };
+  type: RankingType;
+  country: string | null;
+  season: RankingSeason | null;
+  minimumMatches: number;
+  updatedAt: string | null;
+  provisional: RankingTableRow[];
+}
+
+export interface RankingEventItem {
+  id: string;
+  eventType: string;
+  pointsAwarded: number;
+  placement: number | null;
+  isReverted: boolean;
+  revertReason: string | null;
+  matchId: string | null;
+  createdAt: string;
+  game: { id: string; name: string };
+  tournament: { id: string; name: string; slug: string; endsAt: string | null } | null;
+}
+
+export interface CompetitiveGame {
+  game: { id: string; name: string; slug: string; logoUrl: string | null };
+  historic: (RankingRowData & { gameId: string; seasonId: null }) | null;
+  trend: { status: TrendStatus; delta: number } | null;
+  currentSeason: { season: RankingSeason; row: RankingRowData; isChampion: boolean } | null;
+  seasons: { season: RankingSeason; row: RankingRowData; isChampion: boolean }[];
+}
+
+export interface CompetitiveProfile {
+  games: CompetitiveGame[];
+  events: RankingEventItem[];
+}
+
+export interface RankingHistory {
+  snapshots: { date: string; points: number; position: number }[];
+  weekly: { week: string; points: number; position: number }[];
+  seasons: { season: { id: string; name: string; status: SeasonStatus; countryCode: string | null }; position: number | null; points: number; isProvisional: boolean }[];
+}
+
+export interface RankingComparison {
+  game: { id: string; name: string };
+  type: RankingType;
+  seasonId: string | null;
+  items: { participant: RankingParticipant; row: RankingRowData | null; history: RankingHistory['weekly'] }[];
+  leaders: Record<string, string[]>;
+}
+
+export interface ResultReport {
+  id: string;
+  matchId: string;
+  reason: string;
+  status: 'OPEN' | 'UPHELD' | 'DISMISSED';
+  resolution: string | null;
+  createdAt: string;
+  reviewedAt: string | null;
 }

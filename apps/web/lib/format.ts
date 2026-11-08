@@ -178,3 +178,29 @@ export const RATING_CRITERIA = [
   { key: 'transparencyScore', avg: 'transparencyAverage', label: 'Transparencia', weight: '15 %' },
   { key: 'overallExperienceScore', avg: 'experienceAverage', label: 'Experiencia general', weight: '15 %' },
 ] as const;
+
+export const SEASON_STATUS_LABEL: Record<string, string> = {
+  DRAFT: 'Borrador',
+  SCHEDULED: 'Programada',
+  ACTIVE: 'Activa',
+  COMPLETED: 'Finalizada',
+  ARCHIVED: 'Archivada',
+};
+
+export const RULE_STATUS_LABEL: Record<string, string> = { DRAFT: 'Borrador', ACTIVE: 'Activa', RETIRED: 'Retirada' };
+
+export const RANKING_EVENT_LABEL: Record<string, string> = {
+  MATCH_WIN: 'Victoria',
+  MATCH_DRAW: 'Empate',
+  MATCH_LOSS: 'Derrota',
+  MATCH_PARTICIPATION: 'Participación',
+  TOURNAMENT_PLACEMENT: 'Puesto final',
+  ADJUSTMENT: 'Ajuste administrativo',
+};
+
+export const REPORT_STATUS_LABEL: Record<string, string> = { OPEN: 'En revisión', UPHELD: 'Procede', DISMISSED: 'Desestimado' };
+
+/** Fechas de calendario (inicio/fin de temporada, vigencia de reglas, semanas): se guardan a las 00:00 UTC. */
+export const formatDay = (iso: string) => formatDate(iso, { timeZone: 'UTC' });
+
+export const formatPoints = (n: number) => new Intl.NumberFormat('es').format(n);

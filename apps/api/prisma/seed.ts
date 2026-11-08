@@ -12,6 +12,7 @@ import { PrismaClient } from '../src/generated/prisma/client.js';
 import type { Platform, PlanCode } from '../src/generated/prisma/client.js';
 import { refreshPlayerStats } from '../src/players/stats.js';
 import { ReputationService } from '../src/trust/reputation.js';
+import { recomputeGame, syncTournament } from '../src/rankings/engine.js';
 
 const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }) });
 const DEMO_PASSWORD = 'Arena2026demo';
@@ -187,6 +188,22 @@ async function seedCatalog() {
             placement: { '1': 100, '2': 60, '3': 40 },
             tierMultiplier: { '1': 1, '2': 1.25, '3': 1.5, '4': 2, '5': 3 },
           },
+        },
+      });
+    }
+    // Temporada competitiva vigente (global) por videojuego; el histórico acumulado va aparte
+    const seasonName = 'Temporada 2026';
+    if (!(await prisma.rankingSeason.findFirst({ where: { gameId: game.id, name: seasonName } }))) {
+      await prisma.rankingSeason.create({
+        data: {
+          name: seasonName,
+          description: 'Temporada anual global. Los puntos se reinician al comenzar la siguiente.',
+          gameId: game.id,
+          startDate: new Date('2026-01-01T00:00:00Z'),
+          endDate: new Date('2026-12-31T23:59:59Z'),
+          status: 'ACTIVE',
+          scoringRulesVersion: 1,
+          minimumMatches: 5,
         },
       });
     }
@@ -506,6 +523,10 @@ async function main() {
   // Reputación de todos los organizadores con el motor real (idempotente; auditoría desactivada en el seed)
   const reputation = new ReputationService(prisma as never, { log: async () => undefined } as never);
   for (const o of await prisma.organizerProfile.findMany({ select: { id: true } })) await reputation.recalculate(o.id);
+  // Ranking global con el motor real (idempotente): eventos de los torneos finalizados y posiciones
+  const finished = await prisma.tournament.findMany({ where: { status: 'FINISHED', gameId: { not: null } }, select: { id: true, gameId: true } });
+  for (const t of finished) await syncTournament(prisma as never, t.id);
+  for (const gameId of new Set(finished.map((t) => t.gameId!))) await recomputeGame(prisma as never, gameId);
 }
 
 main()

@@ -14,6 +14,7 @@ import { PlanLimitsService } from '../plans/plans.js';
 import { MatchesService } from '../matches/matches.js';
 import { refreshPlayerStats, tournamentPlayerIds } from '../players/stats.js';
 import { ReputationService } from '../trust/reputation.js';
+import { RankingEngineService } from '../rankings/rankings.js';
 import type { AuthUser } from '../common/decorators/auth.decorators.js';
 import { organizerPublicSelect, paginate, slugify, uniqueSlug } from '../common/utils/index.js';
 import { assertCanManageOrganizer, levelIndex, requireOwnOrganizer } from '../common/utils/access.js';
@@ -87,6 +88,7 @@ export class TournamentsService {
     private readonly limits: PlanLimitsService,
     private readonly matches: MatchesService,
     private readonly reputation: ReputationService,
+    private readonly rankings: RankingEngineService,
   ) {}
 
   // =========================================================================== Consulta pública
@@ -536,7 +538,11 @@ export class TournamentsService {
         link: `/torneos/${updated.slug}`,
       });
     }
-    if (dto.status === 'FINISHED') await this.reputation.recalculateSafe(current.organizerId, 'Partida finalizada');
+    if (dto.status === 'FINISHED') {
+      await this.reputation.recalculateSafe(current.organizerId, 'Partida finalizada');
+      // Ranking global: los resultados validados del torneo generan puntos (idempotente)
+      await this.rankings.processTournament(id);
+    }
     this.realtime.emitToTournament(id, 'tournament:status', { id, status: updated.status });
     return updated;
   }

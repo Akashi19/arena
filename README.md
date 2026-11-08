@@ -23,7 +23,8 @@ solicitan su inscripción.
 | 17 | SaaS: planes, límites y "Mi suscripción" | 🟡 planes, feature flags y límites en backend; faltan pagos (Stripe/Mercado Pago), webhooks y la gestión de planes en el panel SUPERADMIN |
 | 18-20 | Verificación, reputación y Trust & Reputation System | ✅ solicitudes con documentos privados y revisión SUPERADMIN (vencimiento y conservación automáticos), valoraciones con edición, respuestas, reportes y moderación, incidencias, motor de reputación, centro de confianza público y dashboard de confianza |
 | 21 | Perfiles gamer y niveles competitivos | ✅ perfiles por videojuego (orden, principal, favorito), nivel declarado / verificado por la plataforma / verificado externamente con historial, comparador, búsqueda de reclutamiento e invitaciones de equipos, requisitos de nivel y rango en las partidas, logros por eventos (MVP, tres títulos consecutivos) |
-| 22-23 | Rankings globales, transmisiones en vivo | ⏳ tablas creadas; faltan rankings y transmisiones |
+| 22 | Ranking global de jugadores y equipos | ✅ motor de puntuación idempotente y versionado, rankings global, nacional, por temporada e histórico, temporadas con campeones, evolución por snapshots, comparador, perfiles competitivos, reportes de resultados y panel SUPERADMIN auditado |
+| 23 | Transmisiones en vivo | ⏳ tablas creadas |
 
 ## Stack
 
@@ -114,7 +115,7 @@ npm run dev:web
 
 ### Datos de prueba
 
-El seed crea planes, 6 deportes, 8 videojuegos con sus rangos, logros, reglas de ranking v1 y datos demo.
+El seed crea planes, 6 deportes, 8 videojuegos con sus rangos, logros, reglas de ranking v1, la Temporada 2026 de cada juego y datos demo; al final calcula el ranking con el motor real.
 Todas las cuentas demo usan la contraseña `Arena2026demo` (solo desarrollo):
 
 | Usuario | Rol | Notas |

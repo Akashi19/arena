@@ -10,6 +10,7 @@ const ITEMS = [
   { href: '/admin/incidencias', label: 'Incidencias' },
   { href: '/admin/reputacion', label: 'Reputación' },
   { href: '/admin/niveles', label: 'Niveles' },
+  { href: '/admin/rankings', label: 'Rankings' },
 ];
 
 export function AdminNav() {

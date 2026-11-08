@@ -3114,6 +3114,1240 @@
         ]
       }
     },
+    "/api/rankings": {
+      "get": {
+        "operationId": "RankingsController_list",
+        "parameters": [
+          {
+            "name": "game",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PLAYER",
+                "TEAM"
+              ]
+            }
+          },
+          {
+            "name": "country",
+            "required": false,
+            "in": "query",
+            "description": "ISO 3166-1 alfa-2",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "season",
+            "required": false,
+            "in": "query",
+            "description": "Temporada; sin ella, histórico acumulado",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "platform",
+            "required": false,
+            "in": "query",
+            "description": "Solo ranking individual",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PC",
+                "PLAYSTATION",
+                "XBOX",
+                "NINTENDO",
+                "MOBILE",
+                "CROSSPLAY",
+                "NONE"
+              ]
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Rankings"
+        ]
+      }
+    },
+    "/api/rankings/global": {
+      "get": {
+        "operationId": "RankingsController_global",
+        "parameters": [
+          {
+            "name": "game",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PLAYER",
+                "TEAM"
+              ]
+            }
+          },
+          {
+            "name": "country",
+            "required": false,
+            "in": "query",
+            "description": "ISO 3166-1 alfa-2",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "season",
+            "required": false,
+            "in": "query",
+            "description": "Temporada; sin ella, histórico acumulado",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "platform",
+            "required": false,
+            "in": "query",
+            "description": "Solo ranking individual",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PC",
+                "PLAYSTATION",
+                "XBOX",
+                "NINTENDO",
+                "MOBILE",
+                "CROSSPLAY",
+                "NONE"
+              ]
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Rankings"
+        ]
+      }
+    },
+    "/api/rankings/games/{gameId}": {
+      "get": {
+        "operationId": "RankingsController_byGame",
+        "parameters": [
+          {
+            "name": "gameId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "game",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PLAYER",
+                "TEAM"
+              ]
+            }
+          },
+          {
+            "name": "country",
+            "required": false,
+            "in": "query",
+            "description": "ISO 3166-1 alfa-2",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "season",
+            "required": false,
+            "in": "query",
+            "description": "Temporada; sin ella, histórico acumulado",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "platform",
+            "required": false,
+            "in": "query",
+            "description": "Solo ranking individual",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PC",
+                "PLAYSTATION",
+                "XBOX",
+                "NINTENDO",
+                "MOBILE",
+                "CROSSPLAY",
+                "NONE"
+              ]
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Rankings"
+        ]
+      }
+    },
+    "/api/rankings/countries/{countryCode}": {
+      "get": {
+        "operationId": "RankingsController_byCountry",
+        "parameters": [
+          {
+            "name": "countryCode",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "game",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PLAYER",
+                "TEAM"
+              ]
+            }
+          },
+          {
+            "name": "country",
+            "required": false,
+            "in": "query",
+            "description": "ISO 3166-1 alfa-2",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "season",
+            "required": false,
+            "in": "query",
+            "description": "Temporada; sin ella, histórico acumulado",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "platform",
+            "required": false,
+            "in": "query",
+            "description": "Solo ranking individual",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PC",
+                "PLAYSTATION",
+                "XBOX",
+                "NINTENDO",
+                "MOBILE",
+                "CROSSPLAY",
+                "NONE"
+              ]
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Rankings"
+        ]
+      }
+    },
+    "/api/rankings/seasons": {
+      "get": {
+        "operationId": "RankingsController_seasons",
+        "parameters": [
+          {
+            "name": "game",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Rankings"
+        ]
+      }
+    },
+    "/api/rankings/seasons/{seasonId}": {
+      "get": {
+        "operationId": "RankingsController_bySeason",
+        "parameters": [
+          {
+            "name": "seasonId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "game",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PLAYER",
+                "TEAM"
+              ]
+            }
+          },
+          {
+            "name": "country",
+            "required": false,
+            "in": "query",
+            "description": "ISO 3166-1 alfa-2",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "season",
+            "required": false,
+            "in": "query",
+            "description": "Temporada; sin ella, histórico acumulado",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "platform",
+            "required": false,
+            "in": "query",
+            "description": "Solo ranking individual",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PC",
+                "PLAYSTATION",
+                "XBOX",
+                "NINTENDO",
+                "MOBILE",
+                "CROSSPLAY",
+                "NONE"
+              ]
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Rankings"
+        ]
+      }
+    },
+    "/api/rankings/rules": {
+      "get": {
+        "operationId": "RankingsController_rules",
+        "parameters": [
+          {
+            "name": "game",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Rankings"
+        ]
+      }
+    },
+    "/api/rankings/compare": {
+      "get": {
+        "operationId": "RankingsController_compare",
+        "parameters": [
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PLAYER",
+                "TEAM"
+              ]
+            }
+          },
+          {
+            "name": "game",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "season",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ids",
+            "required": true,
+            "in": "query",
+            "description": "IDs separados por coma (2-4)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Rankings"
+        ]
+      }
+    },
+    "/api/rankings/players/{playerId}": {
+      "get": {
+        "operationId": "RankingsController_player",
+        "parameters": [
+          {
+            "name": "playerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Rankings"
+        ]
+      }
+    },
+    "/api/rankings/teams/{teamId}": {
+      "get": {
+        "operationId": "RankingsController_team",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Rankings"
+        ]
+      }
+    },
+    "/api/rankings/history/{participantId}": {
+      "get": {
+        "operationId": "RankingsController_history",
+        "parameters": [
+          {
+            "name": "participantId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PLAYER",
+                "TEAM"
+              ]
+            }
+          },
+          {
+            "name": "game",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "season",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Rankings"
+        ]
+      }
+    },
+    "/api/rankings/reports": {
+      "post": {
+        "operationId": "RankingsController_report",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResultReportDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Rankings"
+        ]
+      }
+    },
+    "/api/rankings/reports/mine": {
+      "get": {
+        "operationId": "RankingsController_myReports",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Rankings"
+        ]
+      }
+    },
+    "/api/admin/ranking/seasons": {
+      "get": {
+        "operationId": "AdminRankingsController_seasons",
+        "parameters": [
+          {
+            "name": "game",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "SUPERADMIN · Rankings"
+        ]
+      },
+      "post": {
+        "operationId": "AdminRankingsController_createSeason",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SeasonDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "SUPERADMIN · Rankings"
+        ]
+      }
+    },
+    "/api/admin/ranking/seasons/{id}": {
+      "put": {
+        "operationId": "AdminRankingsController_updateSeason",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSeasonDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "SUPERADMIN · Rankings"
+        ]
+      }
+    },
+    "/api/admin/ranking/rules": {
+      "get": {
+        "operationId": "AdminRankingsController_rules",
+        "parameters": [
+          {
+            "name": "game",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "SUPERADMIN · Rankings"
+        ]
+      },
+      "post": {
+        "operationId": "AdminRankingsController_createRule",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RuleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "SUPERADMIN · Rankings"
+        ]
+      }
+    },
+    "/api/admin/ranking/rules/{id}": {
+      "put": {
+        "operationId": "AdminRankingsController_updateRule",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRuleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "SUPERADMIN · Rankings"
+        ]
+      }
+    },
+    "/api/admin/ranking/recalculate": {
+      "post": {
+        "operationId": "AdminRankingsController_recalculate",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecalculateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "SUPERADMIN · Rankings"
+        ]
+      }
+    },
+    "/api/admin/ranking/audit": {
+      "get": {
+        "operationId": "AdminRankingsController_audit",
+        "parameters": [
+          {
+            "name": "entityType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "SUPERADMIN · Rankings"
+        ]
+      }
+    },
+    "/api/admin/ranking/events": {
+      "get": {
+        "operationId": "AdminRankingsController_events",
+        "parameters": [
+          {
+            "name": "game",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "participant",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tournament",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "SUPERADMIN · Rankings"
+        ]
+      }
+    },
+    "/api/admin/ranking/events/{id}/revert": {
+      "post": {
+        "operationId": "AdminRankingsController_revert",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "SUPERADMIN · Rankings"
+        ]
+      }
+    },
+    "/api/admin/ranking/adjustments": {
+      "post": {
+        "operationId": "AdminRankingsController_adjust",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdjustmentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "SUPERADMIN · Rankings"
+        ]
+      }
+    },
+    "/api/admin/ranking/suspensions": {
+      "put": {
+        "operationId": "AdminRankingsController_suspend",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuspensionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "SUPERADMIN · Rankings"
+        ]
+      }
+    },
+    "/api/admin/ranking/tournaments": {
+      "get": {
+        "operationId": "AdminRankingsController_tournaments",
+        "parameters": [
+          {
+            "name": "game",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "SUPERADMIN · Rankings"
+        ]
+      }
+    },
+    "/api/admin/ranking/tournaments/{id}": {
+      "put": {
+        "operationId": "AdminRankingsController_updateTournament",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TournamentRankingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "SUPERADMIN · Rankings"
+        ]
+      }
+    },
+    "/api/admin/ranking/reports": {
+      "get": {
+        "operationId": "AdminRankingsController_reports",
+        "parameters": [
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "OPEN",
+                "UPHELD",
+                "DISMISSED"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "SUPERADMIN · Rankings"
+        ]
+      }
+    },
+    "/api/admin/ranking/reports/{id}": {
+      "put": {
+        "operationId": "AdminRankingsController_review",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewReportDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "SUPERADMIN · Rankings"
+        ]
+      }
+    },
+    "/api/admin/ranking/anomalies": {
+      "get": {
+        "operationId": "AdminRankingsController_anomalies",
+        "parameters": [
+          {
+            "name": "game",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "SUPERADMIN · Rankings"
+        ]
+      }
+    },
     "/api/me/teams": {
       "get": {
         "operationId": "TeamsController_mine",
@@ -4974,6 +6208,292 @@
         },
         "required": [
           "action"
+        ]
+      },
+      "ResultReportDto": {
+        "type": "object",
+        "properties": {
+          "matchId": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "matchId",
+          "reason"
+        ]
+      },
+      "SeasonDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "gameId": {
+            "type": "string"
+          },
+          "countryCode": {
+            "type": "object",
+            "description": "Vacío = global"
+          },
+          "startDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "endDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "minimumMatches": {
+            "type": "number"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "SCHEDULED"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "gameId",
+          "startDate",
+          "endDate"
+        ]
+      },
+      "UpdateSeasonDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "startDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "endDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "minimumMatches": {
+            "type": "number"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "SCHEDULED",
+              "ACTIVE",
+              "COMPLETED",
+              "ARCHIVED"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "description": "Justificación (auditoría)"
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
+      "RuleDto": {
+        "type": "object",
+        "properties": {
+          "gameId": {
+            "type": "string"
+          },
+          "competitionType": {
+            "type": "string",
+            "enum": [
+              "INDIVIDUAL",
+              "TEAM"
+            ]
+          },
+          "scoringConfiguration": {
+            "type": "object",
+            "description": "{ win, draw, loss, participation, placement, tierMultiplier, maxPerTournament }"
+          },
+          "minimumMatches": {
+            "type": "number"
+          },
+          "effectiveFrom": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "gameId",
+          "competitionType",
+          "scoringConfiguration",
+          "effectiveFrom",
+          "reason"
+        ]
+      },
+      "UpdateRuleDto": {
+        "type": "object",
+        "properties": {
+          "scoringConfiguration": {
+            "type": "object"
+          },
+          "minimumMatches": {
+            "type": "number"
+          },
+          "effectiveFrom": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "ACTIVE",
+              "RETIRED"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
+      "RecalculateDto": {
+        "type": "object",
+        "properties": {
+          "gameId": {
+            "type": "string",
+            "description": "Sin juego: todos"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
+      "ReasonDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
+      "AdjustmentDto": {
+        "type": "object",
+        "properties": {
+          "rankingType": {
+            "type": "string",
+            "enum": [
+              "PLAYER",
+              "TEAM"
+            ]
+          },
+          "participantId": {
+            "type": "string"
+          },
+          "gameId": {
+            "type": "string"
+          },
+          "points": {
+            "type": "number",
+            "description": "Puntos a sumar (negativo para restar)"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "rankingType",
+          "participantId",
+          "gameId",
+          "points",
+          "reason"
+        ]
+      },
+      "SuspensionDto": {
+        "type": "object",
+        "properties": {
+          "rankingType": {
+            "type": "string",
+            "enum": [
+              "PLAYER",
+              "TEAM"
+            ]
+          },
+          "participantId": {
+            "type": "string"
+          },
+          "until": {
+            "type": "object",
+            "nullable": true,
+            "description": "Hasta cuándo (null = levantar la suspensión)"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "rankingType",
+          "participantId",
+          "until",
+          "reason"
+        ]
+      },
+      "TournamentRankingDto": {
+        "type": "object",
+        "properties": {
+          "tier": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "isRanked": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
+      "ReviewReportDto": {
+        "type": "object",
+        "properties": {
+          "decision": {
+            "type": "string",
+            "enum": [
+              "UPHELD",
+              "DISMISSED"
+            ]
+          },
+          "resolution": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "decision",
+          "resolution"
         ]
       },
       "CreateTeamDto": {

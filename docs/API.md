@@ -100,6 +100,22 @@
 | PATCH | `/admin/tournaments/{id}/cancellation` | SUPERADMIN | Marca una cancelación como justificada o no |
 | GET | `/plans` · `/me/subscription` | — · Organizador | Planes · plan actual, uso y funcionalidades |
 | GET | `/me/notifications` · PATCH `/{id}/read` · POST `/read-all` | ✔ | Notificaciones |
+| GET | `/rankings` | — | Clasificación de un videojuego: `game`, `type` (`PLAYER`/`TEAM`), `country`, `season` (sin ella, histórico acumulado), `platform`, paginación. Incluye evolución (↑ ↓ = NEW), provisionales y fecha de actualización |
+| GET | `/rankings/global` · `/rankings/games/{gameId}` · `/rankings/countries/{countryCode}` · `/rankings/seasons/{seasonId}` | — | La misma tabla con el alcance fijado por la ruta |
+| GET | `/rankings/seasons` · `/rankings/rules` | — | Temporadas publicadas (con campeones) · reglas de puntuación vigentes (`game`) |
+| GET | `/rankings/players/{playerId}` · `/rankings/teams/{teamId}` | — | Perfil competitivo: posición global, nacional y de temporada por juego, historial de temporadas y últimos eventos (equipos: integrantes actuales e históricos y cambios de identidad) |
+| GET | `/rankings/history/{participantId}` | — | Snapshots, resumen semanal y posición por temporada (`type`, `game`, `season`) |
+| GET | `/rankings/compare` | — | Compara 2-4 participantes (`ids=a,b`) de un juego; marca el mejor valor por métrica |
+| POST · GET | `/rankings/reports` · `/rankings/reports/mine` | ✔ | Reporta un resultado incorrecto (solo participantes del encuentro, 30 días tras el cierre) · mis reportes |
+| GET · POST · PUT | `/admin/ranking/seasons` · `/{id}` | SUPERADMIN | Temporadas: alta, fechas, mínimo de encuentros y estados `DRAFT → SCHEDULED → ACTIVE → COMPLETED → ARCHIVED` (al cerrar se fijan los campeones) |
+| GET · POST · PUT | `/admin/ranking/rules` · `/{id}` | SUPERADMIN | Reglas versionadas por juego y modalidad; activar o retirar una versión recalcula el juego |
+| POST | `/admin/ranking/recalculate` | SUPERADMIN | Reprocesa los torneos finalizados (`gameId` opcional, `reason`); idempotente |
+| GET | `/admin/ranking/audit` · `/admin/ranking/events` | SUPERADMIN | Historial de modificaciones · eventos de puntuación (quién confirmó cada resultado) |
+| POST | `/admin/ranking/events/{id}/revert` · `/admin/ranking/adjustments` | SUPERADMIN | Revertir un evento · ajuste de puntos (± con justificación); nunca se borra historial |
+| PUT | `/admin/ranking/suspensions` | SUPERADMIN | Suspensión temporal del ranking (`until` o `null` para levantarla) |
+| GET · PUT | `/admin/ranking/tournaments` · `/{id}` | SUPERADMIN | Nivel (1-5) de cada partida y si puntúa |
+| GET · PUT | `/admin/ranking/reports` · `/{id}` | SUPERADMIN | Revisión de resultados reportados: `UPHELD` revierte los puntos del encuentro, `DISMISSED` lo archiva |
+| GET | `/admin/ranking/anomalies` | SUPERADMIN | Señales de manipulación: enfrentamientos repetidos con el mismo ganador y puntos concentrados en un organizador |
 
 ## Tiempo real
 
@@ -113,8 +129,9 @@ Conexión socket.io a `http://localhost:4100/realtime`, con `auth: { token }` pa
 |---|---|
 | `notification` | `user:{id}` |
 | `registration:changed`, `tournament:updated`, `tournament:status`, `fixture:updated`, `match:updated` | `tournament:{id}` |
+| `ranking:updated` `{ gameId }` | difusión general (al recalcularse el ranking de un juego) |
 
 ## Endpoints planificados en próximas fases
 
-Definidos en la especificación y respaldados por las tablas ya creadas: rankings (`/rankings/*`, `/admin/ranking/*`),
-transmisiones (`/matches/{id}/stream`, `/streams/live`) y pagos de suscripción con webhooks.
+Definidos en la especificación y respaldados por las tablas ya creadas: transmisiones (`/matches/{id}/stream`,
+`/streams/live`) y pagos de suscripción con webhooks.

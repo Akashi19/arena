@@ -3,7 +3,8 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Crown } from 'lucide-react';
 import { apiOrNull } from '@/lib/api';
-import type { TournamentStatus, VerificationStatus } from '@/lib/types';
+import type { CompetitiveProfile, TournamentStatus, VerificationStatus } from '@/lib/types';
+import { CompetitiveRanking } from '@/components/competitive-ranking';
 import { COUNTRIES, flag, formatDate } from '@/lib/format';
 import { Avatar, Stat, StatusBadge } from '@/components/ui';
 
@@ -54,6 +55,7 @@ export default async function TeamPublicPage({ params }: Props) {
   const { slug } = await params;
   const team = await apiOrNull<TeamPage>(`/teams/${encodeURIComponent(slug)}`, { auth: false });
   if (!team) notFound();
+  const ranking = await apiOrNull<CompetitiveProfile>(`/rankings/teams/${team.id}`, { auth: false });
 
   return (
     <div className="space-y-8">
@@ -115,6 +117,8 @@ export default async function TeamPublicPage({ params }: Props) {
           </details>
         )}
       </section>
+
+      {ranking && <CompetitiveRanking type="TEAM" participantId={team.id} profile={ranking} title="Ranking del equipo" />}
 
       <section>
         <h2 className="section-title mb-4">Historial de participaciones</h2>

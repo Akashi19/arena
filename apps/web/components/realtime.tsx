@@ -95,3 +95,23 @@ export function TournamentLive({ tournamentId }: { tournamentId: string }) {
   }, [tournamentId, router]);
   return null;
 }
+
+/** Refresca la tabla de ranking cuando la API recalcula ese videojuego (`ranking:updated`). */
+export function RankingLive({ gameId }: { gameId: string }) {
+  const router = useRouter();
+  useEffect(() => {
+    const s = getPublicSocket();
+    let pending: ReturnType<typeof setTimeout> | undefined;
+    const onUpdate = (e: { gameId?: string }) => {
+      if (e?.gameId !== gameId) return;
+      clearTimeout(pending);
+      pending = setTimeout(() => router.refresh(), 500);
+    };
+    s.on('ranking:updated', onUpdate);
+    return () => {
+      s.off('ranking:updated', onUpdate);
+      clearTimeout(pending);
+    };
+  }, [gameId, router]);
+  return null;
+}

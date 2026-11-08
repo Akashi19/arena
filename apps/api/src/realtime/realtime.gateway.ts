@@ -15,6 +15,7 @@ import { env } from '../config/env.js';
  * WebSockets (socket.io) para actualizaciones en tiempo real:
  *  - sala `user:{id}`        notificaciones personales (requiere JWT en handshake.auth.token)
  *  - sala `tournament:{id}`  cambios de inscripciones, resultados, horarios, streams (público)
+ *  - difusión general        `ranking:updated` { gameId } al recalcularse un ranking
  */
 @WebSocketGateway({ cors: { origin: env.corsOrigins, credentials: true }, namespace: '/realtime' })
 export class RealtimeGateway implements OnGatewayConnection {
@@ -54,6 +55,11 @@ export class RealtimeGateway implements OnGatewayConnection {
 
   emitToTournament(tournamentId: string, event: string, data: unknown) {
     this.server?.to(`tournament:${tournamentId}`).emit(event, data);
+  }
+
+  /** Difusión pública (p. ej., `ranking:updated` cuando se recalcula la clasificación de un juego). */
+  broadcast(event: string, data: unknown) {
+    this.server?.emit(event, data);
   }
 }
 

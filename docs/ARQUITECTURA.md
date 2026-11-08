@@ -125,6 +125,8 @@ erDiagram
 
 `ranking_events.event_reference` es único: procesar dos veces el mismo resultado no duplica puntos.
 `season_id NULL` en `player_rankings` / `team_rankings` representa el ranking histórico acumulado.
+`match_lineups` guarda qué integrantes representaron a cada equipo en cada encuentro y `ranking_result_reports` los
+reportes de resultados incorrectos.
 
 ## Reglas de negocio ya implementadas
 
@@ -189,6 +191,34 @@ erDiagram
   correspondiente. Si corrige la elección, el logro se retira al anterior salvo que lo respalde otra partida.
 - **Privacidad:** la ficha pública oculta nombre real, país, estadísticas, equipos o historial según
   `user_profiles.privacy`; el propio jugador siempre ve todo.
+
+### Ranking global (módulo 22)
+
+- **Motor** (`rankings/engine.ts`, servicio `RankingEngineService`): al finalizar un torneo de videojuego que puntúa
+  (`is_ranked`), genera eventos por cada encuentro con resultado `VALIDATED` (victoria/empate/derrota + participación) y
+  por el puesto final. Corre tras confirmar el cierre, en su propia transacción con un bloqueo por juego; si falla, el
+  cierre no se revierte y cualquier recálculo lo corrige.
+- **Idempotencia y trazabilidad:** la `event_reference` incluye torneo, encuentro, versión del resultado, versión de la
+  regla y puntos. Si algo cambia (regla, nivel del torneo), el evento anterior queda revertido y se crea otro; nunca se
+  borra. Las reversiones administrativas (`reverted_by_id`) no se deshacen al recalcular.
+- **Puntuación:** configurable y versionada por juego y modalidad (`ranking_rules`): victoria, empate, derrota,
+  participación, puntos por puesto, multiplicador por nivel del torneo (1-5, solo lo fija el SUPERADMIN) y tope por
+  torneo. Se aplica la versión `ACTIVE` vigente en la fecha de cierre; sin regla, los valores base (25/10/0/5,
+  100/60/40). Una versión activa no se edita: se crea otra. La calidad del rival y las estadísticas propias de cada
+  juego aún no ponderan.
+- **Clasificaciones:** se reconstruyen desde los eventos no revertidos para el histórico y cada temporada `ACTIVE`
+  (eventos dentro de sus fechas; las nacionales, solo participantes de ese país). Orden: puntos, victorias, títulos;
+  empate total comparte posición. Las temporadas cerradas quedan congeladas con su campeón individual y por equipos.
+- **Elegibilidad:** perfil gamer activo del juego (jugadores), cuenta y ficha no suspendidas, sin suspensión temporal del
+  ranking y el mínimo de encuentros de la regla o temporada. Si no, aparece como provisional.
+- **Equipos:** los puntos son del equipo que disputó la competición; sus integrantes los suman en el ranking individual
+  según la alineación registrada en ese momento. Cambiar la plantilla no traslada puntos.
+- **Evolución:** cada recálculo guarda el snapshot del día (y un proceso cada 6 h garantiza uno diario). ↑ ↓ = NEW
+  compara con el snapshot anterior; los gráficos usan el último snapshot de cada semana.
+- **Anti-manipulación:** solo resultados validados; reportes de resultados por los participantes (30 días); revisión
+  SUPERADMIN que, si procede, revierte los puntos del encuentro sin tocar el resultado original; señales de
+  enfrentamientos repetidos y de puntos concentrados en un organizador. Toda acción administrativa queda en
+  `ranking_audit_logs`. La reputación, la verificación y el plan del organizador no intervienen.
 
 ## Sistema de confianza (Trust & Reputation System)
 

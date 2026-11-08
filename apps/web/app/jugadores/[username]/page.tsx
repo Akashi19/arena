@@ -3,7 +3,8 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Award, Crown, Gamepad2, GitCompareArrows, Lock, Medal, Pencil, Send, Shirt, Swords, Trophy, Users } from 'lucide-react';
 import { apiOrNull } from '@/lib/api';
-import type { PlayerProfile, StatLine } from '@/lib/types';
+import type { CompetitiveProfile, PlayerProfile, StatLine } from '@/lib/types';
+import { CompetitiveRanking } from '@/components/competitive-ranking';
 import { COUNTRIES, flag, formatDate, RECRUITMENT_LABEL, STATUS_LABEL } from '@/lib/format';
 import { Avatar } from '@/components/ui';
 import { GameProfileCard } from '@/components/game-profile';
@@ -22,6 +23,7 @@ export default async function PlayerPage({ params }: Props) {
   const { username } = await params;
   const p = await apiOrNull<PlayerProfile>(`/players/${encodeURIComponent(username)}`);
   if (!p) notFound();
+  const ranking = await apiOrNull<CompetitiveProfile>(`/rankings/players/${p.id}`, { auth: false });
   const featured = p.gameProfiles.filter((g) => g.isFeatured || p.isOwner);
 
   return (
@@ -74,6 +76,8 @@ export default async function PlayerPage({ params }: Props) {
         {p.availability && <p className="relative mt-2 text-xs text-muted">Disponibilidad: {p.availability}</p>}
         {p.isSuspended && <p className="relative mt-3 text-sm text-danger">Ficha suspendida temporalmente.</p>}
       </section>
+
+      {ranking && ranking.games.length > 0 && <CompetitiveRanking type="PLAYER" participantId={p.id} profile={ranking} />}
 
       {/* Estadísticas */}
       {p.stats ? (

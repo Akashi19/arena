@@ -811,3 +811,202 @@ export async function setMvpAction(_: ActionState, fd: FormData): Promise<Action
     return fail(e);
   }
 }
+
+// ============================================================================ Rankings (módulo 22)
+
+export async function reportResultAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    await api('/rankings/reports', { method: 'POST', body: { matchId: str(fd, 'matchId'), reason: str(fd, 'reason') } });
+    revalidatePath('/dashboard/ranking');
+    return { ok: true, message: 'Reporte enviado: un administrador lo revisará' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+function revalidateRankingAdmin() {
+  revalidatePath('/admin/rankings');
+  revalidatePath('/admin/rankings/revision');
+  revalidatePath('/rankings');
+}
+
+/** Select "TIPO:uuid" del panel de rankings. */
+function participantOf(fd: FormData) {
+  const [rankingType, participantId] = (str(fd, 'participant') ?? '').split(':');
+  return { rankingType, participantId };
+}
+
+const dayStart = (v?: string) => (v ? new Date(`${v}T00:00:00Z`).toISOString() : undefined);
+const dayEnd = (v?: string) => (v ? new Date(`${v}T23:59:59Z`).toISOString() : undefined);
+
+export async function createSeasonAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    await api('/admin/ranking/seasons', {
+      method: 'POST',
+      body: {
+        name: str(fd, 'name'),
+        description: str(fd, 'description'),
+        gameId: str(fd, 'gameId'),
+        countryCode: str(fd, 'countryCode') ?? null,
+        startDate: dayStart(str(fd, 'startDate')),
+        endDate: dayEnd(str(fd, 'endDate')),
+        minimumMatches: num(fd, 'minimumMatches'),
+        status: str(fd, 'status'),
+      },
+    });
+    revalidateRankingAdmin();
+    return { ok: true, message: 'Temporada creada' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function updateSeasonAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    await api(`/admin/ranking/seasons/${str(fd, 'id')}`, { method: 'PUT', body: { status: str(fd, 'status'), reason: str(fd, 'reason') } });
+    revalidateRankingAdmin();
+    return { ok: true, message: 'Temporada actualizada' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function createRuleAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const placement: Record<string, number> = {};
+  for (const k of ['1', '2', '3', '4']) {
+    const v = num(fd, `place${k}`);
+    if (v !== undefined) placement[k] = v;
+  }
+  const tierMultiplier: Record<string, number> = {};
+  for (const k of ['1', '2', '3', '4', '5']) {
+    const v = num(fd, `tier${k}`);
+    if (v !== undefined) tierMultiplier[k] = v;
+  }
+  try {
+    await api('/admin/ranking/rules', {
+      method: 'POST',
+      body: {
+        gameId: str(fd, 'gameId'),
+        competitionType: str(fd, 'competitionType'),
+        minimumMatches: num(fd, 'minimumMatches'),
+        effectiveFrom: dayStart(str(fd, 'effectiveFrom')),
+        reason: str(fd, 'reason'),
+        scoringConfiguration: {
+          win: num(fd, 'win'),
+          draw: num(fd, 'draw'),
+          loss: num(fd, 'loss'),
+          participation: num(fd, 'participation'),
+          placement,
+          tierMultiplier,
+          maxPerTournament: num(fd, 'maxPerTournament') ?? null,
+        },
+      },
+    });
+    revalidateRankingAdmin();
+    return { ok: true, message: 'Versión creada en borrador: actívala para aplicarla' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function updateRuleAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    const r = await api<{ recalculation: { tournaments: number; created: number; reverted: number } | null }>(`/admin/ranking/rules/${str(fd, 'id')}`, {
+      method: 'PUT',
+      body: { status: str(fd, 'status'), reason: str(fd, 'reason') },
+    });
+    revalidateRankingAdmin();
+    const rc = r.recalculation;
+    return {
+      ok: true,
+      message: rc ? `Regla actualizada. Recalculados ${rc.tournaments} torneos (${rc.created} eventos nuevos, ${rc.reverted} revertidos)` : 'Regla actualizada',
+    };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function recalculateAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    const r = await api<{ games: number; tournaments: number; created: number; reverted: number }>('/admin/ranking/recalculate', {
+      method: 'POST',
+      body: { gameId: str(fd, 'gameId'), reason: str(fd, 'reason') },
+    });
+    revalidateRankingAdmin();
+    return { ok: true, message: `Recalculado: ${r.games} juegos, ${r.tournaments} torneos, ${r.created} eventos nuevos y ${r.reverted} revertidos` };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function tournamentRankingAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    await api(`/admin/ranking/tournaments/${str(fd, 'id')}`, {
+      method: 'PUT',
+      body: { tier: num(fd, 'tier'), isRanked: fd.get('isRanked') === 'on', reason: str(fd, 'reason') },
+    });
+    revalidateRankingAdmin();
+    return { ok: true, message: 'Partida actualizada' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function revertEventAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    await api(`/admin/ranking/events/${str(fd, 'id')}/revert`, { method: 'POST', body: { reason: str(fd, 'reason') } });
+    revalidateRankingAdmin();
+    return { ok: true, message: 'Evento revertido' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function adjustmentAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    await api('/admin/ranking/adjustments', {
+      method: 'POST',
+      body: {
+        ...participantOf(fd),
+        gameId: str(fd, 'gameId'),
+        points: num(fd, 'points'),
+        reason: str(fd, 'reason'),
+      },
+    });
+    revalidateRankingAdmin();
+    return { ok: true, message: 'Ajuste aplicado' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function suspensionAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const lift = fd.get('action') === 'LIFT';
+  try {
+    await api('/admin/ranking/suspensions', {
+      method: 'PUT',
+      body: {
+        ...participantOf(fd),
+        until: lift ? null : (dayEnd(str(fd, 'until')) ?? null),
+        reason: str(fd, 'reason'),
+      },
+    });
+    revalidateRankingAdmin();
+    return { ok: true, message: lift ? 'Suspensión levantada' : 'Participante suspendido del ranking' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function reviewReportAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    const r = await api<{ revertedEvents: number }>(`/admin/ranking/reports/${str(fd, 'id')}`, {
+      method: 'PUT',
+      body: { decision: str(fd, 'decision'), resolution: str(fd, 'resolution') },
+    });
+    revalidateRankingAdmin();
+    return { ok: true, message: str(fd, 'decision') === 'UPHELD' ? `Procede: ${r.revertedEvents} eventos revertidos` : 'Reporte desestimado' };
+  } catch (e) {
+    return fail(e);
+  }
+}
