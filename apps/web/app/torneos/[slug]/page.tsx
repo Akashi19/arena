@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { CalendarClock, CalendarDays, Crown, Gamepad2, MapPin, Settings, Trophy, Users, Wifi } from 'lucide-react';
 import { api, apiOrNull } from '@/lib/api';
 import { getMe } from '@/lib/session';
-import type { Team, TournamentDetail } from '@/lib/types';
+import type { Fixture, Team, TournamentDetail } from '@/lib/types';
 import {
   COUNTRIES,
   flag,
@@ -23,6 +23,7 @@ import { VerifiedBadge } from '@/components/verified-badge';
 import { TournamentLive } from '@/components/realtime';
 import { RegistrationPanel } from '@/components/registration-panel';
 import { ShareButton } from '@/components/share-button';
+import { FixtureView } from '@/components/fixture-view';
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -42,7 +43,10 @@ export default async function TournamentPage({ params }: Props) {
   const me = await getMe();
   const t = await apiOrNull<TournamentDetail>(`/tournaments/${encodeURIComponent(slug)}`);
   if (!t) notFound();
-  const teams = me && t.mode === 'TEAM' ? await api<Team[]>('/me/teams').catch(() => []) : [];
+  const [teams, fixture] = await Promise.all([
+    me && t.mode === 'TEAM' ? api<Team[]>('/me/teams').catch(() => []) : Promise.resolve([] as Team[]),
+    t.status === 'IN_PROGRESS' || t.status === 'FINISHED' ? apiOrNull<Fixture>(`/tournaments/${t.id}/fixture`) : Promise.resolve(null),
+  ]);
   const ownedTeams = teams.filter((team) => team.ownerId === me?.id || team.captainId === me?.player?.id);
   const discipline = t.game ?? t.sport;
   const o = t.organizer;
@@ -108,7 +112,7 @@ export default async function TournamentPage({ params }: Props) {
       )}
 
       <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           {/* Datos clave */}
           <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
             <Info icon={<CalendarDays />} label="Inicio" value={formatDateTime(t.startsAt)} />
@@ -139,17 +143,31 @@ export default async function TournamentPage({ params }: Props) {
             )}
           </Block>
 
+          {fixture && fixture.matches.length > 0 && (
+            <Block title="Fixture y resultados">
+              <FixtureView fixture={fixture} />
+            </Block>
+          )}
+
           <Block title={`Participantes (${t.registrations.length})`}>
             {t.registrations.length ? (
               <ul className="grid gap-2 sm:grid-cols-2">
-                {t.registrations.map((r, i) => {
+                {[...t.registrations]
+                  .sort((a, b) => (a.finalPosition ?? 999) - (b.finalPosition ?? 999))
+                  .map((r, i) => {
                   const name = r.team?.name ?? r.player?.nickname ?? '—';
                   const img = r.team?.logoUrl ?? r.player?.avatarUrl;
                   const country = r.team?.country ?? r.player?.country;
                   const href = r.team ? `/equipos/${r.team.slug}` : undefined;
                   return (
                     <li key={r.id} className="flex items-center gap-3 rounded-xl border border-line bg-surface-2 p-2.5">
-                      <span className="w-6 text-center font-display text-sm font-bold text-muted">{r.seed ?? i + 1}</span>
+                      {r.finalPosition ? (
+                        <span className={`w-6 text-center font-display text-sm font-bold ${r.finalPosition <= 3 ? 'text-amber' : 'text-muted'}`} title="Posición final">
+                          {r.finalPosition}.º
+                        </span>
+                      ) : (
+                        <span className="w-6 text-center font-display text-sm font-bold text-muted" title="Siembra">{r.seed ?? i + 1}</span>
+                      )}
                       <Avatar src={img} name={name} size={34} rounded={r.team ? 'xl' : 'full'} />
                       {href ? (
                         <Link href={href} className="truncate font-semibold hover:text-neon">{name}</Link>

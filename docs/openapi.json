@@ -1369,6 +1369,169 @@
         ]
       }
     },
+    "/api/tournaments/{id}/fixture": {
+      "get": {
+        "operationId": "MatchesController_fixture",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Encuentros, resultados y clasificación"
+        ]
+      },
+      "post": {
+        "operationId": "MatchesController_generate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateFixtureDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Encuentros, resultados y clasificación"
+        ]
+      }
+    },
+    "/api/tournaments/{id}/playoffs": {
+      "post": {
+        "operationId": "MatchesController_playoffs",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Encuentros, resultados y clasificación"
+        ]
+      }
+    },
+    "/api/matches/{id}/result": {
+      "post": {
+        "operationId": "MatchesController_result",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordResultDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Encuentros, resultados y clasificación"
+        ]
+      }
+    },
+    "/api/matches/{id}": {
+      "patch": {
+        "operationId": "MatchesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMatchDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Encuentros, resultados y clasificación"
+        ]
+      }
+    },
     "/api/me/teams": {
       "get": {
         "operationId": "TeamsController_mine",
@@ -2443,6 +2606,73 @@
         "required": [
           "status"
         ]
+      },
+      "GenerateFixtureDto": {
+        "type": "object",
+        "properties": {
+          "shuffle": {
+            "type": "boolean",
+            "description": "Sortear el orden de los participantes sin siembra manual",
+            "default": false
+          },
+          "roundIntervalMinutes": {
+            "type": "number",
+            "description": "Programar automáticamente cada ronda cada N minutos desde el inicio"
+          }
+        }
+      },
+      "RecordResultDto": {
+        "type": "object",
+        "properties": {
+          "score1": {
+            "type": "number",
+            "description": "Marcador del participante 1 (local)"
+          },
+          "score2": {
+            "type": "number",
+            "description": "Marcador del participante 2 (visitante)"
+          },
+          "winnerSlot": {
+            "type": "number",
+            "description": "Quién avanza si el marcador empata en eliminación (penales, prórroga…)",
+            "enum": [
+              1,
+              2
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "description": "Obligatorio al corregir un resultado ya registrado"
+          }
+        },
+        "required": [
+          "score1",
+          "score2"
+        ]
+      },
+      "UpdateMatchDto": {
+        "type": "object",
+        "properties": {
+          "scheduledAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fecha y hora del encuentro (ISO 8601)"
+          },
+          "venue": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "SCHEDULED",
+              "LIVE"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "description": "Motivo de la reprogramación (se comunica a los participantes)"
+          }
+        }
       },
       "CreateTeamDto": {
         "type": "object",

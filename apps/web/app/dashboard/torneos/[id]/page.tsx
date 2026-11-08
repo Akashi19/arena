@@ -4,13 +4,14 @@ import { notFound } from 'next/navigation';
 import { ExternalLink } from 'lucide-react';
 import { api, apiOrNull } from '@/lib/api';
 import { requireOrganizer } from '@/lib/session';
-import type { Discipline, Paginated, RegistrationStatus, TournamentDetail } from '@/lib/types';
+import type { Discipline, Fixture, Paginated, RegistrationStatus, TournamentDetail } from '@/lib/types';
 import { formatDateTime, formatMoney } from '@/lib/format';
 import { StatusBadge } from '@/components/ui';
 import { ImageUpload } from '@/components/forms';
 import { TournamentForm } from '@/components/tournament-form';
 import { TournamentLive } from '@/components/realtime';
 import { RegistrationsManager, StatusActions, type ManagedRegistration } from './manage';
+import { FixtureManager } from './fixture-manager';
 
 export const metadata: Metadata = { title: 'Administrar partida' };
 
@@ -27,12 +28,14 @@ export default async function ManageTournamentPage({
   const t = await apiOrNull<TournamentDetail>(`/tournaments/${id}`);
   if (!t || !t.viewer?.canManage) notFound();
 
-  const tab = sp.tab ?? 'inscripciones';
-  const [regs, sports, games, sub] = await Promise.all([
+  const started = t.status === 'IN_PROGRESS' || t.status === 'FINISHED';
+  const tab = sp.tab ?? (started ? 'fixture' : 'inscripciones');
+  const [regs, sports, games, sub, fixture] = await Promise.all([
     api<Paginated<ManagedRegistration>>(`/tournaments/${id}/registrations`, { query: { status: sp.estado, pageSize: 100 } }),
     tab === 'editar' ? api<Discipline[]>('/sports', { auth: false }) : Promise.resolve([]),
     tab === 'editar' ? api<(Discipline & { platforms: string[] })[]>('/games', { auth: false }) : Promise.resolve([]),
     tab === 'editar' ? api<{ usage: { participantsPerTournament: { limit: number } } }>('/me/subscription') : Promise.resolve(null),
+    tab === 'fixture' && started ? api<Fixture>(`/tournaments/${id}/fixture`) : Promise.resolve(null),
   ]);
   const editable = t.status !== 'FINISHED' && t.status !== 'CANCELLED';
 
@@ -63,8 +66,9 @@ export default async function ManageTournamentPage({
 
       <StatusActions id={t.id} status={t.status} />
 
-      <nav className="flex gap-1 border-b border-line">
+      <nav className="-mx-1 flex gap-1 overflow-x-auto border-b border-line px-1">
         {[
+          ...(started ? [['fixture', 'Fixture y resultados']] : []),
           ['inscripciones', `Inscripciones`],
           ...(editable ? [['editar', 'Editar partida']] : []),
           ['portada', 'Portada'],
@@ -72,13 +76,14 @@ export default async function ManageTournamentPage({
           <Link
             key={key}
             href={`/dashboard/torneos/${id}?tab=${key}`}
-            className={`-mb-px border-b-2 px-4 py-2.5 text-sm font-semibold ${tab === key ? 'border-neon text-neon' : 'border-transparent text-muted hover:text-ink'}`}
+            className={`-mb-px shrink-0 whitespace-nowrap border-b-2 px-4 py-2.5 text-sm font-semibold ${tab === key ? 'border-neon text-neon' : 'border-transparent text-muted hover:text-ink'}`}
           >
             {label}
           </Link>
         ))}
       </nav>
 
+      {tab === 'fixture' && fixture && <FixtureManager fixture={fixture} />}
       {tab === 'inscripciones' && (
         <RegistrationsManager tournamentId={t.id} mode={t.mode} status={t.status} registrations={regs.items} filter={sp.estado} />
       )}

@@ -17,6 +17,7 @@ import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { AuthUser, CurrentUser, Public, Roles } from '../common/decorators/auth.decorators.js';
 import { MAX_IMAGE_BYTES } from '../storage/storage.service.js';
 import { TournamentsService } from './tournaments.service.js';
+import { MatchesModule } from '../matches/matches.js';
 import {
   CancelTournamentDto,
   ChangeStatusDto,
@@ -132,5 +133,5 @@ export class TournamentsController {
   }
 }
 
-@Module({ controllers: [TournamentsController], providers: [TournamentsService], exports: [TournamentsService] })
+@Module({ imports: [MatchesModule], controllers: [TournamentsController], providers: [TournamentsService], exports: [TournamentsService] })
 export class TournamentsModule {}

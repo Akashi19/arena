@@ -11,6 +11,7 @@ import { NotificationsService } from '../notifications/notifications.js';
 import { RealtimeGateway } from '../realtime/realtime.gateway.js';
 import { StorageService } from '../storage/storage.service.js';
 import { PlanLimitsService } from '../plans/plans.js';
+import { MatchesService } from '../matches/matches.js';
 import type { AuthUser } from '../common/decorators/auth.decorators.js';
 import { organizerPublicSelect, paginate, slugify, uniqueSlug } from '../common/utils/index.js';
 import { assertCanManageOrganizer, levelIndex, requireOwnOrganizer } from '../common/utils/access.js';
@@ -82,6 +83,7 @@ export class TournamentsService {
     private readonly realtime: RealtimeGateway,
     private readonly storage: StorageService,
     private readonly limits: PlanLimitsService,
+    private readonly matches: MatchesService,
   ) {}
 
   // =========================================================================== Consulta pública
@@ -487,10 +489,17 @@ export class TournamentsService {
       const approved = await this.prisma.tournamentRegistration.count({ where: { tournamentId: id, status: 'APPROVED' } });
       if (approved < 2) throw new BadRequestException('Se necesitan al menos 2 participantes aprobados para iniciar');
     }
-    const updated = await this.prisma.tournament.update({
-      where: { id },
-      data: { status: dto.status, ...(dto.status === 'FINISHED' ? { endsAt: new Date() } : {}) },
-    });
+    const updated = await this.prisma.$transaction(
+      async (tx) => {
+        // Al finalizar: fixture completo, campeón y posiciones finales
+        if (dto.status === 'FINISHED') await this.matches.finalize(tx, current);
+        return tx.tournament.update({
+          where: { id },
+          data: { status: dto.status, ...(dto.status === 'FINISHED' ? { endsAt: new Date() } : {}) },
+        });
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable, timeout: 20_000 },
+    );
     await this.audit.log({
       actorId: user.id,
       action: 'TOURNAMENT_STATUS_CHANGED',

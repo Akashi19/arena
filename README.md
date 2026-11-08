@@ -17,7 +17,7 @@ solicitan su inscripción.
 | 2 | Registro, autenticación JWT + refresh, RBAC, perfiles, logo del organizador | ✅ |
 | 3 | Partidas/torneos: CRUD, filtros, paginación, enlaces públicos, inscripciones, límites FREE/PRO/BUSINESS | ✅ |
 | 4 | Equipos y jugadores | 🟡 equipos básicos (CRUD, escudo, integrantes, capitán, historial); faltan fichas de jugador sin cuenta y estadísticas |
-| 5 | Resultados, fixtures, llaves y clasificaciones automáticas | ⏳ tablas creadas (`matches`, `match_results`, `tournament_standings`…) |
+| 5 | Resultados, fixtures, llaves y clasificaciones automáticas | ✅ eliminación simple y doble, liga, grupos y grupos + playoffs; resultados versionados, avance automático, tabla, horarios y campeón |
 | 6 | Dashboard y estadísticas | 🟡 KPIs del organizador listos; faltan estadísticas avanzadas |
 | 7 | Seguridad, pruebas y despliegue | 🟡 pruebas unitarias e integración, Dockerfiles; faltan CI y despliegue |
 | 17 | SaaS: planes, límites y "Mi suscripción" | 🟡 planes, feature flags y límites en backend; faltan pagos (Stripe/Mercado Pago), webhooks y panel SUPERADMIN |
@@ -45,6 +45,7 @@ torneos/
 │   │   │   ├── auth/             # registro, login, refresh, cambio de contraseña
 │   │   │   ├── organizers/       # perfil de usuario, espacio del organizador, perfil público
 │   │   │   ├── tournaments/      # partidas, filtros, inscripciones
+│   │   │   ├── matches/          # motor de llaves (engine.ts), fixture, resultados, clasificación
 │   │   │   ├── teams/            # equipos e integrantes
 │   │   │   ├── catalog/          # deportes, videojuegos y rangos (admin)
 │   │   │   ├── plans/            # feature flags y límites por suscripción
@@ -140,9 +141,11 @@ npm run test:db -w apps/api
 npm test
 ```
 
-Incluye pruebas unitarias de límites y feature flags (`src/plans/plans.spec.ts`) y de integración contra
+Incluye pruebas unitarias de límites y feature flags (`src/plans/plans.spec.ts`), del motor de llaves y tablas
+(`src/matches/engine.spec.ts`, simula llaves completas de 2 a 17 participantes) y de integración contra
 `arena_test` (`test/api.e2e.spec.ts`): autenticación y revocación, límites del plan FREE, validación de fechas,
-aislamiento entre organizadores, inscripciones, borradores privados y bloqueo de auto-asignación de la insignia.
+aislamiento entre organizadores, inscripciones, borradores privados, bloqueo de auto-asignación de la insignia y el
+ciclo completo de fixture → resultados → correcciones → campeón en cada formato (`test/fixture.e2e.spec.ts`).
 
 ## Docker (stack completo)
 

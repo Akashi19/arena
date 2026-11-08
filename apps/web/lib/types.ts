@@ -179,3 +179,66 @@ export interface OrganizerFull {
   website: string | null;
   socialLinks: Record<string, string>;
 }
+
+// ---------------------------------------------------------------------------- Fixture y resultados
+
+export type BracketSide = 'WINNERS' | 'LOSERS' | 'GRAND_FINAL' | 'GROUP' | 'LEAGUE' | 'PLAYOFF';
+export type MatchStatus = 'PENDING' | 'SCHEDULED' | 'LIVE' | 'COMPLETED' | 'CANCELLED';
+
+export interface FixtureEntrant {
+  id: string;
+  seed: number | null;
+  groupLabel: string | null;
+  finalPosition: number | null;
+  team: { id: string; name: string; slug: string; tag: string | null; logoUrl: string | null } | null;
+  player: { id: string; nickname: string; avatarUrl: string | null; user: { username: string } | null } | null;
+}
+
+export interface FixtureMatch {
+  id: string;
+  bracket: BracketSide;
+  round: number;
+  position: number;
+  groupLabel: string | null;
+  status: MatchStatus;
+  scheduledAt: string | null;
+  venue: string | null;
+  nextMatchId: string | null;
+  nextMatchSlot: number | null;
+  loserNextMatchId: string | null;
+  participants: { slot: number; score: string | null; isWinner: boolean | null; registration: FixtureEntrant }[];
+  result: { version: number; isDraw: boolean; winnerRegistrationId: string | null; correctionReason: string | null; createdAt: string } | null;
+}
+
+export interface StandingEntry {
+  groupLabel: string;
+  played: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  scoreFor: string;
+  scoreAgainst: string;
+  points: number;
+  position: number | null;
+  registration: FixtureEntrant;
+}
+
+export interface Fixture {
+  tournament: {
+    id: string;
+    status: TournamentStatus;
+    format: TournamentFormat;
+    mode: TournamentMode;
+    groupCount: number | null;
+    qualifiersPerGroup: number | null;
+    pointsWin: number;
+    pointsDraw: number;
+    pointsLoss: number;
+    championRegistrationId: string | null;
+  };
+  matches: FixtureMatch[];
+  standings: StandingEntry[];
+  progress: { total: number; completed: number };
+  canGeneratePlayoffs: boolean;
+  canManage: boolean;
+}

@@ -52,6 +52,11 @@
 | PATCH | `/registrations/{id}` | Propietario | Aprueba o rechaza |
 | DELETE | `/registrations/{id}` | Solicitante | Retira la inscripción |
 | GET | `/me/registrations` | ✔ | Mis inscripciones |
+| GET | `/tournaments/{id}/fixture` | — | Encuentros con su último resultado válido, tabla de posiciones y progreso |
+| POST | `/tournaments/{id}/fixture` | Propietario | Genera (o regenera, si no hay resultados) el fixture según el formato: `shuffle`, `roundIntervalMinutes` |
+| POST | `/tournaments/{id}/playoffs` | Propietario | Grupos + playoffs: genera la llave final con los mejores de cada grupo |
+| POST | `/matches/{id}/result` | Propietario | Registra o corrige (`reason` obligatorio) el marcador: `score1`, `score2`, `winnerSlot` para desempates |
+| PATCH | `/matches/{id}` | Propietario | Horario (con historial y aviso), sede y estado `LIVE` |
 | GET | `/me/teams` · `/teams/{slug}` | ✔ · — | Mis equipos · ficha pública |
 | POST/PATCH/DELETE | `/teams`, `/teams/{id}` | Dueño | CRUD de equipos |
 | POST | `/teams/{id}/logo` | Dueño | Escudo |
@@ -72,12 +77,11 @@ Conexión socket.io a `http://localhost:4100/realtime`, con `auth: { token }` pa
 | Evento (servidor → cliente) | Sala |
 |---|---|
 | `notification` | `user:{id}` |
-| `registration:changed`, `tournament:updated`, `tournament:status` | `tournament:{id}` |
+| `registration:changed`, `tournament:updated`, `tournament:status`, `fixture:updated`, `match:updated` | `tournament:{id}` |
 
 ## Endpoints planificados en próximas fases
 
-Definidos en la especificación y respaldados por las tablas ya creadas: resultados y fixtures
-(`/tournaments/{id}/matches`, `/matches/{id}/result`), valoraciones e incidencias (`/organizers/{id}/ratings`,
+Definidos en la especificación y respaldados por las tablas ya creadas: valoraciones e incidencias (`/organizers/{id}/ratings`,
 `/organizers/{id}/reputation`, `/tournaments/{id}/incidents`, `/admin/reputation`), verificación, perfiles gamer
 (`/players/{id}/games`, `/players/search`, `/players/compare`), rankings (`/rankings/*`, `/admin/ranking/*`),
 transmisiones (`/matches/{id}/stream`, `/streams/live`) y pagos de suscripción con webhooks.

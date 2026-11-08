@@ -84,7 +84,7 @@ export function TournamentLive({ tournamentId }: { tournamentId: string }) {
       clearTimeout(pending);
       pending = setTimeout(() => router.refresh(), 300);
     };
-    const events = ['registration:changed', 'tournament:updated', 'tournament:status'];
+    const events = ['registration:changed', 'tournament:updated', 'tournament:status', 'fixture:updated', 'match:updated'];
     events.forEach((e) => s.on(e, refresh));
     return () => {
       s.emit('tournament:leave', tournamentId);

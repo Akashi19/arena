@@ -413,6 +413,61 @@ export async function deleteTeamAction(_: ActionState, fd: FormData): Promise<Ac
   }
 }
 
+// ============================================================================ Fixture y resultados
+
+export async function generateFixtureAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const id = str(fd, 'tournamentId');
+  try {
+    const res = await api<{ matches: number }>(`/tournaments/${id}/fixture`, {
+      method: 'POST',
+      body: { shuffle: fd.get('shuffle') === 'on', roundIntervalMinutes: num(fd, 'roundIntervalMinutes') },
+    });
+    revalidatePath(`/dashboard/torneos/${id}`);
+    return { ok: true, message: `Fixture generado: ${res.matches} encuentros. Los participantes fueron notificados.` };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function generatePlayoffsAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const id = str(fd, 'tournamentId');
+  try {
+    const res = await api<{ matches: number }>(`/tournaments/${id}/playoffs`, { method: 'POST' });
+    revalidatePath(`/dashboard/torneos/${id}`);
+    return { ok: true, message: `Playoffs generados: ${res.matches} encuentros` };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function recordResultAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const id = str(fd, 'tournamentId');
+  try {
+    await api(`/matches/${str(fd, 'matchId')}/result`, {
+      method: 'POST',
+      body: { score1: num(fd, 'score1'), score2: num(fd, 'score2'), winnerSlot: num(fd, 'winnerSlot'), reason: str(fd, 'reason') },
+    });
+    revalidatePath(`/dashboard/torneos/${id}`);
+    return { ok: true, message: 'Resultado guardado' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function updateMatchAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const id = str(fd, 'tournamentId');
+  try {
+    await api(`/matches/${str(fd, 'matchId')}`, {
+      method: 'PATCH',
+      body: { scheduledAt: date(fd, 'scheduledAt'), venue: fd.has('venue') ? (str(fd, 'venue') ?? '') : undefined, status: str(fd, 'status'), reason: str(fd, 'reason') },
+    });
+    revalidatePath(`/dashboard/torneos/${id}`);
+    return { ok: true, message: str(fd, 'status') === 'LIVE' ? 'Encuentro marcado en vivo' : 'Encuentro actualizado' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
 // ============================================================================ Notificaciones
 
 export async function markAllReadAction() {

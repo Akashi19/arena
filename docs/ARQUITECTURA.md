@@ -138,3 +138,22 @@ erDiagram
 - El organizador no puede inscribirse en su propia partida; la inscripción exige aceptar reglamento y condiciones.
 - Retirar a un integrante conserva el historial (`left_at`); un equipo que ya compitió se archiva en vez de borrarse.
 - La verificación, la reputación y el ranking no dependen del plan contratado.
+
+### Fixture, resultados y clasificación
+
+- El fixture se genera con la partida **en curso** a partir de los inscritos aprobados, en orden de siembra (o
+  sorteando a los que no tienen siembra). Se puede regenerar mientras no haya resultados.
+- **Eliminación simple y doble:** llave de la potencia de 2 siguiente con siembra estándar (1 vs N…); los byes van a
+  los mejores sembrados y sus encuentros se eliminan: hay exactamente N-1 encuentros en eliminación simple. En doble
+  eliminación los perdedores bajan a la llave de perdedores (cruzados para evitar revanchas) y la gran final es a un
+  solo encuentro, sin reinicio de llave.
+- **Liga:** todos contra todos por método circular. **Grupos:** reparto en serpiente; en grupos + playoffs, al
+  completar los grupos se genera la llave final (1.º A vs 2.º B…).
+- Los resultados son versionados: una corrección exige motivo, anula la versión anterior y queda auditada. En
+  eliminación no hay empates: el desempate (penales, prórroga) indica quién avanza. Cambiar al ganador solo se admite
+  si el encuentro siguiente aún no tiene resultado.
+- La tabla se recalcula completa con cada resultado: puntos (configurables por partida), diferencia, anotados,
+  victorias, enfrentamiento directo y siembra.
+- Al **finalizar** la partida se exige el fixture completo y se fijan el campeón y las posiciones finales (en
+  eliminación, los caídos en la misma ronda comparten puesto: 3.º-3.º, 5.º…).
+- Cada reprogramación queda en `match_schedules` y se notifica a los participantes; los cambios llegan en tiempo real.
