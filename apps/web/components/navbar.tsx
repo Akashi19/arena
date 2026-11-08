@@ -10,6 +10,7 @@ const links = [
   { href: '/torneos', label: 'Torneos' },
   { href: '/torneos?category=ESPORT', label: 'eSports' },
   { href: '/torneos?category=SPORT', label: 'Deportes' },
+  { href: '/jugadores', label: 'Jugadores' },
   { href: '/organizadores', label: 'Organizadores' },
   { href: '/planes', label: 'Planes' },
 ];

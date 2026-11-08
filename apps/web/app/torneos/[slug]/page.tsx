@@ -158,7 +158,7 @@ export default async function TournamentPage({ params }: Props) {
                   const name = r.team?.name ?? r.player?.nickname ?? '—';
                   const img = r.team?.logoUrl ?? r.player?.avatarUrl;
                   const country = r.team?.country ?? r.player?.country;
-                  const href = r.team ? `/equipos/${r.team.slug}` : undefined;
+                  const href = r.team ? `/equipos/${r.team.slug}` : r.player?.user ? `/jugadores/${r.player.user.username}` : undefined;
                   return (
                     <li key={r.id} className="flex items-center gap-3 rounded-xl border border-line bg-surface-2 p-2.5">
                       {r.finalPosition ? (

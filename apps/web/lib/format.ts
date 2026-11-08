@@ -125,3 +125,16 @@ export function initials(name: string) {
     .map((w) => w[0]!.toUpperCase())
     .join('');
 }
+
+export const RECRUITMENT_LABEL: Record<string, string> = {
+  NOT_LOOKING: 'No busca equipo',
+  LOOKING_FOR_TEAM: 'Busca equipo',
+  LOOKING_FOR_PLAYERS: 'Busca jugadores',
+};
+
+/** Origen del nivel competitivo: el declarado por el jugador se distingue del verificado. */
+export const LEVEL_SOURCE_LABEL: Record<string, string> = {
+  SELF_DECLARED: 'Declarado por el jugador',
+  PLATFORM_VERIFIED: 'Verificado por la plataforma',
+  EXTERNAL_VERIFIED: 'Verificado externamente',
+};

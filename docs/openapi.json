@@ -1532,6 +1532,253 @@
         ]
       }
     },
+    "/api/players": {
+      "get": {
+        "operationId": "PlayersController_search",
+        "parameters": [
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Apodo o usuario",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "game",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "level",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "BEGINNER",
+                "INTERMEDIATE",
+                "ADVANCED",
+                "EXPERT",
+                "PROFESSIONAL"
+              ]
+            }
+          },
+          {
+            "name": "platform",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PC",
+                "PLAYSTATION",
+                "XBOX",
+                "NINTENDO",
+                "MOBILE",
+                "CROSSPLAY",
+                "NONE"
+              ]
+            }
+          },
+          {
+            "name": "country",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "recruitment",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "NOT_LOOKING",
+                "LOOKING_FOR_TEAM",
+                "LOOKING_FOR_PLAYERS"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Jugadores y perfiles gamer"
+        ]
+      }
+    },
+    "/api/players/{username}": {
+      "get": {
+        "operationId": "PlayersController_profile",
+        "parameters": [
+          {
+            "name": "username",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Jugadores y perfiles gamer"
+        ]
+      }
+    },
+    "/api/me/player": {
+      "get": {
+        "operationId": "PlayersController_me",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Jugadores y perfiles gamer"
+        ]
+      },
+      "patch": {
+        "operationId": "PlayersController_updateMe",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePlayerDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Jugadores y perfiles gamer"
+        ]
+      }
+    },
+    "/api/me/games": {
+      "post": {
+        "operationId": "PlayersController_addGame",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GameProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Jugadores y perfiles gamer"
+        ]
+      }
+    },
+    "/api/me/games/{id}": {
+      "patch": {
+        "operationId": "PlayersController_updateGame",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateGameProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Jugadores y perfiles gamer"
+        ]
+      },
+      "delete": {
+        "operationId": "PlayersController_removeGame",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Jugadores y perfiles gamer"
+        ]
+      }
+    },
     "/api/me/teams": {
       "get": {
         "operationId": "TeamsController_mine",
@@ -1714,6 +1961,44 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/AddMemberDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Equipos"
+        ]
+      }
+    },
+    "/api/teams/{id}/guests": {
+      "post": {
+        "operationId": "TeamsController_addGuest",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddGuestDto"
               }
             }
           }
@@ -2674,6 +2959,137 @@
           }
         }
       },
+      "UpdatePlayerDto": {
+        "type": "object",
+        "properties": {
+          "recruitmentStatus": {
+            "type": "string",
+            "enum": [
+              "NOT_LOOKING",
+              "LOOKING_FOR_TEAM",
+              "LOOKING_FOR_PLAYERS"
+            ]
+          },
+          "position": {
+            "type": "string",
+            "description": "Posición habitual (deportes)"
+          },
+          "availability": {
+            "type": "string",
+            "description": "Disponibilidad horaria"
+          },
+          "jerseyNumber": {
+            "type": "number"
+          }
+        }
+      },
+      "GameProfileDto": {
+        "type": "object",
+        "properties": {
+          "gameId": {
+            "type": "string"
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "PC",
+              "PLAYSTATION",
+              "XBOX",
+              "NINTENDO",
+              "MOBILE",
+              "CROSSPLAY",
+              "NONE"
+            ]
+          },
+          "gamerTag": {
+            "type": "string",
+            "description": "Nombre/ID dentro del juego"
+          },
+          "competitiveLevel": {
+            "type": "string",
+            "enum": [
+              "BEGINNER",
+              "INTERMEDIATE",
+              "ADVANCED",
+              "EXPERT",
+              "PROFESSIONAL"
+            ]
+          },
+          "gameRankId": {
+            "type": "string"
+          },
+          "playerRole": {
+            "type": "string",
+            "description": "Rol o posición (p. ej. Duelista, Soporte)"
+          },
+          "experienceYears": {
+            "type": "number"
+          },
+          "isPrimary": {
+            "type": "boolean",
+            "description": "Juego principal (solo uno)"
+          },
+          "isFeatured": {
+            "type": "boolean",
+            "description": "Mostrar en el perfil público"
+          }
+        },
+        "required": [
+          "gameId",
+          "platform",
+          "gamerTag",
+          "competitiveLevel"
+        ]
+      },
+      "UpdateGameProfileDto": {
+        "type": "object",
+        "properties": {
+          "platform": {
+            "type": "string",
+            "enum": [
+              "PC",
+              "PLAYSTATION",
+              "XBOX",
+              "NINTENDO",
+              "MOBILE",
+              "CROSSPLAY",
+              "NONE"
+            ]
+          },
+          "gamerTag": {
+            "type": "string",
+            "description": "Nombre/ID dentro del juego"
+          },
+          "competitiveLevel": {
+            "type": "string",
+            "enum": [
+              "BEGINNER",
+              "INTERMEDIATE",
+              "ADVANCED",
+              "EXPERT",
+              "PROFESSIONAL"
+            ]
+          },
+          "gameRankId": {
+            "type": "string"
+          },
+          "playerRole": {
+            "type": "string",
+            "description": "Rol o posición (p. ej. Duelista, Soporte)"
+          },
+          "experienceYears": {
+            "type": "number"
+          },
+          "isPrimary": {
+            "type": "boolean",
+            "description": "Juego principal (solo uno)"
+          },
+          "isFeatured": {
+            "type": "boolean",
+            "description": "Mostrar en el perfil público"
+          }
+        }
+      },
       "CreateTeamDto": {
         "type": "object",
         "properties": {
@@ -2755,6 +3171,30 @@
         },
         "required": [
           "username"
+        ]
+      },
+      "AddGuestDto": {
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string"
+          },
+          "nickname": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "jerseyNumber": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "fullName",
+          "nickname"
         ]
       },
       "SetCaptainDto": {

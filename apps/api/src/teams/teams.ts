@@ -67,6 +67,19 @@ export class AddMemberDto {
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(0) @Max(99) jerseyNumber?: number;
 }
 
+/** Jugador sin cuenta: lo registra y gestiona el dueño del equipo (p. ej., un club amateur). */
+export class AddGuestDto {
+  @ApiProperty() @Transform(trim) @IsString() @Length(2, 80, { message: 'El nombre debe tener entre 2 y 80 caracteres' }) fullName: string;
+  @ApiProperty() @Transform(trim) @IsString() @Length(2, 32, { message: 'El apodo debe tener entre 2 y 32 caracteres' }) nickname: string;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @Transform(({ value }) => (typeof value === 'string' ? value.toUpperCase() : value))
+  @IsISO31661Alpha2()
+  country?: string;
+  @ApiPropertyOptional() @IsOptional() @Transform(trim) @IsString() @MaxLength(40) role?: string;
+  @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(0) @Max(99) jerseyNumber?: number;
+}
+
 export class SetCaptainDto {
   @ApiProperty() @IsUUID() playerId: string;
 }
@@ -156,6 +169,30 @@ export class TeamsService {
       });
     }
     return member;
+  }
+
+  async addGuest(user: AuthUser, id: string, dto: AddGuestDto) {
+    const team = await this.getOwned(user, id);
+    const active = await this.prisma.teamPlayer.count({ where: { teamId: id, leftAt: null } });
+    if (active >= 40) throw new BadRequestException('El equipo alcanzó el máximo de 40 integrantes');
+    return this.prisma.$transaction(async (tx) => {
+      const player = await tx.player.create({
+        data: {
+          fullName: dto.fullName,
+          nickname: dto.nickname,
+          country: dto.country ?? team.country,
+          jerseyNumber: dto.jerseyNumber,
+          managerId: user.id,
+        },
+      });
+      await tx.teamIdentityHistory.create({
+        data: { teamId: id, field: 'member_added', newValue: `${player.nickname} (sin cuenta)`, changedBy: user.id },
+      });
+      return tx.teamPlayer.create({
+        data: { teamId: id, playerId: player.id, role: dto.role, jerseyNumber: dto.jerseyNumber },
+        include: { player: { select: { id: true, nickname: true, fullName: true, userId: true } } },
+      });
+    });
   }
 
   async removeMember(user: AuthUser, id: string, playerId: string) {
@@ -283,6 +320,9 @@ export class TeamsController {
   }
   @ApiBearerAuth() @Post('teams/:id/members') add(@CurrentUser() u: AuthUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: AddMemberDto) {
     return this.service.addMember(u, id, dto);
+  }
+  @ApiBearerAuth() @Post('teams/:id/guests') addGuest(@CurrentUser() u: AuthUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: AddGuestDto) {
+    return this.service.addGuest(u, id, dto);
   }
   @ApiBearerAuth() @Delete('teams/:id/members/:playerId') removeMember(
     @CurrentUser() u: AuthUser,

@@ -383,6 +383,71 @@ export async function addTeamMemberAction(_: ActionState, fd: FormData): Promise
   }
 }
 
+export async function addTeamGuestAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    await api(`/teams/${str(fd, 'teamId')}/guests`, {
+      method: 'POST',
+      body: { fullName: str(fd, 'fullName'), nickname: str(fd, 'nickname'), role: str(fd, 'role'), jerseyNumber: num(fd, 'jerseyNumber') },
+    });
+    revalidatePath('/dashboard/equipos');
+    return { ok: true, message: 'Jugador sin cuenta agregado' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+// ============================================================================ Jugador y perfiles gamer
+
+export async function updatePlayerAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    await api('/me/player', {
+      method: 'PATCH',
+      body: {
+        recruitmentStatus: str(fd, 'recruitmentStatus'),
+        position: str(fd, 'position') ?? '',
+        availability: str(fd, 'availability') ?? '',
+        jerseyNumber: num(fd, 'jerseyNumber'),
+      },
+    });
+    revalidatePath('/dashboard/juegos');
+    return { ok: true, message: 'Ficha de jugador actualizada' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function saveGameProfileAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const id = str(fd, 'id');
+  const body = {
+    platform: str(fd, 'platform'),
+    gamerTag: str(fd, 'gamerTag'),
+    competitiveLevel: str(fd, 'competitiveLevel'),
+    gameRankId: str(fd, 'gameRankId') ?? (id ? null : undefined),
+    playerRole: str(fd, 'playerRole') ?? (id ? '' : undefined),
+    experienceYears: num(fd, 'experienceYears'),
+    isPrimary: fd.get('isPrimary') === 'on' ? true : undefined,
+    isFeatured: fd.get('isFeatured') === 'on',
+  };
+  try {
+    if (id) await api(`/me/games/${id}`, { method: 'PATCH', body });
+    else await api('/me/games', { method: 'POST', body: { ...body, gameId: str(fd, 'gameId') } });
+    revalidatePath('/dashboard/juegos');
+    return { ok: true, message: id ? 'Perfil actualizado' : 'Videojuego agregado a tu perfil' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function removeGameProfileAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    await api(`/me/games/${str(fd, 'id')}`, { method: 'DELETE' });
+    revalidatePath('/dashboard/juegos');
+    return { ok: true, message: 'Videojuego retirado de tu perfil' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
 export async function removeTeamMemberAction(_: ActionState, fd: FormData): Promise<ActionState> {
   try {
     await api(`/teams/${str(fd, 'teamId')}/members/${str(fd, 'playerId')}`, { method: 'DELETE' });

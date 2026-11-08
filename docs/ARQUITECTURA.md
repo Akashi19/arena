@@ -157,3 +157,17 @@ erDiagram
 - Al **finalizar** la partida se exige el fixture completo y se fijan el campeón y las posiciones finales (en
   eliminación, los caídos en la misma ronda comparten puesto: 3.º-3.º, 5.º…).
 - Cada reprogramación queda en `match_schedules` y se notifica a los participantes; los cambios llegan en tiempo real.
+
+### Jugadores y estadísticas
+
+- Cada usuario tiene una ficha de jugador. El dueño de un equipo puede agregar **jugadores sin cuenta**
+  (`players.user_id NULL`, `manager_id` = quien los gestiona); no tienen ficha pública pero acumulan estadísticas.
+- **Perfil gamer:** un perfil por videojuego (plataforma válida para el juego, rango del catálogo del juego). El nivel
+  es *declarado* por el jugador; cambiar nivel o rango quita cualquier verificación previa y queda en
+  `player_game_history`. Retirar un juego lo oculta sin borrar su historial.
+- **Estadísticas oficiales:** solo cuentan torneos finalizados. En partidas por equipos se atribuyen a quien era
+  integrante durante el torneo (según `team_players.joined_at/left_at`). Al finalizar un torneo se recalculan, dentro de
+  la misma transacción, `player_game_statistics` y los logros (primer torneo, primera victoria, 10 y 50 victorias,
+  campeón). El cálculo es idempotente y el seed lo usa para rellenar datos anteriores.
+- **Privacidad:** la ficha pública oculta nombre real, país, estadísticas, equipos o historial según
+  `user_profiles.privacy`; el propio jugador siempre ve todo.

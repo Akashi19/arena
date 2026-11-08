@@ -12,6 +12,7 @@ import { RealtimeGateway } from '../realtime/realtime.gateway.js';
 import { StorageService } from '../storage/storage.service.js';
 import { PlanLimitsService } from '../plans/plans.js';
 import { MatchesService } from '../matches/matches.js';
+import { refreshPlayerStats, tournamentPlayerIds } from '../players/stats.js';
 import type { AuthUser } from '../common/decorators/auth.decorators.js';
 import { organizerPublicSelect, paginate, slugify, uniqueSlug } from '../common/utils/index.js';
 import { assertCanManageOrganizer, levelIndex, requireOwnOrganizer } from '../common/utils/access.js';
@@ -493,12 +494,15 @@ export class TournamentsService {
       async (tx) => {
         // Al finalizar: fixture completo, campeón y posiciones finales
         if (dto.status === 'FINISHED') await this.matches.finalize(tx, current);
-        return tx.tournament.update({
+        const saved = await tx.tournament.update({
           where: { id },
           data: { status: dto.status, ...(dto.status === 'FINISHED' ? { endsAt: new Date() } : {}) },
         });
+        // Estadísticas oficiales y logros: solo cuentan torneos finalizados (ya lo está dentro de la transacción)
+        if (dto.status === 'FINISHED') await refreshPlayerStats(tx, await tournamentPlayerIds(tx, id));
+        return saved;
       },
-      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable, timeout: 20_000 },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable, timeout: 30_000 },
     );
     await this.audit.log({
       actorId: user.id,
@@ -599,7 +603,7 @@ export class TournamentsService {
         const profile = await this.prisma.playerGameProfile.findUnique({
           where: { playerId_gameId: { playerId: player.id, gameId: t.gameId } },
         });
-        const lvl = levelIndex(profile?.competitiveLevel);
+        const lvl = profile?.isActive ? levelIndex(profile.competitiveLevel) : -1;
         if (lvl < 0) throw new BadRequestException('Agrega este videojuego a tu perfil gamer para inscribirte');
         if ((t.minLevel && lvl < levelIndex(t.minLevel)) || (t.maxLevel && lvl > levelIndex(t.maxLevel))) {
           throw new BadRequestException('Tu nivel competitivo no cumple los requisitos de esta partida');
@@ -703,7 +707,7 @@ export class TournamentsService {
               country: true,
               // Solo el perfil gamer del videojuego de esta partida
               gameProfiles: {
-                where: { gameId: t.gameId ?? '00000000-0000-0000-0000-000000000000' },
+                where: { gameId: t.gameId ?? '00000000-0000-0000-0000-000000000000', isActive: true },
                 select: { gameId: true, competitiveLevel: true, gamerTag: true, platform: true, verificationType: true },
               },
             },

@@ -10,6 +10,7 @@ import bcrypt from 'bcryptjs';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../src/generated/prisma/client.js';
 import type { Platform, PlanCode } from '../src/generated/prisma/client.js';
+import { refreshPlayerStats } from '../src/players/stats.js';
 
 const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }) });
 const DEMO_PASSWORD = 'Arena2026demo';
@@ -498,6 +499,9 @@ async function main() {
   await seedPlans();
   await seedCatalog();
   await seedDemo();
+  // Estadísticas oficiales y logros (idempotente): rellena los torneos finalizados antes de existir el cálculo
+  const players = await prisma.player.findMany({ select: { id: true } });
+  await refreshPlayerStats(prisma, players.map((p) => p.id));
 }
 
 main()

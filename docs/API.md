@@ -61,6 +61,11 @@
 | POST/PATCH/DELETE | `/teams`, `/teams/{id}` | Dueño | CRUD de equipos |
 | POST | `/teams/{id}/logo` | Dueño | Escudo |
 | POST/DELETE | `/teams/{id}/members[/{playerId}]` | Dueño | Agregar o retirar integrantes (se conserva el historial) |
+| POST | `/teams/{id}/guests` | Dueño | Agrega un jugador sin cuenta (`fullName`, `nickname`, `role`, `jerseyNumber`) |
+| GET | `/players` | — | Búsqueda: `q` (apodo, usuario o gamertag), `game`, `level`, `platform`, `country`, `recruitment` |
+| GET | `/players/{username}` | opcional | Ficha pública: perfiles gamer, estadísticas oficiales, logros, equipos e historial (según su privacidad) |
+| GET/PATCH | `/me/player` | ✔ | Mi ficha: estado de búsqueda de equipo, posición, dorsal, disponibilidad |
+| POST · PATCH · DELETE | `/me/games` · `/me/games/{id}` | ✔ | Perfiles gamer: plataforma, gamertag, nivel, rango, rol; los cambios de nivel quedan en el historial |
 | PATCH | `/teams/{id}/captain` | Dueño | Capitán |
 | GET | `/me/dashboard` | Organizador | Indicadores del panel |
 | GET | `/plans` · `/me/subscription` | — · Organizador | Planes · plan actual, uso y funcionalidades |
@@ -82,6 +87,6 @@ Conexión socket.io a `http://localhost:4100/realtime`, con `auth: { token }` pa
 ## Endpoints planificados en próximas fases
 
 Definidos en la especificación y respaldados por las tablas ya creadas: valoraciones e incidencias (`/organizers/{id}/ratings`,
-`/organizers/{id}/reputation`, `/tournaments/{id}/incidents`, `/admin/reputation`), verificación, perfiles gamer
-(`/players/{id}/games`, `/players/search`, `/players/compare`), rankings (`/rankings/*`, `/admin/ranking/*`),
-transmisiones (`/matches/{id}/stream`, `/streams/live`) y pagos de suscripción con webhooks.
+`/organizers/{id}/reputation`, `/tournaments/{id}/incidents`, `/admin/reputation`), verificación, rankings (`/rankings/*`, `/admin/ranking/*`),
+transmisiones (`/matches/{id}/stream`, `/streams/live`), comparador de jugadores (`/players/compare`) y pagos de suscripción
+con webhooks.

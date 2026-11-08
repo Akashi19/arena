@@ -6,7 +6,7 @@ import type { Discipline, Team } from '@/lib/types';
 import { flag } from '@/lib/format';
 import { Avatar, EmptyState } from '@/components/ui';
 import { ImageUpload } from '@/components/forms';
-import { CreateTeamForm, MemberActions, AddMemberForm, DeleteTeamButton } from './team-forms';
+import { CreateTeamForm, MemberActions, AddMemberForm, AddGuestForm, DeleteTeamButton } from './team-forms';
 
 export const metadata: Metadata = { title: 'Equipos' };
 
@@ -14,7 +14,7 @@ interface TeamFull {
   id: string;
   ownerId: string;
   captain: { id: string } | null;
-  currentMembers: { id: string; role: string | null; jerseyNumber: number | null; player: { id: string; nickname: string; avatarUrl: string | null; country: string | null } }[];
+  currentMembers: { id: string; role: string | null; jerseyNumber: number | null; player: { id: string; nickname: string; avatarUrl: string | null; country: string | null; user: { username: string } | null } }[];
 }
 
 export default async function TeamsPage() {
@@ -65,7 +65,8 @@ export default async function TeamsPage() {
                         <Avatar src={m.player.avatarUrl} name={m.player.nickname} size={34} rounded="full" />
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-semibold">
-                            {m.player.nickname} {detail.captain?.id === m.player.id && <span className="text-xs text-amber">· Capitán</span>}
+                            {m.player.nickname}{!m.player.user && <span className="text-xs font-normal text-muted"> (sin cuenta)</span>}{" "}
+                            {detail.captain?.id === m.player.id && <span className="text-xs text-amber">· Capitán</span>}
                           </p>
                           <p className="text-xs text-muted">{[m.role, m.jerseyNumber != null ? `#${m.jerseyNumber}` : null].filter(Boolean).join(' · ') || 'Jugador'}</p>
                         </div>
@@ -75,6 +76,7 @@ export default async function TeamsPage() {
                   </ul>
                 )}
                 {owner && <AddMemberForm teamId={team.id} />}
+                {owner && <AddGuestForm teamId={team.id} />}
               </section>
             );
           })}

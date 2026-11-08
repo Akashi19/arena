@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
-import { CreditCard, LayoutDashboard, ListChecks, PlusCircle, Shield, Trophy, UserCog, Users } from 'lucide-react';
+import { CreditCard, LayoutDashboard, ListChecks, PlusCircle, Shield, Trophy, UserCog, Users, Gamepad2 } from 'lucide-react';
 
 export function DashboardNav({ isOrganizer }: { isOrganizer: boolean }) {
   const pathname = usePathname();
@@ -15,6 +15,7 @@ export function DashboardNav({ isOrganizer }: { isOrganizer: boolean }) {
           { href: '/dashboard/torneos/nuevo', label: 'Crear partida', icon: PlusCircle },
         ]
       : []),
+    { href: '/dashboard/juegos', label: 'Mis juegos', icon: Gamepad2 },
     { href: '/dashboard/equipos', label: 'Equipos', icon: Users },
     { href: '/dashboard/inscripciones', label: 'Mis inscripciones', icon: ListChecks },
     { href: '/dashboard/perfil', label: 'Perfil y logo', icon: UserCog },

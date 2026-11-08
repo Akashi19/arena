@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState } from 'react';
 import { Crown, Plus, Trash2, UserMinus } from 'lucide-react';
-import { addTeamMemberAction, createTeamAction, deleteTeamAction, removeTeamMemberAction, setCaptainAction } from '@/app/actions';
+import { addTeamGuestAction, addTeamMemberAction, createTeamAction, deleteTeamAction, removeTeamMemberAction, setCaptainAction } from '@/app/actions';
 import { COUNTRIES } from '@/lib/format';
 import type { Discipline } from '@/lib/types';
 import { FormMessage, ImageField, SubmitButton, usePersistentAction } from '@/components/forms';
@@ -95,6 +95,33 @@ export function AddMemberForm({ teamId }: { teamId: string }) {
       </div>
       <FormMessage state={state} />
     </form>
+  );
+}
+
+/** Jugadores sin cuenta (p. ej. un club amateur): los gestiona el dueño del equipo. */
+export function AddGuestForm({ teamId }: { teamId: string }) {
+  const [state, action] = useActionState(addTeamGuestAction, {});
+  const formRef = useRef<HTMLFormElement>(null);
+  useEffect(() => {
+    if (state.ok) formRef.current?.reset();
+  }, [state]);
+  return (
+    <details className="mt-3 text-sm">
+      <summary className="cursor-pointer text-muted hover:text-ink">¿El jugador no tiene cuenta? Agrégalo manualmente</summary>
+      <form ref={formRef} action={action} className="mt-2 space-y-2">
+        <input type="hidden" name="teamId" value={teamId} />
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <input name="fullName" required minLength={2} maxLength={80} placeholder="Nombre completo" className="input sm:flex-1" />
+          <input name="nickname" required minLength={2} maxLength={32} placeholder="Apodo" className="input sm:w-36" />
+          <input name="role" maxLength={40} placeholder="Posición" className="input sm:w-32" />
+          <input name="jerseyNumber" type="number" min={0} max={99} placeholder="N.º" className="input sm:w-20" />
+          <SubmitButton className="btn-ghost" pendingText="…">
+            <Plus className="size-4" /> Agregar
+          </SubmitButton>
+        </div>
+        <FormMessage state={state} />
+      </form>
+    </details>
   );
 }
 

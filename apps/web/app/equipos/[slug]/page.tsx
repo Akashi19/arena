@@ -84,7 +84,16 @@ export default async function TeamPublicPage({ params }: Props) {
               <Avatar src={m.player.avatarUrl} name={m.player.nickname} size={44} rounded="full" />
               <div className="min-w-0">
                 <p className="flex items-center gap-1 truncate font-semibold">
-                  {m.player.nickname} {team.captain?.id === m.player.id && <Crown className="size-4 text-amber" aria-label="Capitán" />}
+                  {m.player.user ? (
+                    <Link href={`/jugadores/${m.player.user.username}`} className="hover:text-neon">
+                      {m.player.nickname}
+                    </Link>
+                  ) : (
+                    <>
+                      {m.player.nickname} <span className="text-xs font-normal text-muted">(sin cuenta)</span>
+                    </>
+                  )}{" "}
+                  {team.captain?.id === m.player.id && <Crown className="size-4 text-amber" aria-label="Capitán" />}
                 </p>
                 <p className="text-xs text-muted">
                   {[m.role, m.jerseyNumber != null ? `#${m.jerseyNumber}` : null, flag(m.player.country)].filter(Boolean).join(' · ')}

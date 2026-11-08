@@ -16,13 +16,13 @@ solicitan su inscripción.
 | 1 | Diseño UX/UI oscuro con acentos neón, responsive | ✅ |
 | 2 | Registro, autenticación JWT + refresh, RBAC, perfiles, logo del organizador | ✅ |
 | 3 | Partidas/torneos: CRUD, filtros, paginación, enlaces públicos, inscripciones, límites FREE/PRO/BUSINESS | ✅ |
-| 4 | Equipos y jugadores | 🟡 equipos básicos (CRUD, escudo, integrantes, capitán, historial); faltan fichas de jugador sin cuenta y estadísticas |
+| 4 | Equipos y jugadores | ✅ equipos (escudo, integrantes, capitán, historial), jugadores sin cuenta, perfiles gamer por videojuego, búsqueda, ficha pública con privacidad, estadísticas oficiales y logros |
 | 5 | Resultados, fixtures, llaves y clasificaciones automáticas | ✅ eliminación simple y doble, liga, grupos y grupos + playoffs; resultados versionados, avance automático, tabla, horarios y campeón |
 | 6 | Dashboard y estadísticas | 🟡 KPIs del organizador listos; faltan estadísticas avanzadas |
 | 7 | Seguridad, pruebas y despliegue | 🟡 pruebas unitarias e integración, Dockerfiles; faltan CI y despliegue |
 | 17 | SaaS: planes, límites y "Mi suscripción" | 🟡 planes, feature flags y límites en backend; faltan pagos (Stripe/Mercado Pago), webhooks y panel SUPERADMIN |
 | 18-20 | Verificación, reputación y Trust & Reputation System | 🟡 insignia, indicadores y panel de confianza visibles; faltan solicitudes, valoraciones e incidencias |
-| 21-23 | Perfiles gamer, rankings globales, transmisiones en vivo | ⏳ tablas creadas, sin API ni UI aún |
+| 21-23 | Perfiles gamer, rankings globales, transmisiones en vivo | 🟡 perfiles gamer listos (nivel declarado con historial); faltan verificación de nivel, comparador, rankings y transmisiones |
 
 ## Stack
 
@@ -46,6 +46,7 @@ torneos/
 │   │   │   ├── organizers/       # perfil de usuario, espacio del organizador, perfil público
 │   │   │   ├── tournaments/      # partidas, filtros, inscripciones
 │   │   │   ├── matches/          # motor de llaves (engine.ts), fixture, resultados, clasificación
+│   │   │   ├── players/          # perfiles gamer, búsqueda, ficha pública, estadísticas y logros
 │   │   │   ├── teams/            # equipos e integrantes
 │   │   │   ├── catalog/          # deportes, videojuegos y rangos (admin)
 │   │   │   ├── plans/            # feature flags y límites por suscripción
@@ -145,7 +146,8 @@ Incluye pruebas unitarias de límites y feature flags (`src/plans/plans.spec.ts`
 (`src/matches/engine.spec.ts`, simula llaves completas de 2 a 17 participantes) y de integración contra
 `arena_test` (`test/api.e2e.spec.ts`): autenticación y revocación, límites del plan FREE, validación de fechas,
 aislamiento entre organizadores, inscripciones, borradores privados, bloqueo de auto-asignación de la insignia y el
-ciclo completo de fixture → resultados → correcciones → campeón en cada formato (`test/fixture.e2e.spec.ts`).
+ciclo completo de fixture → resultados → correcciones → campeón en cada formato (`test/fixture.e2e.spec.ts`), y perfiles
+gamer, privacidad, jugadores sin cuenta y estadísticas individuales y por equipo (`test/players.e2e.spec.ts`).
 
 ## Docker (stack completo)
 

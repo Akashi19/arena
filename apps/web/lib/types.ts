@@ -242,3 +242,109 @@ export interface Fixture {
   canGeneratePlayoffs: boolean;
   canManage: boolean;
 }
+
+// ---------------------------------------------------------------------------- Jugadores y perfiles gamer
+
+export type Platform = 'PC' | 'PLAYSTATION' | 'XBOX' | 'NINTENDO' | 'MOBILE' | 'CROSSPLAY' | 'NONE';
+export type RecruitmentStatus = 'NOT_LOOKING' | 'LOOKING_FOR_TEAM' | 'LOOKING_FOR_PLAYERS';
+
+export interface GameProfile {
+  id: string;
+  platform: Platform;
+  gamerTag: string;
+  competitiveLevel: CompetitiveLevel;
+  playerRole: string | null;
+  experienceYears: number | null;
+  isPrimary: boolean;
+  isFeatured: boolean;
+  verificationType: 'SELF_DECLARED' | 'PLATFORM_VERIFIED' | 'EXTERNAL_VERIFIED';
+  verifiedAt: string | null;
+  lastUpdatedAt: string;
+  game: { id: string; name: string; slug: string; logoUrl: string | null };
+  rank: { id: string; rankName: string; rankOrder: number; iconUrl: string | null } | null;
+}
+
+export interface PlayerCard {
+  id: string;
+  username: string;
+  nickname: string;
+  avatarUrl: string | null;
+  country: string | null;
+  recruitmentStatus: RecruitmentStatus;
+  gameProfiles: GameProfile[];
+  _count: { teams: number };
+}
+
+export interface StatLine {
+  matchesPlayed: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  tournamentsPlayed: number;
+  tournamentsWon: number;
+  podiums: number;
+  winRate: number;
+}
+
+export interface PlayerProfile {
+  id: string;
+  username: string;
+  nickname: string;
+  fullName: string | null;
+  avatarUrl: string | null;
+  country: string | null;
+  city: string | null;
+  bio: string | null;
+  position: string | null;
+  jerseyNumber: number | null;
+  recruitmentStatus: RecruitmentStatus;
+  availability: string | null;
+  isSuspended: boolean;
+  memberSince: string;
+  organizer: { displayName: string; verificationStatus: VerificationStatus } | null;
+  gameProfiles: GameProfile[];
+  teams:
+    | {
+        role: string | null;
+        jerseyNumber: number | null;
+        joinedAt: string;
+        leftAt: string | null;
+        isCaptain: boolean;
+        team: { id: string; name: string; slug: string; tag: string | null; logoUrl: string | null; game: { name: string } | null; sport: { name: string } | null };
+      }[]
+    | null;
+  achievements: { unlockedAt: string; achievement: { code: string; name: string; description: string; iconUrl: string | null } }[];
+  stats: {
+    overall: StatLine;
+    byDiscipline: (StatLine & { key: string; label: string; game: { id: string; name: string; slug: string; logoUrl: string | null } | null })[];
+  } | null;
+  history:
+    | {
+        finalPosition: number | null;
+        participants: number;
+        team: { name: string; slug: string; logoUrl: string | null } | null;
+        tournament: {
+          name: string;
+          slug: string;
+          status: TournamentStatus;
+          startsAt: string;
+          category: Category;
+          format: TournamentFormat;
+          game: { name: string; logoUrl: string | null } | null;
+          sport: { name: string } | null;
+          organizer: { displayName: string };
+        };
+      }[]
+    | null;
+  isOwner: boolean;
+}
+
+export interface MyPlayer {
+  id: string;
+  nickname: string;
+  recruitmentStatus: RecruitmentStatus;
+  position: string | null;
+  availability: string | null;
+  jerseyNumber: number | null;
+  gameProfiles: GameProfile[];
+}
