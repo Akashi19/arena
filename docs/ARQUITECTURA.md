@@ -171,3 +171,43 @@ erDiagram
   campeón). El cálculo es idempotente y el seed lo usa para rellenar datos anteriores.
 - **Privacidad:** la ficha pública oculta nombre real, país, estadísticas, equipos o historial según
   `user_profiles.privacy`; el propio jugador siempre ve todo.
+
+## Sistema de confianza (Trust & Reputation System)
+
+Dos indicadores **independientes** que nunca se combinan en una sola puntuación ni dependen del plan contratado:
+
+### Indicador 1 · Organizador verificado
+
+- Estados: `NOT_REQUESTED → PENDING → UNDER_REVIEW → VERIFIED | REJECTED`, y desde `VERIFIED`: `SUSPENDED` (y
+  rehabilitación) o `EXPIRED`. El estado público se desnormaliza en `organizer_profiles.verification_status`; la fuente
+  de verdad es `organizer_verifications` y cada cambio queda en `verification_history` (responsable, fecha, estados,
+  motivo y observaciones internas) y en `audit_logs`.
+- Una sola solicitud abierta por organizador (índice único parcial). Una rechazada o vencida admite una nueva solicitud;
+  una suspendida solo la rehabilita el SUPERADMIN. La insignia se muestra únicamente en estado `VERIFIED`.
+- Vigencia de 12 meses (configurable al aprobar o renovar). Un proceso horario vence las verificaciones, avisa 30 días
+  antes y aplica la política de conservación.
+- **Documentos:** bucket privado, tipo validado por firma binaria, acceso solo del SUPERADMIN mediante URL firmada de
+  5 minutos (cada apertura queda auditada). Se eliminan 90 días después de una aprobación y 30 después de un rechazo.
+- Nadie puede asignarse la insignia: los DTO rechazan campos no permitidos y las acciones son exclusivas del rol SUPERADMIN.
+
+### Indicador 2 · Reputación
+
+- **Elegibilidad para valorar:** partida `FINISHED`, inscripción aprobada con participación validada (al finalizar),
+  como jugador, solicitante o integrante del equipo durante el torneo. El organizador y sus administradores no pueden
+  valorar. Una valoración por usuario y torneo (restricción única), editable 7 días con historial en `rating_history`.
+- **Fórmula:** organización 25 % + horarios 25 % + comunicación 20 % + transparencia 15 % + experiencia 15 %, sobre los
+  promedios de las valoraciones con moderación `APPROVED`, con dos decimales.
+- **Niveles:** `NEW` con menos de 10 valoraciones válidas o menos de 5 torneos completados; luego `INITIAL` (< 4.00),
+  `GOOD` (4.00-4.49), `EXCELLENT` (4.50-4.79) y `TOP` (≥ 4.80). Siempre se muestran el número de valoraciones y la fecha
+  de cálculo, y se advierte cuando la muestra es pequeña.
+- **Cumplimiento:** completados / (completados + cancelaciones computables) × 100. Las partidas en curso no cuentan. Una
+  cancelación no computa si no tenía participantes aprobados o si el SUPERADMIN la marca como justificada.
+- **Incidencias:** las reportan participantes; solo las confirmadas (`RESOLVED`) se publican y se suman como indicador.
+  No restan puntos de forma automática.
+- **Anti-manipulación:** quedan pendientes de moderación (y no cuentan) las valoraciones de cuentas con menos de 24 h,
+  con enlaces, con lenguaje ofensivo, con texto idéntico a otra o en ráfagas (≥ 10 por hora al mismo organizador). Tres
+  reportes marcan una valoración para revisión. La moderación solo cambia la visibilidad (nunca las puntuaciones), exige
+  justificación y queda auditada.
+- **Recálculo:** el motor (`trust/reputation.ts`) recalcula desde cero tras cada valoración, edición, moderación,
+  revisión de incidencia o cancelación y al finalizar/cancelar una partida; registra en auditoría cada cambio de
+  puntuación o nivel. Las respuestas del organizador (una por valoración, editables 7 días) rechazan lenguaje ofensivo.

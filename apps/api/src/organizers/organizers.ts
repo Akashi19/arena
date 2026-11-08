@@ -110,7 +110,7 @@ export class OrganizerListQuery extends PaginationQuery {
 
 const SOCIAL_KEYS = new Set(['instagram', 'x', 'youtube', 'twitch', 'tiktok', 'facebook', 'discord', 'kick']);
 
-function sanitizeSocialLinks(links: Record<string, string> | undefined) {
+export function sanitizeSocialLinks(links: Record<string, string> | undefined) {
   if (!links) return undefined;
   const clean: Record<string, string> = {};
   for (const [key, value] of Object.entries(links)) {

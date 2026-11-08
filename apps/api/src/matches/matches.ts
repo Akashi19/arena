@@ -567,7 +567,11 @@ export class MatchesService {
         participants: { select: { registrationId: true, isWinner: true } },
       },
     });
-    if (!matches.length) return { champion: null }; // partida gestionada sin fixture en la plataforma
+    if (!matches.length) {
+      // Partida gestionada sin fixture en la plataforma: los aprobados quedan como participantes validados
+      await tx.tournamentRegistration.updateMany({ where: { tournamentId: t.id, status: 'APPROVED' }, data: { participationValidated: true } });
+      return { champion: null };
+    }
     if (matches.some((m) => m.status !== 'COMPLETED' && m.status !== 'CANCELLED')) {
       throw new BadRequestException('Quedan encuentros sin resultado');
     }

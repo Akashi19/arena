@@ -138,3 +138,35 @@ export const LEVEL_SOURCE_LABEL: Record<string, string> = {
   PLATFORM_VERIFIED: 'Verificado por la plataforma',
   EXTERNAL_VERIFIED: 'Verificado externamente',
 };
+
+export const INCIDENT_TYPE_LABEL: Record<string, string> = {
+  SCHEDULE_BREACH: 'Incumplimiento de horarios',
+  UNANNOUNCED_CHANGES: 'Cambios no comunicados',
+  ORGANIZATION_ISSUES: 'Problemas de organización',
+  RULES_BREACH: 'Incumplimiento del reglamento',
+  REGISTRATION_ISSUES: 'Problemas de inscripción',
+  UNJUSTIFIED_CANCELLATION: 'Cancelación injustificada',
+  OTHER: 'Otros',
+};
+
+export const INCIDENT_STATUS_LABEL: Record<string, string> = {
+  OPEN: 'Abierta',
+  UNDER_REVIEW: 'En revisión',
+  RESOLVED: 'Confirmada',
+  DISMISSED: 'Desestimada',
+};
+
+export const MODERATION_LABEL: Record<string, string> = {
+  PENDING: 'Pendiente de moderación',
+  APPROVED: 'Publicada',
+  HIDDEN: 'Oculta',
+  SUSPENDED: 'Suspendida',
+};
+
+export const RATING_CRITERIA = [
+  { key: 'organizationScore', avg: 'organizationAverage', label: 'Organización', weight: '25 %' },
+  { key: 'punctualityScore', avg: 'punctualityAverage', label: 'Cumplimiento de horarios', weight: '25 %' },
+  { key: 'communicationScore', avg: 'communicationAverage', label: 'Comunicación', weight: '20 %' },
+  { key: 'transparencyScore', avg: 'transparencyAverage', label: 'Transparencia', weight: '15 %' },
+  { key: 'overallExperienceScore', avg: 'experienceAverage', label: 'Experiencia general', weight: '15 %' },
+] as const;

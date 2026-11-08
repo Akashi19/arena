@@ -4,7 +4,8 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   poweredByHeader: false,
   experimental: {
-    serverActions: { bodySizeLimit: '6mb' }, // subida de logos/portadas (la API limita a 5 MB)
+    // Logos/portadas (5 MB) y documentos de verificación (hasta 5 archivos; la web limita a 25 MB en total)
+    serverActions: { bodySizeLimit: '26mb' },
   },
 };
 

@@ -348,3 +348,120 @@ export interface MyPlayer {
   jerseyNumber: number | null;
   gameProfiles: GameProfile[];
 }
+
+// ---------------------------------------------------------------------------- Confianza: verificación, valoraciones, incidencias
+
+export type OrganizerType = 'PERSON' | 'TEAM' | 'CLUB' | 'ACADEMY' | 'COMPANY';
+export type ModerationStatus = 'PENDING' | 'APPROVED' | 'HIDDEN' | 'SUSPENDED';
+export type IncidentType =
+  | 'SCHEDULE_BREACH'
+  | 'UNANNOUNCED_CHANGES'
+  | 'ORGANIZATION_ISSUES'
+  | 'RULES_BREACH'
+  | 'REGISTRATION_ISSUES'
+  | 'UNJUSTIFIED_CANCELLATION'
+  | 'OTHER';
+export type IncidentStatus = 'OPEN' | 'UNDER_REVIEW' | 'RESOLVED' | 'DISMISSED';
+
+export interface VerificationRequest {
+  id: string;
+  status: VerificationStatus;
+  verificationType: OrganizerType;
+  organizerName: string;
+  submittedAt: string;
+  reviewedAt: string | null;
+  approvedAt: string | null;
+  expiresAt: string | null;
+  rejectionReason: string | null;
+  infoRequested: string | null;
+  isOpen: boolean;
+  documents: { id: string; documentType: string; originalName: string | null; uploadedAt: string; reviewStatus: string }[];
+  history: { previousStatus: VerificationStatus | null; newStatus: VerificationStatus; reason: string | null; createdAt: string }[];
+}
+
+export interface MyVerification {
+  status: VerificationStatus;
+  verifiedAt: string | null;
+  current: VerificationRequest | null;
+  previous: VerificationRequest[];
+  canRequest: boolean;
+  prefill: {
+    organizerName: string;
+    legalName: string | null;
+    verificationType: OrganizerType;
+    country: string;
+    city: string;
+    contactEmail: string;
+    contactPhone: string;
+    description: string;
+    website: string;
+    socialLinks: Record<string, string>;
+    logoUrl: string | null;
+  };
+}
+
+export interface Reputation {
+  averageScore: string;
+  totalRatings: number;
+  organizationAverage: string;
+  punctualityAverage: string;
+  communicationAverage: string;
+  transparencyAverage: string;
+  experienceAverage: string;
+  completedTournaments: number;
+  cancelledTournaments: number;
+  dueTournaments: number;
+  completionRate: string;
+  confirmedIncidents: number;
+  reputationLevel: ReputationLevel;
+  lastCalculatedAt: string;
+}
+
+export interface RatingItem {
+  id: string;
+  organizationScore: number;
+  punctualityScore: number;
+  communicationScore: number;
+  transparencyScore: number;
+  overallExperienceScore: number;
+  finalScore: string;
+  comment: string | null;
+  createdAt: string;
+  updatedAt: string;
+  tournament: { name: string; slug: string };
+  author: { nickname: string; username: string; avatarUrl: string | null };
+  response: { response: string; createdAt: string; updatedAt: string; editableUntil?: string } | null;
+}
+
+export interface ConfirmedIncident {
+  id: string;
+  incidentType: IncidentType;
+  resolution: string | null;
+  resolvedAt: string | null;
+  createdAt: string;
+  tournament: { name: string; slug: string };
+}
+
+export interface ReputationSummary {
+  reputation: Reputation;
+  distribution: Record<'1' | '2' | '3' | '4' | '5', number>;
+  monthly: { month: string; average: number | null; count: number }[];
+  confirmedIncidents: ConfirmedIncident[];
+  smallSample: boolean;
+}
+
+export interface MyReputation extends ReputationSummary {
+  organizerId: string;
+  pendingResponses: number;
+  openIncidents: number;
+  recent: RatingItem[];
+}
+
+export interface TournamentFeedback {
+  canRate: boolean;
+  canEdit: boolean;
+  reason: string | null;
+  rating: (Omit<RatingItem, 'author'> & { editableUntil: string; moderationStatus: ModerationStatus }) | null;
+  canReportIncident: boolean;
+  incidents: { id: string; incidentType: IncidentType; status: IncidentStatus; createdAt: string; resolution: string | null }[];
+}

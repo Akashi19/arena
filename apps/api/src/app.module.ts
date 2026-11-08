@@ -17,6 +17,9 @@ import { TeamsModule } from './teams/teams.js';
 import { DashboardModule } from './dashboard/dashboard.js';
 import { MatchesModule } from './matches/matches.js';
 import { PlayersModule } from './players/players.js';
+import { ReputationModule } from './trust/reputation.js';
+import { RatingsModule } from './trust/ratings.js';
+import { VerificationModule } from './trust/verification.js';
 import { JwtAuthGuard, RolesGuard } from './common/guards/auth.guards.js';
 import { PrismaExceptionFilter } from './common/filters/prisma-exception.filter.js';
 import { Public } from './common/decorators/auth.decorators.js';
@@ -51,6 +54,9 @@ class HealthController {
     TournamentsModule,
     MatchesModule,
     PlayersModule,
+    ReputationModule,
+    RatingsModule,
+    VerificationModule,
     TeamsModule,
     DashboardModule,
   ],

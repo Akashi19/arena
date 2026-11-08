@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 const ACCESS = 'arena_at';
 const REFRESH = 'arena_rt';
 const API_URL = process.env.API_INTERNAL_URL ?? 'http://localhost:4100';
-const PROTECTED = ['/dashboard', '/notificaciones'];
+const PROTECTED = ['/dashboard', '/notificaciones', '/admin'];
 
 function expiresSoon(token?: string) {
   if (!token) return true;

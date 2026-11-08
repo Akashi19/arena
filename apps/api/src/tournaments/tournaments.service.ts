@@ -13,6 +13,7 @@ import { StorageService } from '../storage/storage.service.js';
 import { PlanLimitsService } from '../plans/plans.js';
 import { MatchesService } from '../matches/matches.js';
 import { refreshPlayerStats, tournamentPlayerIds } from '../players/stats.js';
+import { ReputationService } from '../trust/reputation.js';
 import type { AuthUser } from '../common/decorators/auth.decorators.js';
 import { organizerPublicSelect, paginate, slugify, uniqueSlug } from '../common/utils/index.js';
 import { assertCanManageOrganizer, levelIndex, requireOwnOrganizer } from '../common/utils/access.js';
@@ -85,6 +86,7 @@ export class TournamentsService {
     private readonly storage: StorageService,
     private readonly limits: PlanLimitsService,
     private readonly matches: MatchesService,
+    private readonly reputation: ReputationService,
   ) {}
 
   // =========================================================================== Consulta pública
@@ -521,6 +523,7 @@ export class TournamentsService {
         link: `/torneos/${updated.slug}`,
       });
     }
+    if (dto.status === 'FINISHED') await this.reputation.recalculateSafe(current.organizerId, 'Partida finalizada');
     this.realtime.emitToTournament(id, 'tournament:status', { id, status: updated.status });
     return updated;
   }
@@ -553,6 +556,7 @@ export class TournamentsService {
       },
       ['APPROVED', 'PENDING'],
     );
+    await this.reputation.recalculateSafe(current.organizerId, 'Partida cancelada');
     this.realtime.emitToTournament(id, 'tournament:status', { id, status: 'CANCELLED' });
     return updated;
   }

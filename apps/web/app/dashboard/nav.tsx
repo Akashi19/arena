@@ -3,9 +3,9 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
-import { CreditCard, LayoutDashboard, ListChecks, PlusCircle, Shield, Trophy, UserCog, Users, Gamepad2 } from 'lucide-react';
+import { CreditCard, LayoutDashboard, ListChecks, PlusCircle, Shield, Trophy, UserCog, Users, Gamepad2, BadgeCheck, Star, ShieldCheck } from 'lucide-react';
 
-export function DashboardNav({ isOrganizer }: { isOrganizer: boolean }) {
+export function DashboardNav({ isOrganizer, isAdmin = false }: { isOrganizer: boolean; isAdmin?: boolean }) {
   const pathname = usePathname();
   const items = [
     { href: '/dashboard', label: 'Resumen', icon: LayoutDashboard, exact: true },
@@ -19,7 +19,14 @@ export function DashboardNav({ isOrganizer }: { isOrganizer: boolean }) {
     { href: '/dashboard/equipos', label: 'Equipos', icon: Users },
     { href: '/dashboard/inscripciones', label: 'Mis inscripciones', icon: ListChecks },
     { href: '/dashboard/perfil', label: 'Perfil y logo', icon: UserCog },
-    ...(isOrganizer ? [{ href: '/dashboard/suscripcion', label: 'Mi suscripción', icon: CreditCard }] : []),
+    ...(isOrganizer
+      ? [
+          { href: '/dashboard/reputacion', label: 'Reputación', icon: Star },
+          { href: '/dashboard/verificacion', label: 'Verificación', icon: BadgeCheck },
+          { href: '/dashboard/suscripcion', label: 'Mi suscripción', icon: CreditCard },
+        ]
+      : []),
+    ...(isAdmin ? [{ href: '/admin', label: 'Administración', icon: ShieldCheck }] : []),
   ];
   const isActive = (href: string, exact?: boolean) =>
     exact ? pathname === href : pathname === href || (pathname.startsWith(href + '/') && !(href === '/dashboard/torneos' && pathname === '/dashboard/torneos/nuevo'));

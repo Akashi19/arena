@@ -1779,6 +1779,896 @@
         ]
       }
     },
+    "/api/organizers/{id}/ratings": {
+      "get": {
+        "operationId": "RatingsController_list",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "stars",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 5,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Reputación, valoraciones e incidencias"
+        ]
+      },
+      "post": {
+        "operationId": "RatingsController_create",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRatingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Reputación, valoraciones e incidencias"
+        ]
+      }
+    },
+    "/api/organizers/{id}/reputation": {
+      "get": {
+        "operationId": "RatingsController_reputation",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Reputación, valoraciones e incidencias"
+        ]
+      }
+    },
+    "/api/organizers/{id}/incidents": {
+      "get": {
+        "operationId": "RatingsController_incidents",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Reputación, valoraciones e incidencias"
+        ]
+      }
+    },
+    "/api/ratings/{id}": {
+      "put": {
+        "operationId": "RatingsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RatingScoresDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Reputación, valoraciones e incidencias"
+        ]
+      }
+    },
+    "/api/ratings/{id}/responses": {
+      "post": {
+        "operationId": "RatingsController_respond",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResponseDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Reputación, valoraciones e incidencias"
+        ]
+      },
+      "put": {
+        "operationId": "RatingsController_editResponse",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResponseDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Reputación, valoraciones e incidencias"
+        ]
+      }
+    },
+    "/api/ratings/{id}/reports": {
+      "post": {
+        "operationId": "RatingsController_report",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Reputación, valoraciones e incidencias"
+        ]
+      }
+    },
+    "/api/tournaments/{id}/feedback": {
+      "get": {
+        "operationId": "RatingsController_feedback",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Reputación, valoraciones e incidencias"
+        ]
+      }
+    },
+    "/api/tournaments/{id}/incidents": {
+      "post": {
+        "operationId": "RatingsController_incident",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateIncidentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Reputación, valoraciones e incidencias"
+        ]
+      }
+    },
+    "/api/me/reputation": {
+      "get": {
+        "operationId": "RatingsController_mine",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Reputación, valoraciones e incidencias"
+        ]
+      }
+    },
+    "/api/admin/trust": {
+      "get": {
+        "operationId": "AdminTrustController_dashboard",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "SUPERADMIN · Confianza"
+        ]
+      }
+    },
+    "/api/admin/reputation": {
+      "get": {
+        "operationId": "AdminTrustController_reputation",
+        "parameters": [
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "level",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "NEW",
+                "INITIAL",
+                "GOOD",
+                "EXCELLENT",
+                "TOP"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "SUPERADMIN · Confianza"
+        ]
+      }
+    },
+    "/api/admin/ratings": {
+      "get": {
+        "operationId": "AdminTrustController_ratings",
+        "parameters": [
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "APPROVED",
+                "HIDDEN",
+                "SUSPENDED"
+              ]
+            }
+          },
+          {
+            "name": "suspicious",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "SUPERADMIN · Confianza"
+        ]
+      }
+    },
+    "/api/admin/ratings/{id}/moderation": {
+      "patch": {
+        "operationId": "AdminTrustController_moderate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModerateRatingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "SUPERADMIN · Confianza"
+        ]
+      }
+    },
+    "/api/admin/incidents": {
+      "get": {
+        "operationId": "AdminTrustController_incidents",
+        "parameters": [
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "OPEN",
+                "UNDER_REVIEW",
+                "RESOLVED",
+                "DISMISSED"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "SUPERADMIN · Confianza"
+        ]
+      }
+    },
+    "/api/admin/incidents/{id}/evidence": {
+      "get": {
+        "operationId": "AdminTrustController_evidence",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "SUPERADMIN · Confianza"
+        ]
+      }
+    },
+    "/api/admin/incidents/{id}/resolve": {
+      "put": {
+        "operationId": "AdminTrustController_resolve",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResolveIncidentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "SUPERADMIN · Confianza"
+        ]
+      }
+    },
+    "/api/admin/cancellations": {
+      "get": {
+        "operationId": "AdminTrustController_cancellations",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "SUPERADMIN · Confianza"
+        ]
+      }
+    },
+    "/api/admin/tournaments/{id}/cancellation": {
+      "patch": {
+        "operationId": "AdminTrustController_cancellation",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancellationReviewDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "SUPERADMIN · Confianza"
+        ]
+      }
+    },
+    "/api/me/verification": {
+      "get": {
+        "operationId": "VerificationController_mine",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Verificación de organizadores"
+        ]
+      },
+      "post": {
+        "operationId": "VerificationController_request",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestVerificationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Verificación de organizadores"
+        ]
+      }
+    },
+    "/api/me/verification/info": {
+      "post": {
+        "operationId": "VerificationController_info",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/AdditionalInfoDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Verificación de organizadores"
+        ]
+      }
+    },
+    "/api/admin/verifications": {
+      "get": {
+        "operationId": "AdminVerificationController_list",
+        "parameters": [
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "NOT_REQUESTED",
+                "PENDING",
+                "UNDER_REVIEW",
+                "VERIFIED",
+                "REJECTED",
+                "SUSPENDED",
+                "EXPIRED"
+              ]
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "SUPERADMIN · Verificación de organizadores"
+        ]
+      }
+    },
+    "/api/admin/verifications/maintenance": {
+      "post": {
+        "operationId": "AdminVerificationController_maintenance",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "SUPERADMIN · Verificación de organizadores"
+        ]
+      }
+    },
+    "/api/admin/verifications/{id}": {
+      "get": {
+        "operationId": "AdminVerificationController_detail",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "SUPERADMIN · Verificación de organizadores"
+        ]
+      }
+    },
+    "/api/admin/verifications/{id}/documents/{documentId}": {
+      "get": {
+        "operationId": "AdminVerificationController_document",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "documentId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "SUPERADMIN · Verificación de organizadores"
+        ]
+      }
+    },
+    "/api/admin/verifications/{id}/actions": {
+      "post": {
+        "operationId": "AdminVerificationController_action",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerificationActionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "SUPERADMIN · Verificación de organizadores"
+        ]
+      }
+    },
     "/api/me/teams": {
       "get": {
         "operationId": "TeamsController_mine",
@@ -3089,6 +3979,302 @@
             "description": "Mostrar en el perfil público"
           }
         }
+      },
+      "CreateRatingDto": {
+        "type": "object",
+        "properties": {
+          "organizationScore": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "punctualityScore": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "communicationScore": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "transparencyScore": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "overallExperienceScore": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "comment": {
+            "type": "string"
+          },
+          "tournamentId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "organizationScore",
+          "punctualityScore",
+          "communicationScore",
+          "transparencyScore",
+          "overallExperienceScore",
+          "tournamentId"
+        ]
+      },
+      "RatingScoresDto": {
+        "type": "object",
+        "properties": {
+          "organizationScore": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "punctualityScore": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "communicationScore": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "transparencyScore": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "overallExperienceScore": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "comment": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "organizationScore",
+          "punctualityScore",
+          "communicationScore",
+          "transparencyScore",
+          "overallExperienceScore"
+        ]
+      },
+      "ResponseDto": {
+        "type": "object",
+        "properties": {
+          "response": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "response"
+        ]
+      },
+      "ReportDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
+      "CreateIncidentDto": {
+        "type": "object",
+        "properties": {
+          "incidentType": {
+            "type": "string",
+            "enum": [
+              "SCHEDULE_BREACH",
+              "UNANNOUNCED_CHANGES",
+              "ORGANIZATION_ISSUES",
+              "RULES_BREACH",
+              "REGISTRATION_ISSUES",
+              "UNJUSTIFIED_CANCELLATION",
+              "OTHER"
+            ]
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "incidentType",
+          "description"
+        ]
+      },
+      "ModerateRatingDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "APPROVED",
+              "HIDDEN",
+              "SUSPENDED"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "description": "Justificación obligatoria (auditoría)"
+          }
+        },
+        "required": [
+          "status",
+          "reason"
+        ]
+      },
+      "ResolveIncidentDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "UNDER_REVIEW",
+              "RESOLVED",
+              "DISMISSED"
+            ]
+          },
+          "resolution": {
+            "type": "string",
+            "description": "Resolución administrativa (pública si se confirma)"
+          }
+        },
+        "required": [
+          "status",
+          "resolution"
+        ]
+      },
+      "CancellationReviewDto": {
+        "type": "object",
+        "properties": {
+          "justified": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "justified",
+          "reason"
+        ]
+      },
+      "RequestVerificationDto": {
+        "type": "object",
+        "properties": {
+          "organizerName": {
+            "type": "string"
+          },
+          "legalName": {
+            "type": "string",
+            "description": "Nombre comercial o razón social"
+          },
+          "verificationType": {
+            "type": "string",
+            "enum": [
+              "PERSON",
+              "TEAM",
+              "CLUB",
+              "ACADEMY",
+              "COMPANY"
+            ]
+          },
+          "country": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "contactEmail": {
+            "type": "string"
+          },
+          "contactPhone": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "website": {
+            "type": "string"
+          },
+          "socialLinks": {
+            "type": "object",
+            "description": "JSON: { instagram, x, youtube, twitch, tiktok, facebook, discord, kick }"
+          },
+          "documentTypes": {
+            "description": "JSON: tipo de cada documento, en el mismo orden que los archivos",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "acceptPolicy": {
+            "type": "string",
+            "description": "Aceptación de las políticas de verificación"
+          }
+        },
+        "required": [
+          "organizerName",
+          "verificationType",
+          "country",
+          "city",
+          "contactEmail",
+          "contactPhone",
+          "description",
+          "acceptPolicy"
+        ]
+      },
+      "AdditionalInfoDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      },
+      "VerificationActionDto": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "START_REVIEW",
+              "REQUEST_INFO",
+              "APPROVE",
+              "REJECT",
+              "SUSPEND",
+              "REINSTATE",
+              "RENEW"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "description": "Motivo (obligatorio al pedir información, rechazar o suspender)"
+          },
+          "comments": {
+            "type": "string",
+            "description": "Observaciones internas (no se muestran al organizador)"
+          },
+          "months": {
+            "type": "number",
+            "description": "Meses de vigencia al aprobar o renovar",
+            "default": 12
+          }
+        },
+        "required": [
+          "action"
+        ]
       },
       "CreateTeamDto": {
         "type": "object",

@@ -68,6 +68,25 @@
 | POST · PATCH · DELETE | `/me/games` · `/me/games/{id}` | ✔ | Perfiles gamer: plataforma, gamertag, nivel, rango, rol; los cambios de nivel quedan en el historial |
 | PATCH | `/teams/{id}/captain` | Dueño | Capitán |
 | GET | `/me/dashboard` | Organizador | Indicadores del panel |
+| GET · POST | `/me/verification` | Organizador | Estado e historial · solicitud (multipart: datos, `documents[]` hasta 5, `acceptPolicy`) |
+| POST | `/me/verification/info` | Organizador | Responde a una solicitud de información adicional (`message`, `documents[]`) |
+| GET | `/organizers/{id}/reputation` | — | Reputación, distribución de estrellas, evolución mensual e incidencias confirmadas |
+| GET · POST | `/organizers/{id}/ratings` | — · Participante | Valoraciones públicas (`stars`) · valorar (5 criterios 1-5, `comment`, `tournamentId`) |
+| PUT | `/ratings/{id}` | Autor | Edita durante 7 días (queda en `rating_history`) |
+| POST · PUT | `/ratings/{id}/responses` | Organizador | Respuesta pública (una por valoración, editable 7 días) |
+| POST | `/ratings/{id}/reports` | ✔ | Reporta una valoración |
+| GET | `/tournaments/{id}/feedback` | ✔ | Si el usuario puede valorar, su valoración y sus incidencias |
+| POST | `/tournaments/{id}/incidents` | Participante | Reporta una incidencia (multipart: `incidentType`, `description`, `evidence`) |
+| GET | `/organizers/{id}/incidents` | — | Incidencias confirmadas (el organizador ve todas las suyas) |
+| GET | `/me/reputation` | Organizador | Dashboard de reputación y respuestas pendientes |
+| GET | `/admin/verifications[/{id}]` | SUPERADMIN | Solicitudes (`status`, `q`) y detalle (consulta auditada) |
+| GET | `/admin/verifications/{id}/documents/{docId}` | SUPERADMIN | URL firmada de 5 min (auditada) |
+| POST | `/admin/verifications/{id}/actions` | SUPERADMIN | `START_REVIEW`, `REQUEST_INFO`, `APPROVE`, `REJECT`, `SUSPEND`, `REINSTATE`, `RENEW` |
+| POST | `/admin/verifications/maintenance` | SUPERADMIN | Vencimientos, avisos y política de conservación (también corre cada hora) |
+| GET | `/admin/trust` · `/admin/reputation` · `/admin/ratings` · `/admin/incidents` · `/admin/cancellations` | SUPERADMIN | Dashboard de confianza y listados |
+| PATCH | `/admin/ratings/{id}/moderation` | SUPERADMIN | Publicar, ocultar o suspender (justificación obligatoria) |
+| PUT | `/admin/incidents/{id}/resolve` | SUPERADMIN | `UNDER_REVIEW`, `RESOLVED` (confirmada) o `DISMISSED` con resolución |
+| PATCH | `/admin/tournaments/{id}/cancellation` | SUPERADMIN | Marca una cancelación como justificada o no |
 | GET | `/plans` · `/me/subscription` | — · Organizador | Planes · plan actual, uso y funcionalidades |
 | GET | `/me/notifications` · PATCH `/{id}/read` · POST `/read-all` | ✔ | Notificaciones |
 
@@ -86,7 +105,6 @@ Conexión socket.io a `http://localhost:4100/realtime`, con `auth: { token }` pa
 
 ## Endpoints planificados en próximas fases
 
-Definidos en la especificación y respaldados por las tablas ya creadas: valoraciones e incidencias (`/organizers/{id}/ratings`,
-`/organizers/{id}/reputation`, `/tournaments/{id}/incidents`, `/admin/reputation`), verificación, rankings (`/rankings/*`, `/admin/ranking/*`),
+Definidos en la especificación y respaldados por las tablas ya creadas: rankings (`/rankings/*`, `/admin/ranking/*`),
 transmisiones (`/matches/{id}/stream`, `/streams/live`), comparador de jugadores (`/players/compare`) y pagos de suscripción
 con webhooks.

@@ -533,6 +533,189 @@ export async function updateMatchAction(_: ActionState, fd: FormData): Promise<A
   }
 }
 
+// ============================================================================ Confianza: verificación
+
+const MAX_VERIFICATION_UPLOAD = 25 * 1024 * 1024;
+
+function collectFiles(fd: FormData, key: string) {
+  return fd.getAll(key).filter((f): f is File => f instanceof File && f.size > 0);
+}
+
+export async function requestVerificationAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const files = collectFiles(fd, 'documents');
+  if (files.reduce((s, f) => s + f.size, 0) > MAX_VERIFICATION_UPLOAD) return { error: 'Los documentos superan 25 MB en total' };
+  const social: Record<string, string> = {};
+  for (const k of ['instagram', 'x', 'youtube', 'twitch', 'tiktok', 'facebook', 'discord', 'kick']) {
+    const v = str(fd, `social_${k}`);
+    if (v) social[k] = v;
+  }
+  const form = new FormData();
+  for (const k of ['organizerName', 'legalName', 'verificationType', 'country', 'city', 'contactEmail', 'contactPhone', 'description', 'website']) {
+    const v = str(fd, k);
+    if (v) form.set(k, v);
+  }
+  form.set('socialLinks', JSON.stringify(social));
+  form.set('documentTypes', JSON.stringify(files.map(() => str(fd, 'documentType') ?? 'SUPPORTING_DOCUMENT')));
+  form.set('acceptPolicy', fd.get('acceptPolicy') === 'on' ? 'true' : 'false');
+  for (const f of files) form.append('documents', f, f.name);
+  try {
+    await api('/me/verification', { method: 'POST', form });
+    revalidatePath('/dashboard/verificacion');
+    return { ok: true, message: 'Solicitud enviada. Te avisaremos cuando comience la revisión.' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function provideVerificationInfoAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const files = collectFiles(fd, 'documents');
+  if (files.reduce((s, f) => s + f.size, 0) > MAX_VERIFICATION_UPLOAD) return { error: 'Los documentos superan 25 MB en total' };
+  const form = new FormData();
+  form.set('message', str(fd, 'message') ?? '');
+  for (const f of files) form.append('documents', f, f.name);
+  try {
+    await api('/me/verification/info', { method: 'POST', form });
+    revalidatePath('/dashboard/verificacion');
+    return { ok: true, message: 'Información enviada al equipo de verificación' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+// ============================================================================ Confianza: valoraciones e incidencias
+
+export async function rateOrganizerAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const scores = {
+    organizationScore: num(fd, 'organizationScore'),
+    punctualityScore: num(fd, 'punctualityScore'),
+    communicationScore: num(fd, 'communicationScore'),
+    transparencyScore: num(fd, 'transparencyScore'),
+    overallExperienceScore: num(fd, 'overallExperienceScore'),
+    comment: str(fd, 'comment') ?? '',
+  };
+  if (Object.values(scores).some((v) => v === undefined)) return { error: 'Califica los cinco criterios' };
+  const ratingId = str(fd, 'ratingId');
+  try {
+    if (ratingId) await api(`/ratings/${ratingId}`, { method: 'PUT', body: scores });
+    else await api(`/organizers/${str(fd, 'organizerId')}/ratings`, { method: 'POST', body: { ...scores, tournamentId: str(fd, 'tournamentId') } });
+    revalidatePath(`/torneos/${str(fd, 'slug')}`);
+    return { ok: true, message: ratingId ? 'Valoración actualizada' : '¡Gracias por tu valoración!' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function respondRatingAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const id = str(fd, 'ratingId');
+  try {
+    await api(`/ratings/${id}/responses`, { method: fd.get('edit') === '1' ? 'PUT' : 'POST', body: { response: str(fd, 'response') } });
+    revalidatePath('/dashboard/reputacion');
+    return { ok: true, message: 'Respuesta publicada' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function reportRatingAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    await api(`/ratings/${str(fd, 'ratingId')}/reports`, { method: 'POST', body: { reason: str(fd, 'reason') } });
+    return { ok: true, message: 'Reporte enviado al equipo de moderación' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function reportIncidentAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const evidence = fd.get('evidence');
+  const form = new FormData();
+  form.set('incidentType', str(fd, 'incidentType') ?? '');
+  form.set('description', str(fd, 'description') ?? '');
+  if (evidence instanceof File && evidence.size > 0) {
+    if (evidence.size > 10 * 1024 * 1024) return { error: 'La evidencia supera 10 MB' };
+    form.set('evidence', evidence, evidence.name);
+  }
+  try {
+    await api(`/tournaments/${str(fd, 'tournamentId')}/incidents`, { method: 'POST', form });
+    revalidatePath(`/torneos/${str(fd, 'slug')}`);
+    return { ok: true, message: 'Incidencia enviada. Un administrador la revisará; solo las confirmadas se publican.' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+// ============================================================================ SUPERADMIN
+
+export async function verificationAdminAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const id = str(fd, 'id');
+  try {
+    await api(`/admin/verifications/${id}/actions`, {
+      method: 'POST',
+      body: { action: str(fd, 'action'), reason: str(fd, 'reason'), comments: str(fd, 'comments'), months: num(fd, 'months') },
+    });
+    revalidatePath(`/admin/verificaciones/${id}`);
+    revalidatePath('/admin/verificaciones');
+    return { ok: true, message: 'Acción registrada y organizador notificado' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+/** Devuelve una URL firmada de 5 minutos (cada acceso queda auditado en la API). */
+export async function privateFileUrlAction(kind: 'verification' | 'incident', id: string, documentId?: string): Promise<{ url?: string; error?: string }> {
+  const uuid = /^[0-9a-f-]{36}$/i;
+  if (!uuid.test(id) || (documentId && !uuid.test(documentId))) return { error: 'Identificador inválido' };
+  try {
+    const path = kind === 'verification' ? `/admin/verifications/${id}/documents/${documentId}` : `/admin/incidents/${id}/evidence`;
+    const res = await api<{ url: string }>(path);
+    return { url: res.url };
+  } catch (e) {
+    return { error: e instanceof ApiError ? e.message : 'No se pudo abrir el archivo' };
+  }
+}
+
+export async function runVerificationMaintenanceAction(_: ActionState): Promise<ActionState> {
+  try {
+    const r = await api<{ expired: number; warned: number; purgedDocuments: number }>('/admin/verifications/maintenance', { method: 'POST' });
+    revalidatePath('/admin/verificaciones');
+    return { ok: true, message: `Vencidas: ${r.expired} · avisos: ${r.warned} · documentos eliminados: ${r.purgedDocuments}` };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function moderateRatingAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    await api(`/admin/ratings/${str(fd, 'id')}/moderation`, { method: 'PATCH', body: { status: str(fd, 'status'), reason: str(fd, 'reason') } });
+    revalidatePath('/admin/valoraciones');
+    return { ok: true, message: 'Moderación registrada' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function resolveIncidentAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    await api(`/admin/incidents/${str(fd, 'id')}/resolve`, { method: 'PUT', body: { status: str(fd, 'status'), resolution: str(fd, 'resolution') } });
+    revalidatePath('/admin/incidencias');
+    return { ok: true, message: 'Incidencia actualizada' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function reviewCancellationAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    await api(`/admin/tournaments/${str(fd, 'id')}/cancellation`, {
+      method: 'PATCH',
+      body: { justified: fd.get('justified') === 'true', reason: str(fd, 'reason') },
+    });
+    revalidatePath('/admin/reputacion');
+    return { ok: true, message: 'Cancelación revisada y reputación recalculada' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
 // ============================================================================ Notificaciones
 
 export async function markAllReadAction() {

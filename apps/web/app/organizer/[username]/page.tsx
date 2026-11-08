@@ -3,10 +3,11 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { CalendarDays, Crown, Globe, MapPin } from 'lucide-react';
 import { apiOrNull } from '@/lib/api';
-import type { OrganizerPublic, TournamentStatus } from '@/lib/types';
+import type { OrganizerPublic, Paginated, RatingItem, TournamentStatus } from '@/lib/types';
 import { COUNTRIES, flag, formatDate, ORGANIZER_TYPE_LABEL, REPUTATION_LABEL, VERIFICATION_LABEL } from '@/lib/format';
 import { Avatar, EmptyState, ReputationPill, Stat, StatusBadge } from '@/components/ui';
 import { VerifiedBadge } from '@/components/verified-badge';
+import { RatingCard } from '@/components/trust';
 
 interface MiniTournament {
   id: string;
@@ -56,6 +57,7 @@ export default async function OrganizerPage({ params }: Props) {
   const { organizer: o, stats } = data;
   const accent = o.primaryColor ?? '#22d3ee';
   const due = stats.finished + stats.cancelled;
+  const ratings = await apiOrNull<Paginated<RatingItem>>(`/organizers/${o.id}/ratings`, { auth: false, query: { pageSize: 3 } });
 
   return (
     <div className="space-y-8">
@@ -119,12 +121,33 @@ export default async function OrganizerPage({ params }: Props) {
           </p>
           <p className="text-sm">Nivel: {REPUTATION_LABEL[o.reputation?.reputationLevel ?? 'NEW']}</p>
           <p className="mt-1 text-xs text-muted">{o.reputation?.totalRatings ?? 0} valoraciones válidas</p>
+          <Link href={`/organizer/${o.user.username}/trust`} className="mt-1 inline-block text-xs font-semibold text-neon hover:underline">
+            Centro de confianza →
+          </Link>
         </div>
       </section>
 
       <section>
         <h2 className="section-title mb-4">Próximas competiciones</h2>
         {data.upcoming.length ? <List items={data.upcoming} /> : <EmptyState title="Sin competiciones próximas" />}
+      </section>
+
+      <section>
+        <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
+          <h2 className="section-title">Opiniones de participantes</h2>
+          <Link href={`/organizer/${o.user.username}/trust`} className="text-sm text-neon hover:underline">
+            Ver todas ({ratings?.total ?? 0})
+          </Link>
+        </div>
+        {ratings?.items.length ? (
+          <div className="grid gap-3 lg:grid-cols-3">
+            {ratings.items.map((r) => (
+              <RatingCard key={r.id} rating={r} />
+            ))}
+          </div>
+        ) : (
+          <EmptyState title="Aún sin opiniones">Los participantes pueden valorar al organizador cuando finaliza una partida.</EmptyState>
+        )}
       </section>
 
       <section>

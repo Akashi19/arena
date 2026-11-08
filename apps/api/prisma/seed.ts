@@ -11,6 +11,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../src/generated/prisma/client.js';
 import type { Platform, PlanCode } from '../src/generated/prisma/client.js';
 import { refreshPlayerStats } from '../src/players/stats.js';
+import { ReputationService } from '../src/trust/reputation.js';
 
 const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }) });
 const DEMO_PASSWORD = 'Arena2026demo';
@@ -502,6 +503,9 @@ async function main() {
   // Estadísticas oficiales y logros (idempotente): rellena los torneos finalizados antes de existir el cálculo
   const players = await prisma.player.findMany({ select: { id: true } });
   await refreshPlayerStats(prisma, players.map((p) => p.id));
+  // Reputación de todos los organizadores con el motor real (idempotente; auditoría desactivada en el seed)
+  const reputation = new ReputationService(prisma as never, { log: async () => undefined } as never);
+  for (const o of await prisma.organizerProfile.findMany({ select: { id: true } })) await reputation.recalculate(o.id);
 }
 
 main()

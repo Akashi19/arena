@@ -5,7 +5,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const me = await requireMe('/dashboard');
   return (
     <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
-      <DashboardNav isOrganizer={!!me.organizerProfile} />
+      <DashboardNav isOrganizer={!!me.organizerProfile} isAdmin={me.role === 'SUPERADMIN'} />
       <div className="min-w-0">{children}</div>
     </div>
   );

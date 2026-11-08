@@ -20,8 +20,8 @@ solicitan su inscripción.
 | 5 | Resultados, fixtures, llaves y clasificaciones automáticas | ✅ eliminación simple y doble, liga, grupos y grupos + playoffs; resultados versionados, avance automático, tabla, horarios y campeón |
 | 6 | Dashboard y estadísticas | 🟡 KPIs del organizador listos; faltan estadísticas avanzadas |
 | 7 | Seguridad, pruebas y despliegue | 🟡 pruebas unitarias e integración, Dockerfiles; faltan CI y despliegue |
-| 17 | SaaS: planes, límites y "Mi suscripción" | 🟡 planes, feature flags y límites en backend; faltan pagos (Stripe/Mercado Pago), webhooks y panel SUPERADMIN |
-| 18-20 | Verificación, reputación y Trust & Reputation System | 🟡 insignia, indicadores y panel de confianza visibles; faltan solicitudes, valoraciones e incidencias |
+| 17 | SaaS: planes, límites y "Mi suscripción" | 🟡 planes, feature flags y límites en backend; faltan pagos (Stripe/Mercado Pago), webhooks y la gestión de planes en el panel SUPERADMIN |
+| 18-20 | Verificación, reputación y Trust & Reputation System | ✅ solicitudes con documentos privados y revisión SUPERADMIN (vencimiento y conservación automáticos), valoraciones con edición, respuestas, reportes y moderación, incidencias, motor de reputación, centro de confianza público y dashboard de confianza |
 | 21-23 | Perfiles gamer, rankings globales, transmisiones en vivo | 🟡 perfiles gamer listos (nivel declarado con historial); faltan verificación de nivel, comparador, rankings y transmisiones |
 
 ## Stack
@@ -47,6 +47,7 @@ torneos/
 │   │   │   ├── tournaments/      # partidas, filtros, inscripciones
 │   │   │   ├── matches/          # motor de llaves (engine.ts), fixture, resultados, clasificación
 │   │   │   ├── players/          # perfiles gamer, búsqueda, ficha pública, estadísticas y logros
+│   │   │   ├── trust/            # verificación, valoraciones, incidencias y motor de reputación (TRS)
 │   │   │   ├── teams/            # equipos e integrantes
 │   │   │   ├── catalog/          # deportes, videojuegos y rangos (admin)
 │   │   │   ├── plans/            # feature flags y límites por suscripción
@@ -117,7 +118,7 @@ Todas las cuentas demo usan la contraseña `Arena2026demo` (solo desarrollo):
 
 | Usuario | Rol | Notas |
 |---|---|---|
-| `superadmin` | SUPERADMIN | `admin@arena.test` |
+| `superadmin` | SUPERADMIN | `admin@arena.test` · panel en `/admin` (verificaciones, valoraciones, incidencias, reputación) |
 | `ligagamer` | ORGANIZADOR | Verificado, 2 torneos activos (en el límite FREE) |
 | `clubandes` | ORGANIZADOR | Club de fútbol 7 y básquet |
 | `nova`, `kraken`, `zeta`, `luna`, `blitz`, `shadow`, `pixel`, `titan` | JUGADOR | Con perfiles gamer; `kraken` y `shadow` tienen equipo |
@@ -147,7 +148,9 @@ Incluye pruebas unitarias de límites y feature flags (`src/plans/plans.spec.ts`
 `arena_test` (`test/api.e2e.spec.ts`): autenticación y revocación, límites del plan FREE, validación de fechas,
 aislamiento entre organizadores, inscripciones, borradores privados, bloqueo de auto-asignación de la insignia y el
 ciclo completo de fixture → resultados → correcciones → campeón en cada formato (`test/fixture.e2e.spec.ts`), y perfiles
-gamer, privacidad, jugadores sin cuenta y estadísticas individuales y por equipo (`test/players.e2e.spec.ts`).
+gamer, privacidad, jugadores sin cuenta y estadísticas individuales y por equipo (`test/players.e2e.spec.ts`), y el
+sistema de confianza: verificación de punta a punta, elegibilidad de valoraciones, moderación, incidencias y
+cumplimiento (`test/trust.e2e.spec.ts`, más `src/trust/reputation.spec.ts` para la fórmula y los niveles).
 
 ## Docker (stack completo)
 
