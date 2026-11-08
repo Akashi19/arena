@@ -8,6 +8,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Put,
   Query,
   UploadedFile,
   UseInterceptors,
@@ -26,6 +27,7 @@ import {
   MyTournamentsQuery,
   RegistrationListQuery,
   RequestRegistrationDto,
+  SetMvpDto,
   TournamentListQuery,
   UpdateTournamentDto,
 } from './dto/tournament.dto.js';
@@ -96,6 +98,13 @@ export class TournamentsController {
   @Get('me/tournaments')
   mine(@CurrentUser() user: AuthUser, @Query() q: MyTournamentsQuery) {
     return this.service.mine(user, q);
+  }
+
+  @ApiBearerAuth()
+  @Roles('ORGANIZER')
+  @Put('tournaments/:id/mvp')
+  setMvp(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: SetMvpDto) {
+    return this.service.setMvp(user, id, dto.playerId);
   }
 
   // ---------------------------------------------------------------- Inscripciones

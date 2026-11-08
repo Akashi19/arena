@@ -22,7 +22,8 @@ solicitan su inscripción.
 | 7 | Seguridad, pruebas y despliegue | 🟡 pruebas unitarias e integración, Dockerfiles; faltan CI y despliegue |
 | 17 | SaaS: planes, límites y "Mi suscripción" | 🟡 planes, feature flags y límites en backend; faltan pagos (Stripe/Mercado Pago), webhooks y la gestión de planes en el panel SUPERADMIN |
 | 18-20 | Verificación, reputación y Trust & Reputation System | ✅ solicitudes con documentos privados y revisión SUPERADMIN (vencimiento y conservación automáticos), valoraciones con edición, respuestas, reportes y moderación, incidencias, motor de reputación, centro de confianza público y dashboard de confianza |
-| 21-23 | Perfiles gamer, rankings globales, transmisiones en vivo | 🟡 perfiles gamer listos (nivel declarado con historial); faltan verificación de nivel, comparador, rankings y transmisiones |
+| 21 | Perfiles gamer y niveles competitivos | ✅ perfiles por videojuego (orden, principal, favorito), nivel declarado / verificado por la plataforma / verificado externamente con historial, comparador, búsqueda de reclutamiento e invitaciones de equipos, requisitos de nivel y rango en las partidas, logros por eventos (MVP, tres títulos consecutivos) |
+| 22-23 | Rankings globales, transmisiones en vivo | ⏳ tablas creadas; faltan rankings y transmisiones |
 
 ## Stack
 

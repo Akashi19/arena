@@ -1,6 +1,6 @@
-import { BadgeCheck, Gamepad2 } from 'lucide-react';
-import type { GameProfile } from '@/lib/types';
-import { LEVEL_LABEL, LEVEL_SOURCE_LABEL, PLATFORM_LABEL } from '@/lib/format';
+import { BadgeCheck, Gamepad2, Heart, ShieldCheck } from 'lucide-react';
+import type { GameProfile, LevelVerificationType } from '@/lib/types';
+import { formatDate, LEVEL_LABEL, LEVEL_SOURCE_LABEL, PLATFORM_LABEL } from '@/lib/format';
 
 const LEVEL_COLOR: Record<string, string> = {
   BEGINNER: 'text-muted',
@@ -10,18 +10,43 @@ const LEVEL_COLOR: Record<string, string> = {
   PROFESSIONAL: 'text-amber',
 };
 
+const LEVEL_STEP: Record<string, number> = { BEGINNER: 1, INTERMEDIATE: 2, ADVANCED: 3, EXPERT: 4, PROFESSIONAL: 5 };
+
+/** Icono de origen: los niveles declarados nunca se muestran como certificados. */
+export function SourceIcon({ type, className = 'size-3.5' }: { type: LevelVerificationType; className?: string }) {
+  if (type === 'EXTERNAL_VERIFIED') return <ShieldCheck className={`${className} text-verified`} aria-label={LEVEL_SOURCE_LABEL[type]} />;
+  if (type === 'PLATFORM_VERIFIED') return <BadgeCheck className={`${className} text-verified`} aria-label={LEVEL_SOURCE_LABEL[type]} />;
+  return null;
+}
+
 export function LevelTag({ profile }: { profile: Pick<GameProfile, 'competitiveLevel' | 'verificationType'> }) {
-  const verified = profile.verificationType !== 'SELF_DECLARED';
   return (
     <span className={`inline-flex items-center gap-1 font-semibold ${LEVEL_COLOR[profile.competitiveLevel]}`} title={LEVEL_SOURCE_LABEL[profile.verificationType]}>
       {LEVEL_LABEL[profile.competitiveLevel]}
-      {verified ? <BadgeCheck className="size-3.5 text-verified" aria-label="Nivel verificado" /> : <span className="text-[10px] font-normal text-muted">(declarado)</span>}
+      {profile.verificationType === 'SELF_DECLARED' ? (
+        <span className="text-[10px] font-normal text-muted">(declarado)</span>
+      ) : (
+        <SourceIcon type={profile.verificationType} />
+      )}
+    </span>
+  );
+}
+
+/** Barra de 5 pasos del nivel general. */
+export function LevelBar({ level }: { level: GameProfile['competitiveLevel'] }) {
+  const step = LEVEL_STEP[level];
+  return (
+    <span className="flex gap-0.5" role="img" aria-label={`Nivel ${step} de 5`}>
+      {[1, 2, 3, 4, 5].map((n) => (
+        <span key={n} className={`h-1.5 flex-1 rounded-full ${n <= step ? 'bg-current' : 'bg-surface-3'}`} />
+      ))}
     </span>
   );
 }
 
 /** Tarjeta de un videojuego del perfil gamer. */
 export function GameProfileCard({ profile, children }: { profile: GameProfile; children?: React.ReactNode }) {
+  const verifiedDate = profile.verifiedAt ?? profile.lastUpdatedAt;
   return (
     <div className={`card p-4 ${profile.isPrimary ? 'border-neon/50' : ''}`}>
       <div className="flex items-start gap-3">
@@ -37,9 +62,13 @@ export function GameProfileCard({ profile, children }: { profile: GameProfile; c
           <p className="flex items-center gap-2 font-bold">
             <span className="truncate">{profile.game.name}</span>
             {profile.isPrimary && <span className="chip px-1.5 py-0 text-[10px] text-neon">Principal</span>}
+            {profile.isFavorite && <Heart className="size-3.5 shrink-0 text-danger" fill="currentColor" aria-label="Juego favorito" />}
           </p>
           <p className="truncate font-mono text-sm text-ink/90">{profile.gamerTag}</p>
         </div>
+      </div>
+      <div className={`mt-3 ${LEVEL_COLOR[profile.competitiveLevel]}`}>
+        <LevelBar level={profile.competitiveLevel} />
       </div>
       <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs">
         <dt className="text-muted">Nivel</dt>
@@ -69,6 +98,11 @@ export function GameProfileCard({ profile, children }: { profile: GameProfile; c
           </>
         )}
       </dl>
+      <p className="mt-3 border-t border-line pt-2 text-[11px] leading-snug text-muted">
+        <span className="font-semibold text-ink/80">{LEVEL_SOURCE_LABEL[profile.verificationType]}</span> · {formatDate(verifiedDate)}
+        {profile.verificationSource && <span className="block">{profile.verificationSource}</span>}
+        {profile.verificationType === 'PLATFORM_VERIFIED' && profile.rank && <span className="block">El rango del juego es declarado.</span>}
+      </p>
       {children}
     </div>
   );

@@ -80,6 +80,18 @@ export class AddGuestDto {
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(0) @Max(99) jerseyNumber?: number;
 }
 
+export class InviteDto {
+  @ApiProperty({ description: 'username del jugador a invitar' })
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
+  @IsString()
+  @Length(3, 30)
+  username: string;
+  @ApiPropertyOptional() @IsOptional() @Transform(trim) @IsString() @MaxLength(300) message?: string;
+}
+
+/** Las invitaciones pendientes caducan pasado este plazo. */
+export const INVITATION_TTL_DAYS = 14;
+
 export class SetCaptainDto {
   @ApiProperty() @IsUUID() playerId: string;
 }
@@ -281,6 +293,152 @@ export class TeamsService {
     };
   }
 
+  // --------------------------------------------------------------------------- Invitaciones (reclutamiento)
+
+  private expiryCutoff() {
+    return new Date(Date.now() - INVITATION_TTL_DAYS * 86_400_000);
+  }
+
+  private async expireStale(where: Prisma.TeamInvitationWhereInput) {
+    await this.prisma.teamInvitation.updateMany({
+      where: { ...where, status: 'PENDING', createdAt: { lt: this.expiryCutoff() } },
+      data: { status: 'EXPIRED' },
+    });
+  }
+
+  /** El dueño del equipo invita a un jugador con cuenta; el jugador decide si se une. */
+  async invite(user: AuthUser, id: string, dto: InviteDto) {
+    const team = await this.getOwned(user, id);
+    if (!team.isActive) throw new BadRequestException('El equipo no está activo');
+    const player = await this.prisma.player.findFirst({
+      where: { user: { username: dto.username, status: 'ACTIVE' } },
+      select: { id: true, userId: true, nickname: true, isSuspended: true },
+    });
+    if (!player) throw new NotFoundException('Jugador no encontrado');
+    if (player.userId === user.id) throw new BadRequestException('No puedes invitarte a ti mismo; agrégate como integrante');
+    if (player.isSuspended) throw new BadRequestException('La ficha del jugador está suspendida');
+    const member = await this.prisma.teamPlayer.findFirst({ where: { teamId: id, playerId: player.id, leftAt: null } });
+    if (member) throw new ConflictException('El jugador ya forma parte del equipo');
+    const active = await this.prisma.teamPlayer.count({ where: { teamId: id, leftAt: null } });
+    if (active >= 40) throw new BadRequestException('El equipo alcanzó el máximo de 40 integrantes');
+
+    await this.expireStale({ teamId: id, playerId: player.id });
+    const pending = await this.prisma.teamInvitation.findFirst({ where: { teamId: id, playerId: player.id, status: 'PENDING' } });
+    if (pending) throw new ConflictException('Ya hay una invitación pendiente para este jugador');
+
+    const invitation = await this.prisma.teamInvitation.create({
+      data: { teamId: id, playerId: player.id, sentById: user.id, message: dto.message || null },
+    });
+    await this.audit.log({ actorId: user.id, action: 'TEAM_INVITATION_SENT', entityType: 'TeamInvitation', entityId: invitation.id });
+    await this.notifications.notify({
+      userId: player.userId!,
+      type: 'TEAM_INVITATION',
+      title: `${team.name} te invita a su equipo`,
+      body: dto.message ? `“${dto.message}”` : `Revisa la invitación de ${team.name}.`,
+      link: '/dashboard/equipos',
+    });
+    return invitation;
+  }
+
+  async teamInvitations(user: AuthUser, id: string) {
+    await this.getOwned(user, id);
+    await this.expireStale({ teamId: id });
+    return this.prisma.teamInvitation.findMany({
+      where: { teamId: id },
+      orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
+      take: 50,
+      select: {
+        id: true,
+        status: true,
+        message: true,
+        createdAt: true,
+        respondedAt: true,
+        player: { select: { id: true, nickname: true, avatarUrl: true, user: { select: { username: true } } } },
+      },
+    });
+  }
+
+  async cancelInvitation(user: AuthUser, invitationId: string) {
+    const inv = await this.prisma.teamInvitation.findUnique({ where: { id: invitationId }, include: { team: true } });
+    if (!inv) throw new NotFoundException('Invitación no encontrada');
+    if (inv.team.ownerId !== user.id && user.role !== 'SUPERADMIN') throw new ForbiddenException('Solo el dueño del equipo puede cancelarla');
+    if (inv.status !== 'PENDING') throw new BadRequestException('La invitación ya no está pendiente');
+    return this.prisma.teamInvitation.update({ where: { id: invitationId }, data: { status: 'CANCELLED', respondedAt: new Date() } });
+  }
+
+  async myInvitations(user: AuthUser) {
+    const player = await this.prisma.player.findUnique({ where: { userId: user.id }, select: { id: true } });
+    if (!player) return [];
+    await this.expireStale({ playerId: player.id });
+    return this.prisma.teamInvitation.findMany({
+      where: { playerId: player.id, status: 'PENDING' },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        message: true,
+        createdAt: true,
+        sentBy: { select: { username: true } },
+        team: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            tag: true,
+            logoUrl: true,
+            country: true,
+            game: { select: { name: true } },
+            sport: { select: { name: true } },
+            _count: { select: { members: { where: { leftAt: null } } } },
+          },
+        },
+      },
+    });
+  }
+
+  async respondInvitation(user: AuthUser, invitationId: string, accept: boolean) {
+    const inv = await this.prisma.teamInvitation.findUnique({
+      where: { id: invitationId },
+      include: { team: true, player: { select: { id: true, userId: true, nickname: true } } },
+    });
+    if (!inv || inv.player.userId !== user.id) throw new NotFoundException('Invitación no encontrada');
+    if (inv.status !== 'PENDING') throw new BadRequestException('La invitación ya no está pendiente');
+    if (inv.createdAt < this.expiryCutoff()) {
+      await this.prisma.teamInvitation.update({ where: { id: inv.id }, data: { status: 'EXPIRED' } });
+      throw new BadRequestException('La invitación caducó');
+    }
+    if (accept && !inv.team.isActive) throw new BadRequestException('El equipo ya no está activo');
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.teamInvitation.update({
+        where: { id: inv.id },
+        data: { status: accept ? 'ACCEPTED' : 'DECLINED', respondedAt: new Date() },
+      });
+      if (!accept) return;
+      const member = await tx.teamPlayer.findFirst({ where: { teamId: inv.teamId, playerId: inv.playerId, leftAt: null } });
+      if (member) return;
+      const active = await tx.teamPlayer.count({ where: { teamId: inv.teamId, leftAt: null } });
+      if (active >= 40) throw new BadRequestException('El equipo alcanzó el máximo de 40 integrantes');
+      await tx.teamPlayer.create({ data: { teamId: inv.teamId, playerId: inv.playerId } });
+      await tx.teamIdentityHistory.create({
+        data: { teamId: inv.teamId, field: 'member_added', newValue: `${inv.player.nickname} (invitación)`, changedBy: user.id },
+      });
+    });
+    await this.audit.log({
+      actorId: user.id,
+      action: accept ? 'TEAM_INVITATION_ACCEPTED' : 'TEAM_INVITATION_DECLINED',
+      entityType: 'TeamInvitation',
+      entityId: inv.id,
+    });
+    await this.notifications.notify({
+      userId: inv.team.ownerId,
+      type: accept ? 'TEAM_INVITATION_ACCEPTED' : 'TEAM_INVITATION_DECLINED',
+      title: accept ? `${inv.player.nickname} se unió a ${inv.team.name}` : `${inv.player.nickname} rechazó la invitación`,
+      body: accept ? 'Ya forma parte del equipo.' : `No se unirá a ${inv.team.name}.`,
+      link: `/equipos/${inv.team.slug}`,
+    });
+    return { ok: true, status: accept ? 'ACCEPTED' : 'DECLINED', team: { slug: inv.team.slug, name: inv.team.name } };
+  }
+
   private async getOwned(user: AuthUser, id: string) {
     const team = await this.prisma.team.findUnique({ where: { id } });
     if (!team) throw new NotFoundException('Equipo no encontrado');
@@ -330,6 +488,24 @@ export class TeamsController {
     @Param('playerId', ParseUUIDPipe) playerId: string,
   ) {
     return this.service.removeMember(u, id, playerId);
+  }
+  @ApiBearerAuth() @Post('teams/:id/invitations') invite(@CurrentUser() u: AuthUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: InviteDto) {
+    return this.service.invite(u, id, dto);
+  }
+  @ApiBearerAuth() @Get('teams/:id/invitations') invitations(@CurrentUser() u: AuthUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.service.teamInvitations(u, id);
+  }
+  @ApiBearerAuth() @Delete('invitations/:id') cancelInvitation(@CurrentUser() u: AuthUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.service.cancelInvitation(u, id);
+  }
+  @ApiBearerAuth() @Get('me/invitations') myInvitations(@CurrentUser() u: AuthUser) {
+    return this.service.myInvitations(u);
+  }
+  @ApiBearerAuth() @Post('invitations/:id/accept') accept(@CurrentUser() u: AuthUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.service.respondInvitation(u, id, true);
+  }
+  @ApiBearerAuth() @Post('invitations/:id/decline') decline(@CurrentUser() u: AuthUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.service.respondInvitation(u, id, false);
   }
   @ApiBearerAuth() @Patch('teams/:id/captain') captain(@CurrentUser() u: AuthUser, @Param('id', ParseUUIDPipe) id: string, @Body() dto: SetCaptainDto) {
     return this.service.setCaptain(u, id, dto);

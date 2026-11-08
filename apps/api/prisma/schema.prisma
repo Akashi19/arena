@@ -546,6 +546,7 @@ model Tournament {
   cancelledReason      String?            @map("cancelled_reason")
   cancellationJustified Boolean?          @map("cancellation_justified")
   championRegistrationId String?          @unique @map("champion_registration_id") @db.Uuid
+  mvpPlayerId          String?            @map("mvp_player_id") @db.Uuid // jugador destacado elegido por el organizador
   createdAt            DateTime           @default(now()) @map("created_at")
   updatedAt            DateTime           @updatedAt @map("updated_at")
 
@@ -556,6 +557,7 @@ model Tournament {
   minRank       GameRank?                @relation("TournamentMinRank", fields: [minRankId], references: [id])
   maxRank       GameRank?                @relation("TournamentMaxRank", fields: [maxRankId], references: [id])
   champion      TournamentRegistration?  @relation("TournamentChampion", fields: [championRegistrationId], references: [id])
+  mvp           Player?                  @relation("TournamentMvp", fields: [mvpPlayerId], references: [id], onDelete: SetNull)
   registrations TournamentRegistration[] @relation("TournamentRegistrations")
   matches       Match[]
   standings     TournamentStanding[]
@@ -647,6 +649,7 @@ model Player {
   gameHistory   PlayerGameHistory[]
   rankings      PlayerRanking[]
   invitations   TeamInvitation[]
+  mvpOf         Tournament[]             @relation("TournamentMvp")
 
   @@index([nickname])
   @@index([country])

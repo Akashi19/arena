@@ -1,4 +1,5 @@
 import type { Prisma } from '../generated/prisma/client.js';
+import { syncLevelVerification } from './levels.js';
 
 type Db = Prisma.TransactionClient;
 
@@ -17,6 +18,8 @@ export interface PlayerStats {
   overall: StatLine;
   /** Clave: gameId; los torneos de deportes tradicionales se agrupan en "sport". */
   byDiscipline: Map<string, StatLine>;
+  /** Mayor racha de torneos ganados de forma consecutiva (orden cronológico de los torneos disputados). */
+  bestTitleStreak: number;
 }
 
 const empty = (): StatLine => ({ matchesPlayed: 0, wins: 0, draws: 0, losses: 0, tournamentsPlayed: 0, tournamentsWon: 0, podiums: 0, winRate: 0 });
@@ -51,6 +54,7 @@ export async function computePlayerStats(db: Db, playerId: string): Promise<Play
 
   const overall = empty();
   const byDiscipline = new Map<string, StatLine>();
+  const finishes: { at: Date; won: boolean }[] = [];
   for (const r of regs) {
     if (r.playerId !== playerId) {
       // Integrante del equipo durante el torneo
@@ -58,6 +62,7 @@ export async function computePlayerStats(db: Db, playerId: string): Promise<Play
       const member = r.team?.members.some((m) => m.joinedAt <= end && (!m.leftAt || m.leftAt >= r.tournament.startsAt));
       if (!member) continue;
     }
+    finishes.push({ at: r.tournament.startsAt, won: r.finalPosition === 1 });
     const key = r.tournament.gameId ?? 'sport';
     const line = byDiscipline.get(key) ?? empty();
     byDiscipline.set(key, line);
@@ -76,15 +81,23 @@ export async function computePlayerStats(db: Db, playerId: string): Promise<Play
   for (const line of [overall, ...byDiscipline.values()]) {
     line.winRate = line.matchesPlayed ? Math.round((line.wins / line.matchesPlayed) * 10_000) / 100 : 0;
   }
-  return { overall, byDiscipline };
+  let streak = 0;
+  let bestTitleStreak = 0;
+  for (const f of finishes.sort((a, b) => a.at.getTime() - b.at.getTime())) {
+    streak = f.won ? streak + 1 : 0;
+    bestTitleStreak = Math.max(bestTitleStreak, streak);
+  }
+  return { overall, byDiscipline, bestTitleStreak };
 }
 
-const ACHIEVEMENT_RULES: { code: string; met: (s: StatLine) => boolean }[] = [
-  { code: 'FIRST_TOURNAMENT', met: (s) => s.tournamentsPlayed >= 1 },
-  { code: 'FIRST_WIN', met: (s) => s.wins >= 1 },
-  { code: 'WINS_10', met: (s) => s.wins >= 10 },
-  { code: 'WINS_50', met: (s) => s.wins >= 50 },
-  { code: 'CHAMPION', met: (s) => s.tournamentsWon >= 1 },
+/** Logros derivados de resultados. MVP no está aquí: lo genera la elección del organizador (evento). */
+const ACHIEVEMENT_RULES: { code: string; met: (s: PlayerStats) => boolean }[] = [
+  { code: 'FIRST_TOURNAMENT', met: (s) => s.overall.tournamentsPlayed >= 1 },
+  { code: 'FIRST_WIN', met: (s) => s.overall.wins >= 1 },
+  { code: 'WINS_10', met: (s) => s.overall.wins >= 10 },
+  { code: 'WINS_50', met: (s) => s.overall.wins >= 50 },
+  { code: 'CHAMPION', met: (s) => s.overall.tournamentsWon >= 1 },
+  { code: 'THREE_IN_A_ROW', met: (s) => s.bestTitleStreak >= 3 },
 ];
 
 /** Jugadores que participaron en el torneo (individualmente o como integrantes del equipo inscrito). */
@@ -140,9 +153,11 @@ export async function refreshPlayerStats(db: Db, playerIds: string[]) {
     const have = new Set(unlocked.map((u) => u.achievementId));
     for (const rule of ACHIEVEMENT_RULES) {
       const achievementId = byCode.get(rule.code);
-      if (achievementId && !have.has(achievementId) && rule.met(stats.overall)) {
+      if (achievementId && !have.has(achievementId) && rule.met(stats)) {
         await db.playerAchievement.create({ data: { playerId, achievementId, gameId: null } });
       }
     }
   }
+  // Con las estadísticas al día, el nivel declarado puede quedar respaldado (o dejar de estarlo)
+  await syncLevelVerification(db, playerIds);
 }

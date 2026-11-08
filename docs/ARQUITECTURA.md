@@ -162,13 +162,31 @@ erDiagram
 
 - Cada usuario tiene una ficha de jugador. El dueño de un equipo puede agregar **jugadores sin cuenta**
   (`players.user_id NULL`, `manager_id` = quien los gestiona); no tienen ficha pública pero acumulan estadísticas.
-- **Perfil gamer:** un perfil por videojuego (plataforma válida para el juego, rango del catálogo del juego). El nivel
-  es *declarado* por el jugador; cambiar nivel o rango quita cualquier verificación previa y queda en
-  `player_game_history`. Retirar un juego lo oculta sin borrar su historial.
+- **Perfil gamer:** un perfil por videojuego (plataforma válida para el juego, rango del catálogo del juego), con
+  orden, juego principal, favorito y visibilidad pública. Retirar un juego lo oculta sin borrar su historial.
+- **Origen del nivel** (nunca se presenta un nivel declarado como certificado; siempre se muestran origen y fecha):
+  - `SELF_DECLARED`: lo elige el jugador. Cada cambio de nivel o rango queda en `player_game_history`.
+  - `PLATFORM_VERIFIED`: automático (`players/levels.ts`). Las estadísticas oficiales del juego respaldan el nivel
+    declarado si este es igual o inferior al que alcanzan los umbrales (partidas, % de victorias y títulos; mínimo 5
+    partidas). Se reevalúa al cerrar cada torneo y cuando el jugador cambia su nivel; si deja de estar respaldado vuelve a
+    declarado. Solo respalda el nivel general: el rango del juego sigue siendo declarado.
+  - `EXTERNAL_VERIFIED`: lo registra un SUPERADMIN con la fuente externa autorizada y una justificación (auditoría y
+    notificación). Las estadísticas no lo pisan; si el jugador declara otro nivel o rango, vuelve a declarado.
+- **Comparador:** 2-4 jugadores dentro de un mismo videojuego; los rangos solo se comparan dentro del catálogo de ese
+  juego. Respeta la privacidad de cada jugador (estadísticas e historial).
+- **Reclutamiento:** búsqueda por juego, nivel, rango mínimo, rol, plataforma, disponibilidad, equipo actual y origen del
+  nivel. El dueño de un equipo invita a jugadores con cuenta; el jugador acepta o rechaza. Las invitaciones pendientes
+  caducan a los 14 días y no se duplican.
+- **Requisitos de las partidas:** nivel y rango mínimos/máximos (rangos validados contra el juego de la partida). Se
+  comprueban al inscribirse con el perfil gamer del jugador; en partidas por equipos, con el de cada integrante actual. El
+  organizador filtra las inscripciones por nivel y ve rango, origen y estadísticas de cada jugador.
 - **Estadísticas oficiales:** solo cuentan torneos finalizados. En partidas por equipos se atribuyen a quien era
   integrante durante el torneo (según `team_players.joined_at/left_at`). Al finalizar un torneo se recalculan, dentro de
-  la misma transacción, `player_game_statistics` y los logros (primer torneo, primera victoria, 10 y 50 victorias,
-  campeón). El cálculo es idempotente y el seed lo usa para rellenar datos anteriores.
+  la misma transacción, `player_game_statistics`, los logros (primer torneo, primera victoria, 10 y 50 victorias,
+  campeón, tres títulos consecutivos) y el respaldo de nivel. El cálculo es idempotente y el seed lo usa para rellenar
+  datos anteriores.
+- **Jugador destacado (MVP):** lo elige el organizador en una partida finalizada entre sus participantes y genera el logro
+  correspondiente. Si corrige la elección, el logro se retira al anterior salvo que lo respalde otra partida.
 - **Privacidad:** la ficha pública oculta nombre real, país, estadísticas, equipos o historial según
   `user_profiles.privacy`; el propio jugador siempre ve todo.
 

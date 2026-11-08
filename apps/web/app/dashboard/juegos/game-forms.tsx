@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Trash2 } from 'lucide-react';
-import { removeGameProfileAction, saveGameProfileAction, updatePlayerAction } from '@/app/actions';
+import { ArrowDown, ArrowUp, Trash2 } from 'lucide-react';
+import { moveGameProfileAction, removeGameProfileAction, saveGameProfileAction, updatePlayerAction } from '@/app/actions';
 import type { CompetitiveLevel, GameProfile, MyPlayer, Platform } from '@/lib/types';
 import { LEVEL_LABEL, LEVEL_SOURCE_LABEL, PLATFORM_LABEL } from '@/lib/format';
 import { FormMessage, SubmitButton, usePersistentAction } from '@/components/forms';
@@ -127,10 +127,13 @@ export function GameProfileForm({ games, profile }: { games: GameOption[]; profi
           <input type="checkbox" name="isFeatured" defaultChecked={profile?.isFeatured ?? true} className="accent-[var(--color-neon)]" /> Mostrar en mi
           perfil público
         </label>
+        <label className="flex items-center gap-2">
+          <input type="checkbox" name="isFavorite" defaultChecked={profile?.isFavorite} className="accent-[var(--color-neon)]" /> Favorito
+        </label>
       </div>
       <p className="text-xs text-muted sm:col-span-2">
-        {LEVEL_SOURCE_LABEL.SELF_DECLARED}: cambiar el nivel o el rango quita cualquier verificación previa y queda en tu
-        historial.
+        {LEVEL_SOURCE_LABEL.SELF_DECLARED}: cada cambio de nivel o rango queda en tu historial. Si cambias un nivel validado
+        externamente, vuelve a ser declarado; la plataforma lo respalda automáticamente cuando tus estadísticas oficiales lo justifican.
       </p>
       <div className="flex flex-wrap items-center gap-3 sm:col-span-2">
         <SubmitButton pending={pending}>{profile ? 'Guardar cambios' : 'Agregar videojuego'}</SubmitButton>
@@ -158,6 +161,30 @@ export function RemoveGameButton({ id, name }: { id: string; name: string }) {
         <Trash2 className="size-3.5" /> Retirar juego
       </SubmitButton>
       <FormMessage state={state} />
+    </form>
+  );
+}
+
+/** Reordena los juegos del perfil público (una posición arriba o abajo). */
+export function MoveGameButtons({ id, order, index }: { id: string; order: string[]; index: number }) {
+  const [state, onSubmit, pending] = usePersistentAction(moveGameProfileAction, {});
+  return (
+    <form onSubmit={onSubmit} className="flex items-center gap-1">
+      <input type="hidden" name="id" value={id} />
+      <input type="hidden" name="order" value={order.join(',')} />
+      <button name="direction" value="up" disabled={pending || index === 0} className="btn-ghost p-1.5 disabled:opacity-30" aria-label="Subir en el orden">
+        <ArrowUp className="size-3.5" />
+      </button>
+      <button
+        name="direction"
+        value="down"
+        disabled={pending || index === order.length - 1}
+        className="btn-ghost p-1.5 disabled:opacity-30"
+        aria-label="Bajar en el orden"
+      >
+        <ArrowDown className="size-3.5" />
+      </button>
+      {state.error && <span className="text-xs text-danger">{state.error}</span>}
     </form>
   );
 }

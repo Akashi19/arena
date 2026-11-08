@@ -99,6 +99,11 @@ export interface TournamentDetail extends TournamentCard {
   qualifiersPerGroup: number | null;
   minLevel: CompetitiveLevel | null;
   maxLevel: CompetitiveLevel | null;
+  minRankId: string | null;
+  maxRankId: string | null;
+  minRank: { id: string; rankName: string; rankOrder: number } | null;
+  maxRank: { id: string; rankName: string; rankOrder: number } | null;
+  mvp: { id: string; nickname: string; avatarUrl: string | null; user: { username: string } | null } | null;
   pointsWin: number;
   pointsDraw: number;
   pointsLoss: number;
@@ -148,6 +153,7 @@ export interface Team {
   description: string | null;
   country: string | null;
   ownerId: string;
+  gameId: string | null;
   captainId: string | null;
   recruitmentStatus: string;
   sport: { name: string } | null;
@@ -248,6 +254,8 @@ export interface Fixture {
 export type Platform = 'PC' | 'PLAYSTATION' | 'XBOX' | 'NINTENDO' | 'MOBILE' | 'CROSSPLAY' | 'NONE';
 export type RecruitmentStatus = 'NOT_LOOKING' | 'LOOKING_FOR_TEAM' | 'LOOKING_FOR_PLAYERS';
 
+export type LevelVerificationType = 'SELF_DECLARED' | 'PLATFORM_VERIFIED' | 'EXTERNAL_VERIFIED';
+
 export interface GameProfile {
   id: string;
   platform: Platform;
@@ -257,8 +265,12 @@ export interface GameProfile {
   experienceYears: number | null;
   isPrimary: boolean;
   isFeatured: boolean;
-  verificationType: 'SELF_DECLARED' | 'PLATFORM_VERIFIED' | 'EXTERNAL_VERIFIED';
+  isFavorite: boolean;
+  displayOrder: number;
+  verificationType: LevelVerificationType;
+  verificationSource: string | null;
   verifiedAt: string | null;
+  joinedAt: string;
   lastUpdatedAt: string;
   game: { id: string; name: string; slug: string; logoUrl: string | null };
   rank: { id: string; rankName: string; rankOrder: number; iconUrl: string | null } | null;
@@ -271,8 +283,65 @@ export interface PlayerCard {
   avatarUrl: string | null;
   country: string | null;
   recruitmentStatus: RecruitmentStatus;
+  availability: string | null;
   gameProfiles: GameProfile[];
-  _count: { teams: number };
+  currentTeam: { name: string; slug: string; tag: string | null; logoUrl: string | null } | null;
+}
+
+export interface LevelHistoryEntry {
+  recordedAt: string;
+  newLevel: CompetitiveLevel | null;
+  newRank: string | null;
+  source: LevelVerificationType;
+}
+
+export interface PlayerComparison {
+  game: { id: string; name: string; slug: string; logoUrl: string | null; hasRanks: boolean };
+  players: {
+    username: string;
+    nickname: string;
+    avatarUrl: string | null;
+    country: string | null;
+    profile: GameProfile | null;
+    stats: { matchesPlayed: number; wins: number; losses: number; draws: number; winRate: number; tournamentsPlayed: number; tournamentsWon: number } | null;
+    evolution: LevelHistoryEntry[] | null;
+    results: { finalPosition: number | null; participants: number; tournament: { name: string; slug: string; startsAt: string } }[] | null;
+  }[];
+  leaders: Partial<Record<'level' | 'rank' | 'matchesPlayed' | 'wins' | 'winRate' | 'tournamentsWon', string[]>>;
+}
+
+export interface LevelThreshold {
+  level: CompetitiveLevel;
+  matches: number;
+  winRate: number;
+  titles: number;
+}
+
+export interface TeamInvitation {
+  id: string;
+  status: 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'CANCELLED' | 'EXPIRED';
+  message: string | null;
+  createdAt: string;
+  respondedAt: string | null;
+  player: { id: string; nickname: string; avatarUrl: string | null; user: { username: string } | null };
+}
+
+export interface MyInvitation {
+  id: string;
+  message: string | null;
+  createdAt: string;
+  sentBy: { username: string };
+  team: {
+    id: string;
+    name: string;
+    slug: string;
+    tag: string | null;
+    logoUrl: string | null;
+    country: string | null;
+    game: { name: string } | null;
+    sport: { name: string } | null;
+    _count: { members: number };
+  };
 }
 
 export interface StatLine {

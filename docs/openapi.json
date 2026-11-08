@@ -1208,6 +1208,44 @@
         ]
       }
     },
+    "/api/tournaments/{id}/mvp": {
+      "put": {
+        "operationId": "TournamentsController_setMvp",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetMvpDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Partidas y torneos"
+        ]
+      }
+    },
     "/api/tournaments/{id}/registrations": {
       "post": {
         "operationId": "TournamentsController_register",
@@ -1267,6 +1305,22 @@
                 "APPROVED",
                 "REJECTED",
                 "WITHDRAWN"
+              ]
+            }
+          },
+          {
+            "name": "level",
+            "required": false,
+            "in": "query",
+            "description": "Nivel del jugador en el videojuego de la partida",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "BEGINNER",
+                "INTERMEDIATE",
+                "ADVANCED",
+                "EXPERT",
+                "PROFESSIONAL"
               ]
             }
           }
@@ -1605,6 +1659,281 @@
                 "LOOKING_FOR_PLAYERS"
               ]
             }
+          },
+          {
+            "name": "rank",
+            "required": false,
+            "in": "query",
+            "description": "Rango mínimo (requiere videojuego): compara solo dentro del catálogo de ese juego",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "required": false,
+            "in": "query",
+            "description": "Rol o posición (texto)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "availability",
+            "required": false,
+            "in": "query",
+            "description": "Disponibilidad horaria (texto, p. ej. \"noches\")",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "team",
+            "required": false,
+            "in": "query",
+            "description": "Con o sin equipo actual",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "with",
+                "without"
+              ]
+            }
+          },
+          {
+            "name": "verification",
+            "required": false,
+            "in": "query",
+            "description": "Solo niveles con ese origen",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "SELF_DECLARED",
+                "PLATFORM_VERIFIED",
+                "EXTERNAL_VERIFIED"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Jugadores y perfiles gamer"
+        ]
+      }
+    },
+    "/api/players/search": {
+      "get": {
+        "operationId": "PlayersController_searchAlias",
+        "parameters": [
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Apodo o usuario",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "game",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "level",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "BEGINNER",
+                "INTERMEDIATE",
+                "ADVANCED",
+                "EXPERT",
+                "PROFESSIONAL"
+              ]
+            }
+          },
+          {
+            "name": "platform",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PC",
+                "PLAYSTATION",
+                "XBOX",
+                "NINTENDO",
+                "MOBILE",
+                "CROSSPLAY",
+                "NONE"
+              ]
+            }
+          },
+          {
+            "name": "country",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "recruitment",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "NOT_LOOKING",
+                "LOOKING_FOR_TEAM",
+                "LOOKING_FOR_PLAYERS"
+              ]
+            }
+          },
+          {
+            "name": "rank",
+            "required": false,
+            "in": "query",
+            "description": "Rango mínimo (requiere videojuego): compara solo dentro del catálogo de ese juego",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "required": false,
+            "in": "query",
+            "description": "Rol o posición (texto)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "availability",
+            "required": false,
+            "in": "query",
+            "description": "Disponibilidad horaria (texto, p. ej. \"noches\")",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "team",
+            "required": false,
+            "in": "query",
+            "description": "Con o sin equipo actual",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "with",
+                "without"
+              ]
+            }
+          },
+          {
+            "name": "verification",
+            "required": false,
+            "in": "query",
+            "description": "Solo niveles con ese origen",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "SELF_DECLARED",
+                "PLATFORM_VERIFIED",
+                "EXTERNAL_VERIFIED"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Jugadores y perfiles gamer"
+        ]
+      }
+    },
+    "/api/players/compare": {
+      "get": {
+        "operationId": "PlayersController_compare",
+        "parameters": [
+          {
+            "name": "game",
+            "required": true,
+            "in": "query",
+            "description": "Videojuego: solo se comparan jugadores dentro del mismo juego",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "players",
+            "required": true,
+            "in": "query",
+            "description": "Usuarios separados por coma (2 a 4)",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "example": "nova,blaze"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Jugadores y perfiles gamer"
+        ]
+      }
+    },
+    "/api/players/level-criteria": {
+      "get": {
+        "operationId": "PlayersController_levelCriteria",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Jugadores y perfiles gamer"
+        ]
+      }
+    },
+    "/api/players/{username}/game-history": {
+      "get": {
+        "operationId": "PlayersController_gameHistory",
+        "parameters": [
+          {
+            "name": "username",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "game",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -1715,6 +2044,35 @@
         ]
       }
     },
+    "/api/me/games/order": {
+      "put": {
+        "operationId": "PlayersController_reorder",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReorderGamesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Jugadores y perfiles gamer"
+        ]
+      }
+    },
     "/api/me/games/{id}": {
       "patch": {
         "operationId": "PlayersController_updateGame",
@@ -1776,6 +2134,93 @@
         ],
         "tags": [
           "Jugadores y perfiles gamer"
+        ]
+      }
+    },
+    "/api/admin/game-profiles": {
+      "get": {
+        "operationId": "AdminPlayersController_list",
+        "parameters": [
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "game",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "SELF_DECLARED",
+                "PLATFORM_VERIFIED",
+                "EXTERNAL_VERIFIED"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "SUPERADMIN · Niveles competitivos"
+        ]
+      }
+    },
+    "/api/admin/game-profiles/{id}/verification": {
+      "put": {
+        "operationId": "AdminPlayersController_verify",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LevelVerificationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "SUPERADMIN · Niveles competitivos"
         ]
       }
     },
@@ -2944,6 +3389,173 @@
         ]
       }
     },
+    "/api/teams/{id}/invitations": {
+      "post": {
+        "operationId": "TeamsController_invite",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InviteDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Equipos"
+        ]
+      },
+      "get": {
+        "operationId": "TeamsController_invitations",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Equipos"
+        ]
+      }
+    },
+    "/api/invitations/{id}": {
+      "delete": {
+        "operationId": "TeamsController_cancelInvitation",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Equipos"
+        ]
+      }
+    },
+    "/api/me/invitations": {
+      "get": {
+        "operationId": "TeamsController_myInvitations",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Equipos"
+        ]
+      }
+    },
+    "/api/invitations/{id}/accept": {
+      "post": {
+        "operationId": "TeamsController_accept",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Equipos"
+        ]
+      }
+    },
+    "/api/invitations/{id}/decline": {
+      "post": {
+        "operationId": "TeamsController_decline",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Equipos"
+        ]
+      }
+    },
     "/api/teams/{id}/captain": {
       "patch": {
         "operationId": "TeamsController_captain",
@@ -3549,6 +4161,14 @@
               "PROFESSIONAL"
             ]
           },
+          "minRankId": {
+            "type": "object",
+            "description": "Rango mínimo del catálogo del videojuego (\"\" para quitarlo)"
+          },
+          "maxRankId": {
+            "type": "object",
+            "description": "Rango máximo del catálogo del videojuego (\"\" para quitarlo)"
+          },
           "pointsWin": {
             "type": "number",
             "default": 3
@@ -3700,6 +4320,14 @@
               "PROFESSIONAL"
             ]
           },
+          "minRankId": {
+            "type": "object",
+            "description": "Rango mínimo del catálogo del videojuego (\"\" para quitarlo)"
+          },
+          "maxRankId": {
+            "type": "object",
+            "description": "Rango máximo del catálogo del videojuego (\"\" para quitarlo)"
+          },
           "pointsWin": {
             "type": "number",
             "default": 3
@@ -3744,6 +4372,16 @@
         "required": [
           "reason"
         ]
+      },
+      "SetMvpDto": {
+        "type": "object",
+        "properties": {
+          "playerId": {
+            "type": "object",
+            "description": "Jugador destacado (null para quitarlo)",
+            "nullable": true
+          }
+        }
       },
       "RequestRegistrationDto": {
         "type": "object",
@@ -3922,6 +4560,10 @@
           "isFeatured": {
             "type": "boolean",
             "description": "Mostrar en el perfil público"
+          },
+          "isFavorite": {
+            "type": "boolean",
+            "description": "Juego favorito"
           }
         },
         "required": [
@@ -3929,6 +4571,21 @@
           "platform",
           "gamerTag",
           "competitiveLevel"
+        ]
+      },
+      "ReorderGamesDto": {
+        "type": "object",
+        "properties": {
+          "ids": {
+            "description": "IDs de los perfiles gamer en el orden deseado",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "ids"
         ]
       },
       "UpdateGameProfileDto": {
@@ -3977,8 +4634,51 @@
           "isFeatured": {
             "type": "boolean",
             "description": "Mostrar en el perfil público"
+          },
+          "isFavorite": {
+            "type": "boolean",
+            "description": "Juego favorito"
           }
         }
+      },
+      "LevelVerificationDto": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "EXTERNAL",
+              "REVOKE"
+            ]
+          },
+          "source": {
+            "type": "string",
+            "description": "Fuente externa autorizada (obligatoria al verificar)"
+          },
+          "competitiveLevel": {
+            "type": "string",
+            "enum": [
+              "BEGINNER",
+              "INTERMEDIATE",
+              "ADVANCED",
+              "EXPERT",
+              "PROFESSIONAL"
+            ],
+            "description": "Nivel validado (si difiere del declarado)"
+          },
+          "gameRankId": {
+            "type": "string",
+            "description": "Rango validado del catálogo del juego"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Justificación (queda en auditoría)"
+          }
+        },
+        "required": [
+          "action",
+          "reason"
+        ]
       },
       "CreateRatingDto": {
         "type": "object",
@@ -4381,6 +5081,21 @@
         "required": [
           "fullName",
           "nickname"
+        ]
+      },
+      "InviteDto": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "description": "username del jugador a invitar"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "username"
         ]
       },
       "SetCaptainDto": {

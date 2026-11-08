@@ -62,10 +62,21 @@
 | POST | `/teams/{id}/logo` | Dueño | Escudo |
 | POST/DELETE | `/teams/{id}/members[/{playerId}]` | Dueño | Agregar o retirar integrantes (se conserva el historial) |
 | POST | `/teams/{id}/guests` | Dueño | Agrega un jugador sin cuenta (`fullName`, `nickname`, `role`, `jerseyNumber`) |
-| GET | `/players` | — | Búsqueda: `q` (apodo, usuario o gamertag), `game`, `level`, `platform`, `country`, `recruitment` |
+| POST · GET | `/teams/{id}/invitations` | Dueño | Invita a un jugador con cuenta (`username`, `message`) · lista las invitaciones del equipo |
+| DELETE | `/invitations/{id}` | Dueño | Cancela una invitación pendiente |
+| GET | `/me/invitations` | ✔ | Invitaciones pendientes recibidas (caducan a los 14 días) |
+| POST | `/invitations/{id}/accept` · `/invitations/{id}/decline` | Invitado | Unirse al equipo o rechazar |
+| GET | `/players` · `/players/search` | — | Búsqueda: `q`, `game`, `level`, `rank` (mínimo, requiere `game`), `platform`, `role`, `availability`, `team` (`with`/`without`), `verification`, `country`, `recruitment` |
+| GET | `/players/compare` | opcional | Compara 2-4 jugadores (`players=a,b`) dentro de un videojuego (`game`); marca el mejor valor por métrica y respeta la privacidad |
+| GET | `/players/level-criteria` | — | Umbrales con los que la plataforma respalda un nivel (PLATFORM_VERIFIED) |
 | GET | `/players/{username}` | opcional | Ficha pública: perfiles gamer, estadísticas oficiales, logros, equipos e historial (según su privacidad) |
+| GET | `/players/{username}/game-history` | opcional | Historial de niveles y rangos con su origen (`game` opcional); 403 si el jugador lo mantiene privado |
 | GET/PATCH | `/me/player` | ✔ | Mi ficha: estado de búsqueda de equipo, posición, dorsal, disponibilidad |
-| POST · PATCH · DELETE | `/me/games` · `/me/games/{id}` | ✔ | Perfiles gamer: plataforma, gamertag, nivel, rango, rol; los cambios de nivel quedan en el historial |
+| POST · PATCH · DELETE | `/me/games` · `/me/games/{id}` | ✔ | Perfiles gamer: plataforma, gamertag, nivel, rango, rol, principal, destacado, favorito; los cambios de nivel quedan en el historial |
+| PUT | `/me/games/order` | ✔ | Orden de los juegos en el perfil público (`ids`) |
+| PUT | `/tournaments/{id}/mvp` | Propietario | Jugador destacado de una partida finalizada (`playerId` o `null`); genera o retira el logro MVP |
+| GET | `/admin/game-profiles` | SUPERADMIN | Perfiles gamer con sus estadísticas oficiales (`q`, `game`, `type`) |
+| PUT | `/admin/game-profiles/{id}/verification` | SUPERADMIN | `EXTERNAL` (fuente autorizada, nivel y rango validados) o `REVOKE`; exige `reason` |
 | PATCH | `/teams/{id}/captain` | Dueño | Capitán |
 | GET | `/me/dashboard` | Organizador | Indicadores del panel |
 | GET · POST | `/me/verification` | Organizador | Estado e historial · solicitud (multipart: datos, `documents[]` hasta 5, `acceptPolicy`) |
@@ -106,5 +117,4 @@ Conexión socket.io a `http://localhost:4100/realtime`, con `auth: { token }` pa
 ## Endpoints planificados en próximas fases
 
 Definidos en la especificación y respaldados por las tablas ya creadas: rankings (`/rankings/*`, `/admin/ranking/*`),
-transmisiones (`/matches/{id}/stream`, `/streams/live`), comparador de jugadores (`/players/compare`) y pagos de suscripción
-con webhooks.
+transmisiones (`/matches/{id}/stream`, `/streams/live`) y pagos de suscripción con webhooks.

@@ -139,6 +139,14 @@ export const LEVEL_SOURCE_LABEL: Record<string, string> = {
   EXTERNAL_VERIFIED: 'Verificado externamente',
 };
 
+export const INVITATION_STATUS_LABEL: Record<string, string> = {
+  PENDING: 'Pendiente',
+  ACCEPTED: 'Aceptada',
+  DECLINED: 'Rechazada',
+  CANCELLED: 'Cancelada',
+  EXPIRED: 'Caducada',
+};
+
 export const INCIDENT_TYPE_LABEL: Record<string, string> = {
   SCHEDULE_BREACH: 'Incumplimiento de horarios',
   UNANNOUNCED_CHANGES: 'Cambios no comunicados',

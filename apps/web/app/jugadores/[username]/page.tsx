@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Award, Crown, Gamepad2, Lock, Medal, Pencil, Shirt, Swords, Trophy, Users } from 'lucide-react';
+import { Award, Crown, Gamepad2, GitCompareArrows, Lock, Medal, Pencil, Send, Shirt, Swords, Trophy, Users } from 'lucide-react';
 import { apiOrNull } from '@/lib/api';
 import type { PlayerProfile, StatLine } from '@/lib/types';
 import { COUNTRIES, flag, formatDate, RECRUITMENT_LABEL, STATUS_LABEL } from '@/lib/format';
@@ -53,11 +53,22 @@ export default async function PlayerPage({ params }: Props) {
               <span className="chip">Miembro desde {formatDate(p.memberSince, { dateStyle: undefined, month: 'short', year: 'numeric' })}</span>
             </div>
           </div>
-          {p.isOwner && (
-            <Link href="/dashboard/juegos" className="btn-ghost self-start">
-              <Pencil className="size-4" /> Editar perfil gamer
-            </Link>
-          )}
+          <div className="flex flex-wrap gap-2 self-start sm:flex-col">
+            {p.isOwner ? (
+              <Link href="/dashboard/juegos" className="btn-ghost">
+                <Pencil className="size-4" /> Editar perfil gamer
+              </Link>
+            ) : (
+              <Link href={`/dashboard/equipos?invitar=${encodeURIComponent(p.username)}`} className="btn-ghost">
+                <Send className="size-4" /> Invitar a mi equipo
+              </Link>
+            )}
+            {featured[0] && (
+              <Link href={`/jugadores/comparar?game=${featured[0].game.id}&players=${encodeURIComponent(p.username)}`} className="btn-ghost">
+                <GitCompareArrows className="size-4" /> Comparar
+              </Link>
+            )}
+          </div>
         </div>
         {p.bio && <p className="relative mt-4 max-w-3xl whitespace-pre-line text-sm text-muted">{p.bio}</p>}
         {p.availability && <p className="relative mt-2 text-xs text-muted">Disponibilidad: {p.availability}</p>}

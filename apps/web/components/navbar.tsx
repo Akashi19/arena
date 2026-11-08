@@ -31,9 +31,9 @@ export async function Navbar() {
           <span className="font-display text-2xl font-bold uppercase tracking-widest">Arena</span>
         </Link>
 
-        <nav className="ml-6 hidden items-center gap-1 lg:flex">
+        <nav className="ml-2 hidden items-center gap-0.5 lg:flex xl:ml-6 xl:gap-1">
           {links.map((l) => (
-            <Link key={l.href} href={l.href} className="rounded-lg px-3 py-2 text-sm font-medium text-muted hover:bg-surface-2 hover:text-ink">
+            <Link key={l.href} href={l.href} className="whitespace-nowrap rounded-lg px-2.5 py-2 text-sm font-medium text-muted hover:bg-surface-2 hover:text-ink xl:px-3">
               {l.label}
             </Link>
           ))}

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { CalendarClock, CalendarDays, Crown, Gamepad2, MapPin, Settings, Trophy, Users, Wifi } from 'lucide-react';
+import { CalendarClock, CalendarDays, Crown, Gamepad2, MapPin, Medal, Settings, Star, Trophy, Users, Wifi } from 'lucide-react';
 import { api, apiOrNull } from '@/lib/api';
 import { getMe } from '@/lib/session';
 import type { Fixture, Team, TournamentDetail, TournamentFeedback } from '@/lib/types';
@@ -112,6 +112,18 @@ export default async function TournamentPage({ params }: Props) {
         <div className="flex items-center gap-3 rounded-2xl border border-amber/40 bg-amber/10 p-4">
           <Crown className="size-6 text-amber" />
           <span className="font-display text-xl font-bold">Campeón: {t.champion.team?.name ?? t.champion.player?.nickname}</span>
+          {t.mvp && (
+            <span className="ml-auto flex items-center gap-1.5 text-sm">
+              <Star className="size-4 text-amber" fill="currentColor" /> Jugador destacado:{' '}
+              {t.mvp.user ? (
+                <Link href={`/jugadores/${t.mvp.user.username}`} className="font-semibold hover:text-neon">
+                  {t.mvp.nickname}
+                </Link>
+              ) : (
+                <b>{t.mvp.nickname}</b>
+              )}
+            </span>
+          )}
         </div>
       )}
 
@@ -128,6 +140,9 @@ export default async function TournamentPage({ params }: Props) {
             <Info icon={<Trophy />} label="Cuota de inscripción" value={formatMoney(t.entryFee, t.currency)} />
             {(t.minLevel || t.maxLevel) && (
               <Info icon={<Gamepad2 />} label="Nivel requerido" value={`${t.minLevel ? LEVEL_LABEL[t.minLevel] : '—'} a ${t.maxLevel ? LEVEL_LABEL[t.maxLevel] : '—'}`} />
+            )}
+            {(t.minRank || t.maxRank) && (
+              <Info icon={<Medal />} label="Rango requerido" value={`${t.minRank?.rankName ?? '—'} a ${t.maxRank?.rankName ?? '—'}`} />
             )}
           </section>
 

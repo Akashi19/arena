@@ -2,15 +2,16 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ExternalLink } from 'lucide-react';
+import { gamesWithRanks } from '@/lib/catalog';
 import { api, apiOrNull } from '@/lib/api';
 import { requireOrganizer } from '@/lib/session';
-import type { Discipline, Fixture, Paginated, RegistrationStatus, TournamentDetail } from '@/lib/types';
-import { formatDateTime, formatMoney } from '@/lib/format';
+import type { CompetitiveLevel, Discipline, Fixture, Paginated, RegistrationStatus, TournamentDetail } from '@/lib/types';
+import { formatDateTime, formatMoney, LEVEL_LABEL } from '@/lib/format';
 import { StatusBadge } from '@/components/ui';
 import { ImageUpload } from '@/components/forms';
 import { TournamentForm } from '@/components/tournament-form';
 import { TournamentLive } from '@/components/realtime';
-import { RegistrationsManager, StatusActions, type ManagedRegistration } from './manage';
+import { MvpForm, RegistrationsManager, StatusActions, type ManagedRegistration } from './manage';
 import { FixtureManager } from './fixture-manager';
 
 export const metadata: Metadata = { title: 'Administrar partida' };
@@ -20,7 +21,7 @@ export default async function ManageTournamentPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ creada?: string; tab?: string; estado?: RegistrationStatus }>;
+  searchParams: Promise<{ creada?: string; tab?: string; estado?: RegistrationStatus; nivel?: string }>;
 }) {
   const { id } = await params;
   const sp = await searchParams;
@@ -29,15 +30,27 @@ export default async function ManageTournamentPage({
   if (!t || !t.viewer?.canManage) notFound();
 
   const started = t.status === 'IN_PROGRESS' || t.status === 'FINISHED';
+  const level = sp.nivel && sp.nivel in LEVEL_LABEL ? (sp.nivel as CompetitiveLevel) : undefined;
   const tab = sp.tab ?? (started ? 'fixture' : 'inscripciones');
   const [regs, sports, games, sub, fixture] = await Promise.all([
-    api<Paginated<ManagedRegistration>>(`/tournaments/${id}/registrations`, { query: { status: sp.estado, pageSize: 100 } }),
+    api<Paginated<ManagedRegistration>>(`/tournaments/${id}/registrations`, { query: { status: sp.estado, level: level, pageSize: 100 } }),
     tab === 'editar' ? api<Discipline[]>('/sports', { auth: false }) : Promise.resolve([]),
-    tab === 'editar' ? api<(Discipline & { platforms: string[] })[]>('/games', { auth: false }) : Promise.resolve([]),
+    tab === 'editar' ? gamesWithRanks() : Promise.resolve([]),
     tab === 'editar' ? api<{ usage: { participantsPerTournament: { limit: number } } }>('/me/subscription') : Promise.resolve(null),
     tab === 'fixture' && started ? api<Fixture>(`/tournaments/${id}/fixture`) : Promise.resolve(null),
   ]);
   const editable = t.status !== 'FINISHED' && t.status !== 'CANCELLED';
+  // Candidatos a jugador destacado: jugadores inscritos o integrantes de los equipos aprobados
+  let mvpCandidates: { id: string; label: string }[] = [];
+  if (t.status === 'FINISHED') {
+    const approved = t.registrations;
+    if (t.mode === 'INDIVIDUAL') {
+      mvpCandidates = approved.flatMap((r) => (r.player ? [{ id: r.player.id, label: r.player.nickname }] : []));
+    } else {
+      const teams = await Promise.all(approved.map((r) => (r.team ? apiOrNull<{ name: string; currentMembers: { player: { id: string; nickname: string } }[] }>(`/teams/${r.team.slug}`) : null)));
+      mvpCandidates = teams.flatMap((tm) => tm?.currentMembers.map((m) => ({ id: m.player.id, label: `${m.player.nickname} (${tm.name})` })) ?? []);
+    }
+  }
 
   return (
     <div className="space-y-5">
@@ -65,6 +78,9 @@ export default async function ManageTournamentPage({
       </div>
 
       <StatusActions id={t.id} status={t.status} />
+      {t.status === 'FINISHED' && mvpCandidates.length > 0 && (
+        <MvpForm tournamentId={t.id} slug={t.slug} current={t.mvp?.id ?? null} candidates={mvpCandidates} />
+      )}
 
       <nav className="-mx-1 flex gap-1 overflow-x-auto border-b border-line px-1">
         {[
@@ -85,7 +101,15 @@ export default async function ManageTournamentPage({
 
       {tab === 'fixture' && fixture && <FixtureManager fixture={fixture} />}
       {tab === 'inscripciones' && (
-        <RegistrationsManager tournamentId={t.id} mode={t.mode} status={t.status} registrations={regs.items} filter={sp.estado} />
+        <RegistrationsManager
+          tournamentId={t.id}
+          mode={t.mode}
+          status={t.status}
+          registrations={regs.items}
+          filter={sp.estado}
+          level={level}
+          hasGame={!!t.game}
+        />
       )}
       {tab === 'editar' && editable && sub && (
         <TournamentForm sports={sports} games={games} maxParticipantsLimit={sub.usage.participantsPerTournament.limit} initial={t} />

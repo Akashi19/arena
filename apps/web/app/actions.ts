@@ -231,6 +231,9 @@ function tournamentBody(fd: FormData) {
     refundPolicy: (fd.get('refundPolicy') as string | null) ?? undefined,
     minLevel: str(fd, 'minLevel'),
     maxLevel: str(fd, 'maxLevel'),
+    // "" quita el requisito; si el formulario no trae el campo, no se toca
+    minRankId: fd.has('minRankId') ? (category === 'ESPORT' ? (str(fd, 'minRankId') ?? '') : '') : undefined,
+    maxRankId: fd.has('maxRankId') ? (category === 'ESPORT' ? (str(fd, 'maxRankId') ?? '') : '') : undefined,
   };
 }
 
@@ -427,6 +430,7 @@ export async function saveGameProfileAction(_: ActionState, fd: FormData): Promi
     experienceYears: num(fd, 'experienceYears'),
     isPrimary: fd.get('isPrimary') === 'on' ? true : undefined,
     isFeatured: fd.get('isFeatured') === 'on',
+    isFavorite: fd.get('isFavorite') === 'on',
   };
   try {
     if (id) await api(`/me/games/${id}`, { method: 'PATCH', body });
@@ -721,4 +725,89 @@ export async function reviewCancellationAction(_: ActionState, fd: FormData): Pr
 export async function markAllReadAction() {
   await api('/me/notifications/read-all', { method: 'POST' }).catch(() => undefined);
   revalidatePath('/', 'layout');
+}
+
+// ============================================================================ Módulo 21: reclutamiento, niveles y MVP
+
+export async function inviteToTeamAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    await api(`/teams/${str(fd, 'teamId')}/invitations`, {
+      method: 'POST',
+      body: { username: str(fd, 'username'), message: str(fd, 'message') },
+    });
+    revalidatePath('/dashboard/equipos');
+    return { ok: true, message: 'Invitación enviada' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function cancelInvitationAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    await api(`/invitations/${str(fd, 'id')}`, { method: 'DELETE' });
+    revalidatePath('/dashboard/equipos');
+    return { ok: true, message: 'Invitación cancelada' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function respondInvitationAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const accept = str(fd, 'decision') === 'accept';
+  try {
+    await api(`/invitations/${str(fd, 'id')}/${accept ? 'accept' : 'decline'}`, { method: 'POST' });
+    revalidatePath('/dashboard/equipos');
+    revalidatePath('/dashboard');
+    return { ok: true, message: accept ? 'Te uniste al equipo' : 'Invitación rechazada' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+/** Mueve un juego una posición arriba/abajo en el orden del perfil público. */
+export async function moveGameProfileAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const ids = String(fd.get('order') ?? '').split(',').filter(Boolean);
+  const i = ids.indexOf(String(fd.get('id')));
+  const j = str(fd, 'direction') === 'up' ? i - 1 : i + 1;
+  if (i < 0 || j < 0 || j >= ids.length) return {};
+  [ids[i], ids[j]] = [ids[j]!, ids[i]!];
+  try {
+    await api('/me/games/order', { method: 'PUT', body: { ids } });
+    revalidatePath('/dashboard/juegos');
+    return { ok: true };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function levelVerificationAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const action = str(fd, 'action');
+  try {
+    await api(`/admin/game-profiles/${str(fd, 'id')}/verification`, {
+      method: 'PUT',
+      body: {
+        action,
+        source: action === 'EXTERNAL' ? str(fd, 'source') : undefined,
+        competitiveLevel: action === 'EXTERNAL' ? str(fd, 'competitiveLevel') : undefined,
+        gameRankId: action === 'EXTERNAL' ? str(fd, 'gameRankId') : undefined,
+        reason: str(fd, 'reason'),
+      },
+    });
+    revalidatePath('/admin/niveles');
+    return { ok: true, message: action === 'EXTERNAL' ? 'Nivel validado externamente' : 'Validación retirada' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function setMvpAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    await api(`/tournaments/${str(fd, 'tournamentId')}/mvp`, { method: 'PUT', body: { playerId: str(fd, 'playerId') ?? null } });
+    revalidatePath(`/dashboard/torneos/${str(fd, 'tournamentId')}`);
+    const slug = str(fd, 'slug');
+    if (slug) revalidatePath(`/torneos/${slug}`);
+    return { ok: true, message: str(fd, 'playerId') ? 'Jugador destacado guardado' : 'Jugador destacado quitado' };
+  } catch (e) {
+    return fail(e);
+  }
 }

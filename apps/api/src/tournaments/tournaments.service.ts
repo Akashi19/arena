@@ -223,6 +223,11 @@ export class TournamentsService {
         qualifiersPerGroup: true,
         minLevel: true,
         maxLevel: true,
+        minRankId: true,
+        maxRankId: true,
+        minRank: { select: { id: true, rankName: true, rankOrder: true } },
+        maxRank: { select: { id: true, rankName: true, rankOrder: true } },
+        mvp: { select: { id: true, nickname: true, avatarUrl: true, user: { select: { username: true } } } },
         pointsWin: true,
         pointsDraw: true,
         pointsLoss: true,
@@ -350,6 +355,7 @@ export class TournamentsService {
     this.validateSchedule(dto.startsAt, dto.registrationDeadline, true);
     this.validateFormat(dto.format, dto.maxParticipants, dto.groupCount, dto.qualifiersPerGroup);
     this.validateLevels(dto.minLevel, dto.maxLevel);
+    await this.validateRanks(dto.category === 'ESPORT' ? dto.gameId : undefined, dto.minRankId, dto.maxRankId);
     if (!dto.isOnline && !dto.location) throw new BadRequestException('Indica la ubicación o marca la partida como online');
 
     const created = await this.prisma.$transaction(
@@ -433,6 +439,11 @@ export class TournamentsService {
       dto.qualifiersPerGroup ?? current.qualifiersPerGroup ?? undefined,
     );
     this.validateLevels(dto.minLevel ?? current.minLevel ?? undefined, dto.maxLevel ?? current.maxLevel ?? undefined);
+    // Los rangos pertenecen al catálogo del videojuego: si cambia el juego, los anteriores dejan de valer
+    const gameChanged = category !== 'ESPORT' || (dto.gameId !== undefined && dto.gameId !== current.gameId);
+    const minRankId = dto.minRankId !== undefined ? dto.minRankId : gameChanged ? null : current.minRankId;
+    const maxRankId = dto.maxRankId !== undefined ? dto.maxRankId : gameChanged ? null : current.maxRankId;
+    await this.validateRanks(category === 'ESPORT' ? gameId : undefined, minRankId, maxRankId);
 
     const { competitionName, changeReason, ...data } = dto;
     let competitionId: string | null | undefined;
@@ -457,6 +468,8 @@ export class TournamentsService {
         competitionId,
         sportId: category === 'SPORT' ? sportId : null,
         gameId: category === 'ESPORT' ? gameId : null,
+        minRankId,
+        maxRankId,
       },
     });
     await this.audit.log({
@@ -575,9 +588,14 @@ export class TournamentsService {
     if (!dto.acceptRules) throw new BadRequestException('Debes aceptar el reglamento y las condiciones de la partida');
     const t = await this.prisma.tournament.findUnique({
       where: { id: tournamentId },
-      include: { organizer: { select: { userId: true } } },
+      include: {
+        organizer: { select: { userId: true } },
+        minRank: { select: { rankOrder: true, rankName: true } },
+        maxRank: { select: { rankOrder: true, rankName: true } },
+      },
     });
     if (!t || t.status === 'DRAFT') throw new NotFoundException('Partida no encontrada');
+    const hasRequirements = !!(t.gameId && (t.minLevel || t.maxLevel || t.minRankId || t.maxRankId));
     if (t.status !== 'OPEN') throw new BadRequestException('La inscripción para esta partida no está abierta');
     if (t.registrationDeadline < new Date()) throw new BadRequestException('La fecha límite de inscripción ya pasó');
     if (t.organizer.userId === user.id) throw new ForbiddenException('No puedes inscribirte en tu propia partida');
@@ -598,20 +616,41 @@ export class TournamentsService {
       if (t.category === 'ESPORT' && team.gameId && team.gameId !== t.gameId) {
         throw new BadRequestException('El equipo está registrado para otro videojuego');
       }
+      if (hasRequirements) {
+        // Todos los integrantes actuales deben cumplir los requisitos de nivel/rango
+        const members = await this.prisma.teamPlayer.findMany({
+          where: { teamId: team.id, leftAt: null },
+          select: {
+            player: {
+              select: {
+                nickname: true,
+                gameProfiles: { where: { gameId: t.gameId! }, select: { isActive: true, competitiveLevel: true, rank: { select: { rankOrder: true } } } },
+              },
+            },
+          },
+        });
+        const failing = members
+          .map((m) => ({ nick: m.player.nickname, problem: this.levelProblem(t, m.player.gameProfiles[0]) }))
+          .filter((m) => m.problem);
+        if (failing.length) {
+          throw new BadRequestException(
+            `Integrantes que no cumplen los requisitos: ${failing.map((f) => `${f.nick} (${f.problem})`).join('; ')}`,
+          );
+        }
+      }
       teamId = team.id;
     } else {
       const player = await this.prisma.player.findUnique({ where: { userId: user.id } });
       if (!player) throw new BadRequestException('Tu cuenta no tiene ficha de jugador');
       if (player.isSuspended) throw new ForbiddenException('Tu ficha de jugador está suspendida');
-      if (t.gameId && (t.minLevel || t.maxLevel)) {
+      if (hasRequirements) {
         const profile = await this.prisma.playerGameProfile.findUnique({
-          where: { playerId_gameId: { playerId: player.id, gameId: t.gameId } },
+          where: { playerId_gameId: { playerId: player.id, gameId: t.gameId! } },
+          select: { isActive: true, competitiveLevel: true, rank: { select: { rankOrder: true } } },
         });
-        const lvl = profile?.isActive ? levelIndex(profile.competitiveLevel) : -1;
-        if (lvl < 0) throw new BadRequestException('Agrega este videojuego a tu perfil gamer para inscribirte');
-        if ((t.minLevel && lvl < levelIndex(t.minLevel)) || (t.maxLevel && lvl > levelIndex(t.maxLevel))) {
-          throw new BadRequestException('Tu nivel competitivo no cumple los requisitos de esta partida');
-        }
+        if (!profile?.isActive) throw new BadRequestException('Agrega este videojuego a tu perfil gamer para inscribirte');
+        const problem = this.levelProblem(t, profile);
+        if (problem) throw new BadRequestException(`No cumples los requisitos de esta partida: ${problem}`);
       }
       playerId = player.id;
     }
@@ -683,7 +722,14 @@ export class TournamentsService {
 
   async registrations(user: AuthUser, tournamentId: string, q: RegistrationListQuery) {
     const t = await this.getManaged(user, tournamentId);
-    const where: Prisma.TournamentRegistrationWhereInput = { tournamentId, ...(q.status ? { status: q.status } : {}) };
+    const where: Prisma.TournamentRegistrationWhereInput = {
+      tournamentId,
+      ...(q.status ? { status: q.status } : {}),
+      // Filtro por nivel: solo inscripciones individuales con perfil activo del juego de la partida
+      ...(q.level && t.gameId
+        ? { player: { gameProfiles: { some: { gameId: t.gameId, isActive: true, competitiveLevel: q.level } } } }
+        : {}),
+    };
     const [items, total] = await this.prisma.$transaction([
       this.prisma.tournamentRegistration.findMany({
         where,
@@ -712,7 +758,20 @@ export class TournamentsService {
               // Solo el perfil gamer del videojuego de esta partida
               gameProfiles: {
                 where: { gameId: t.gameId ?? '00000000-0000-0000-0000-000000000000', isActive: true },
-                select: { gameId: true, competitiveLevel: true, gamerTag: true, platform: true, verificationType: true },
+                select: {
+                  gameId: true,
+                  competitiveLevel: true,
+                  gamerTag: true,
+                  platform: true,
+                  verificationType: true,
+                  verificationSource: true,
+                  rank: { select: { rankName: true, rankOrder: true } },
+                },
+              },
+              user: { select: { username: true } },
+              statistics: {
+                where: { gameId: t.gameId ?? '00000000-0000-0000-0000-000000000000' },
+                select: { matchesPlayed: true, wins: true, winRate: true, tournamentsPlayed: true, tournamentsWon: true },
               },
             },
           },
@@ -835,6 +894,96 @@ export class TournamentsService {
     if (min && max && levelIndex(min) > levelIndex(max)) {
       throw new BadRequestException('El nivel mínimo no puede ser superior al máximo');
     }
+  }
+
+  /** Los rangos solo se comparan dentro del catálogo del videojuego de la partida. */
+  private async validateRanks(gameId: string | undefined, minRankId?: string | null, maxRankId?: string | null) {
+    if (!minRankId && !maxRankId) return;
+    if (!gameId) throw new BadRequestException('Los requisitos de rango solo aplican a partidas de videojuegos');
+    const ids = [minRankId, maxRankId].filter((x): x is string => !!x);
+    const ranks = await this.prisma.gameRank.findMany({ where: { id: { in: ids }, gameId, status: 'ACTIVE' } });
+    if (ranks.length !== new Set(ids).size) throw new BadRequestException('El rango no corresponde a este videojuego');
+    const min = ranks.find((r) => r.id === minRankId);
+    const max = ranks.find((r) => r.id === maxRankId);
+    if (min && max && min.rankOrder > max.rankOrder) {
+      throw new BadRequestException('El rango mínimo no puede ser superior al máximo');
+    }
+  }
+
+  /**
+   * Requisitos de nivel y rango de la partida para un jugador. Devuelve el motivo de incumplimiento o null.
+   * Se evalúa sobre el perfil gamer activo del videojuego de la partida.
+   */
+  private levelProblem(
+    t: { minLevel: string | null; maxLevel: string | null; minRank: { rankOrder: number; rankName: string } | null; maxRank: { rankOrder: number; rankName: string } | null },
+    profile: { isActive: boolean; competitiveLevel: string; rank: { rankOrder: number } | null } | null | undefined,
+  ): string | null {
+    if (!profile?.isActive) return 'no tiene este videojuego en su perfil gamer';
+    const lvl = levelIndex(profile.competitiveLevel);
+    if ((t.minLevel && lvl < levelIndex(t.minLevel)) || (t.maxLevel && lvl > levelIndex(t.maxLevel))) {
+      return 'su nivel competitivo no cumple los requisitos';
+    }
+    if (t.minRank || t.maxRank) {
+      if (!profile.rank) return 'no declaró su rango en este videojuego';
+      if (t.minRank && profile.rank.rankOrder < t.minRank.rankOrder) return `su rango es inferior a ${t.minRank.rankName}`;
+      if (t.maxRank && profile.rank.rankOrder > t.maxRank.rankOrder) return `su rango supera ${t.maxRank.rankName}`;
+    }
+    return null;
+  }
+
+  // =========================================================================== Jugador destacado (MVP)
+
+  /**
+   * El organizador elige al jugador destacado de una partida finalizada. Genera el logro MVP por evento
+   * (no por declaración del jugador) y lo retira si se corrige la elección y ya no lo respalda otra partida.
+   */
+  async setMvp(user: AuthUser, id: string, playerId: string | null | undefined) {
+    const t = await this.getManaged(user, id);
+    if (t.status !== 'FINISHED') throw new BadRequestException('El jugador destacado se elige al finalizar la partida');
+    const next = playerId ?? null;
+    if (next === t.mvpPlayerId) return { mvpPlayerId: next };
+    if (next) {
+      const ids = await tournamentPlayerIds(this.prisma, id);
+      if (!ids.includes(next)) throw new BadRequestException('El jugador destacado debe haber participado en la partida');
+    }
+    const mvp = await this.prisma.achievement.findUnique({ where: { code: 'MVP' } });
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.tournament.update({ where: { id }, data: { mvpPlayerId: next } });
+      if (!mvp) return;
+      if (t.mvpPlayerId) {
+        // Si el logro del anterior se originó en esta partida, se reasigna a otra en la que fue MVP o se retira
+        const prev = await tx.playerAchievement.findFirst({ where: { playerId: t.mvpPlayerId, achievementId: mvp.id, gameId: null } });
+        if (prev?.sourceRef === id) {
+          const other = await tx.tournament.findFirst({ where: { mvpPlayerId: t.mvpPlayerId, id: { not: id }, status: 'FINISHED' } });
+          if (other) await tx.playerAchievement.update({ where: { id: prev.id }, data: { sourceRef: other.id } });
+          else await tx.playerAchievement.delete({ where: { id: prev.id } });
+        }
+      }
+      if (next) {
+        const has = await tx.playerAchievement.findFirst({ where: { playerId: next, achievementId: mvp.id, gameId: null } });
+        if (!has) await tx.playerAchievement.create({ data: { playerId: next, achievementId: mvp.id, gameId: null, sourceRef: id } });
+      }
+      await this.audit.log(
+        { actorId: user.id, action: 'TOURNAMENT_MVP_SET', entityType: 'Tournament', entityId: id, before: { mvpPlayerId: t.mvpPlayerId }, after: { mvpPlayerId: next } },
+        tx,
+      );
+    });
+
+    if (next) {
+      const player = await this.prisma.player.findUnique({ where: { id: next }, select: { userId: true } });
+      if (player?.userId) {
+        await this.notifications.notify({
+          userId: player.userId,
+          type: 'TOURNAMENT_MVP',
+          title: '¡Jugador destacado!',
+          body: `El organizador te eligió jugador destacado de ${t.name}.`,
+          link: `/torneos/${t.slug}`,
+        });
+      }
+    }
+    this.realtime.emitToTournament(id, 'tournament:status', { id, status: t.status });
+    return { mvpPlayerId: next };
   }
 
   private async notifyParticipants(

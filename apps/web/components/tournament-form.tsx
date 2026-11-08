@@ -8,7 +8,7 @@ import { FormMessage, ImageField, SubmitButton, TzOffsetInput, usePersistentActi
 
 interface Props {
   sports: Discipline[];
-  games: (Discipline & { platforms?: string[] })[];
+  games: (Discipline & { platforms?: string[]; ranks?: { id: string; rankName: string; rankOrder: number }[] })[];
   maxParticipantsLimit: number;
   initial?: TournamentDetail & { sportId?: string; gameId?: string };
 }
@@ -23,6 +23,9 @@ export function TournamentForm({ sports, games, maxParticipantsLimit, initial }:
   const [gameId, setGameId] = useState(initial?.game?.id ?? games[0]?.id ?? '');
   const locked = initial?.status === 'IN_PROGRESS';
   const platforms = games.find((g) => g.id === gameId)?.platforms ?? Object.keys(PLATFORM_LABEL);
+  const ranks = games.find((g) => g.id === gameId)?.ranks ?? [];
+  // Los rangos guardados solo valen para el juego original
+  const sameGame = initial?.game?.id === gameId;
 
   return (
     <form onSubmit={onSubmit} className="space-y-6">
@@ -163,6 +166,32 @@ export function TournamentForm({ sports, games, maxParticipantsLimit, initial }:
                   {Object.entries(LEVEL_LABEL).map(([v, t]) => <option key={v} value={v}>{t}</option>)}
                 </select>
               </label>
+              {ranks.length > 0 ? (
+                <>
+                  <label className="block">
+                    <span className="label">Rango mínimo</span>
+                    <select key={`min-${gameId}`} name="minRankId" className="input" defaultValue={sameGame ? (initial?.minRankId ?? '') : ''}>
+                      <option value="">Sin requisito</option>
+                      {ranks.map((r) => <option key={r.id} value={r.id}>{r.rankName}</option>)}
+                    </select>
+                  </label>
+                  <label className="block">
+                    <span className="label">Rango máximo</span>
+                    <select key={`max-${gameId}`} name="maxRankId" className="input" defaultValue={sameGame ? (initial?.maxRankId ?? '') : ''}>
+                      <option value="">Sin requisito</option>
+                      {ranks.map((r) => <option key={r.id} value={r.id}>{r.rankName}</option>)}
+                    </select>
+                  </label>
+                </>
+              ) : (
+                <>
+                  <input type="hidden" name="minRankId" value="" />
+                  <input type="hidden" name="maxRankId" value="" />
+                </>
+              )}
+              <p className="text-xs text-muted md:col-span-2">
+                Los requisitos se comprueban al inscribirse con el perfil gamer del jugador (en equipos, con el de cada integrante).
+              </p>
             </>
           )}
         </fieldset>

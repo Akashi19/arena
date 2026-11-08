@@ -100,6 +100,16 @@ export class CreateTournamentDto {
 
   @ApiPropertyOptional({ enum: CompetitiveLevel }) @IsOptional() @IsEnum(CompetitiveLevel) minLevel?: CompetitiveLevel;
   @ApiPropertyOptional({ enum: CompetitiveLevel }) @IsOptional() @IsEnum(CompetitiveLevel) maxLevel?: CompetitiveLevel;
+  @ApiPropertyOptional({ description: 'Rango mínimo del catálogo del videojuego ("" para quitarlo)' })
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  @IsUUID()
+  minRankId?: string | null;
+  @ApiPropertyOptional({ description: 'Rango máximo del catálogo del videojuego ("" para quitarlo)' })
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  @IsUUID()
+  maxRankId?: string | null;
 
   @ApiPropertyOptional({ default: 3 }) @IsOptional() @Type(() => Number) @IsInt() @Min(0) @Max(10) pointsWin?: number;
   @ApiPropertyOptional({ default: 1 }) @IsOptional() @Type(() => Number) @IsInt() @Min(0) @Max(10) pointsDraw?: number;
@@ -196,4 +206,15 @@ export class RegistrationListQuery extends PaginationQuery {
   @IsOptional()
   @IsEnum(RegistrationStatus)
   status?: RegistrationStatus;
+  @ApiPropertyOptional({ enum: CompetitiveLevel, description: 'Nivel del jugador en el videojuego de la partida' })
+  @IsOptional()
+  @IsEnum(CompetitiveLevel)
+  level?: CompetitiveLevel;
+}
+
+export class SetMvpDto {
+  @ApiPropertyOptional({ description: 'Jugador destacado (null para quitarlo)', nullable: true })
+  @IsOptional()
+  @IsUUID()
+  playerId?: string | null;
 }
