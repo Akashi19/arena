@@ -7,9 +7,9 @@ import {
   Module,
   NotFoundException,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import { PrismaService } from '../prisma/prisma.service.js';
-import { AuthUser, CurrentUser, Public, Roles } from '../common/decorators/auth.decorators.js';
+import { Public } from '../common/decorators/auth.decorators.js';
 import type { Prisma } from '../generated/prisma/client.js';
 
 /** Estados de torneo que cuentan como "activos" para el límite del plan. */
@@ -136,10 +136,7 @@ export class PlanLimitsService {
 @ApiTags('Planes y suscripción')
 @Controller()
 export class PlansController {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly limits: PlanLimitsService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   @Public()
   @Get('plans')
@@ -149,15 +146,6 @@ export class PlansController {
       orderBy: { sortOrder: 'asc' },
       include: { features: { where: { enabled: true }, select: { featureKey: true, limitValue: true } } },
     });
-  }
-
-  @ApiBearerAuth()
-  @Roles('ORGANIZER')
-  @Get('me/subscription')
-  async mySubscription(@CurrentUser() user: AuthUser) {
-    const organizer = await this.prisma.organizerProfile.findUnique({ where: { userId: user.id }, select: { id: true } });
-    if (!organizer) throw new NotFoundException('No tienes un perfil de organizador');
-    return this.limits.usageSummary(organizer.id);
   }
 }
 

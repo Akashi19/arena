@@ -4,7 +4,7 @@ import { formatMoney } from '@/lib/format';
 
 export interface Plan {
   id: string;
-  code: 'FREE' | 'PRO' | 'BUSINESS';
+  code: string;
   name: string;
   description: string | null;
   priceMonthly: string;
@@ -34,7 +34,7 @@ export const FEATURE_LABEL: Record<string, string> = {
 
 export function PlanCards({ plans, current }: { plans: Plan[]; current?: string }) {
   return (
-    <div className="grid gap-5 md:grid-cols-3">
+    <div className={`grid gap-5 ${plans.length > 3 ? 'md:grid-cols-2 xl:grid-cols-4' : 'md:grid-cols-3'}`}>
       {plans.map((p) => {
         const highlight = p.code === 'PRO';
         return (
@@ -68,9 +68,9 @@ export function PlanCards({ plans, current }: { plans: Plan[]; current?: string 
               {current === p.code ? (
                 <span className="btn-ghost w-full cursor-default">Tu plan actual</span>
               ) : current ? (
-                <button type="button" disabled className="btn-primary w-full" title="La contratación en línea se habilita en la fase de pagos">
-                  {p.code === 'FREE' ? 'Cambiar a Free' : `Mejorar a ${p.name}`} · próximamente
-                </button>
+                <Link href="/dashboard/suscripcion#cambiar" className={highlight ? 'btn-primary w-full' : 'btn-ghost w-full'}>
+                  {Number(p.priceMonthly) === 0 ? 'Cambiar a Free' : `Elegir ${p.name}`}
+                </Link>
               ) : (
                 <Link href="/registro" className={highlight ? 'btn-primary w-full' : 'btn-ghost w-full'}>
                   Empezar

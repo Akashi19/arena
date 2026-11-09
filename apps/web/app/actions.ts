@@ -1089,3 +1089,155 @@ export async function reviewReportAction(_: ActionState, fd: FormData): Promise<
     return fail(e);
   }
 }
+
+// ============================================================================ Suscripción (módulo 17)
+
+export interface QuoteState extends ActionState {
+  quote?: import('@/lib/types').SubscriptionQuote;
+}
+
+/** Cotiza un cambio de plan; con `intent=pay` inicia el pago y redirige al proveedor. */
+export async function subscriptionCheckoutAction(_: QuoteState, fd: FormData): Promise<QuoteState> {
+  const body = {
+    planCode: str(fd, 'planCode'),
+    billingPeriod: str(fd, 'billingPeriod'),
+    promoCode: str(fd, 'promoCode'),
+  };
+  let target: string | undefined;
+  try {
+    if (fd.get('intent') !== 'pay') {
+      const quote = await api<import('@/lib/types').SubscriptionQuote>('/me/subscription/quote', { method: 'POST', body });
+      return { quote };
+    }
+    const r = await api<{ result: 'CHECKOUT' | 'PAID' | 'SCHEDULED'; paymentId?: string; checkoutUrl?: string }>('/me/subscription/checkout', {
+      method: 'POST',
+      body: { ...body, provider: str(fd, 'provider'), idempotencyKey: str(fd, 'idempotencyKey') },
+    });
+    revalidatePath('/dashboard/suscripcion');
+    if (r.result === 'SCHEDULED') return { ok: true, message: 'Cambio programado para el final de tu periodo.' };
+    target = r.result === 'CHECKOUT' ? r.checkoutUrl : `/dashboard/suscripcion/pago/${r.paymentId}`;
+  } catch (e) {
+    return fail(e);
+  }
+  redirect(target!);
+}
+
+export async function startTrialAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    await api('/me/subscription/trial', { method: 'POST', body: { planCode: str(fd, 'planCode') } });
+    revalidatePath('/dashboard/suscripcion');
+    return { ok: true, message: 'Tu prueba gratuita está activa.' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function cancelSubscriptionAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    const r = await api<{ effective: 'NOW' | 'AT_PERIOD_END' }>('/me/subscription/cancel', { method: 'POST', body: { reason: str(fd, 'reason') } });
+    revalidatePath('/dashboard/suscripcion');
+    return { ok: true, message: r.effective === 'NOW' ? 'Suscripción cancelada: ahora estás en el plan Free.' : 'Cancelación programada para el final del periodo pagado.' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function resumeSubscriptionAction(_: ActionState): Promise<ActionState> {
+  try {
+    await api('/me/subscription/resume', { method: 'POST' });
+    revalidatePath('/dashboard/suscripcion');
+    return { ok: true, message: 'Listo: conservas tu plan actual.' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function sandboxPaymentAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const id = str(fd, 'paymentId');
+  try {
+    await api(`/me/subscription/payments/${id}/sandbox`, { method: 'POST', body: { outcome: str(fd, 'outcome') } });
+    revalidatePath('/dashboard/suscripcion');
+    revalidatePath(`/dashboard/suscripcion/pago/${id}`);
+    return { ok: true };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+// ---------------------------------------------------------------------------- SUPERADMIN
+
+const intOrNull = (fd: FormData, k: string) => {
+  const v = str(fd, k);
+  return v === undefined ? null : Number(v);
+};
+
+export async function savePlanAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const id = str(fd, 'id');
+  const body = {
+    ...(id ? {} : { code: str(fd, 'code') }),
+    name: str(fd, 'name'),
+    description: str(fd, 'description') ?? '',
+    priceMonthly: num(fd, 'priceMonthly'),
+    priceYearly: num(fd, 'priceYearly'),
+    currency: str(fd, 'currency'),
+    maxActiveTournaments: intOrNull(fd, 'maxActiveTournaments'),
+    maxParticipantsPerTournament: num(fd, 'maxParticipantsPerTournament'),
+    maxAdmins: num(fd, 'maxAdmins'),
+    trialDays: num(fd, 'trialDays'),
+    graceDays: num(fd, 'graceDays'),
+    sortOrder: num(fd, 'sortOrder'),
+    status: fd.get('active') === 'on' ? 'ACTIVE' : 'INACTIVE',
+    features: fd.getAll('features').map(String),
+    reason: str(fd, 'reason'),
+  };
+  try {
+    await api(id ? `/admin/billing/plans/${id}` : '/admin/billing/plans', { method: id ? 'PATCH' : 'POST', body });
+    revalidatePath('/admin/suscripciones/planes');
+    revalidatePath('/planes');
+    return { ok: true, message: id ? 'Plan actualizado.' : 'Plan creado.' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function createPromoAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const type = str(fd, 'discountType');
+  try {
+    await api('/admin/billing/promotions', {
+      method: 'POST',
+      body: {
+        code: str(fd, 'code'),
+        description: str(fd, 'description'),
+        percentOff: type === 'percent' ? num(fd, 'value') : undefined,
+        amountOff: type === 'amount' ? num(fd, 'value') : undefined,
+        appliesToPlans: fd.getAll('plans').map(String),
+        validUntil: date(fd, 'validUntil'),
+        maxRedemptions: num(fd, 'maxRedemptions'),
+      },
+    });
+    revalidatePath('/admin/suscripciones/promociones');
+    return { ok: true, message: 'Código creado.' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function togglePromoAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    await api(`/admin/billing/promotions/${str(fd, 'id')}`, { method: 'PATCH', body: { isActive: fd.get('isActive') === 'true' } });
+    revalidatePath('/admin/suscripciones/promociones');
+    return { ok: true };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function runBillingLifecycleAction(_: ActionState): Promise<ActionState> {
+  try {
+    const r = await api<{ checkoutsExpired: number; notices: number; ended: number; pastDue: number; expired: number }>('/admin/billing/lifecycle/run', { method: 'POST' });
+    revalidatePath('/admin/suscripciones');
+    return { ok: true, message: `Revisión hecha: ${r.notices} avisos, ${r.pastDue} con pago pendiente, ${r.ended + r.expired} pasaron a Free, ${r.checkoutsExpired} pagos sin completar anulados.` };
+  } catch (e) {
+    return fail(e);
+  }
+}

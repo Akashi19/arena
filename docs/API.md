@@ -98,7 +98,19 @@
 | PATCH | `/admin/ratings/{id}/moderation` | SUPERADMIN | Publicar, ocultar o suspender (justificación obligatoria) |
 | PUT | `/admin/incidents/{id}/resolve` | SUPERADMIN | `UNDER_REVIEW`, `RESOLVED` (confirmada) o `DISMISSED` con resolución |
 | PATCH | `/admin/tournaments/{id}/cancellation` | SUPERADMIN | Marca una cancelación como justificada o no |
-| GET | `/plans` · `/me/subscription` | — · Organizador | Planes · plan actual, uso y funcionalidades |
+| GET | `/plans` | — | Planes activos con sus funcionalidades |
+| GET | `/me/subscription` | ORGANIZER | Plan efectivo, suscripción, uso, cambios programados, pago pendiente, prueba disponible y medios de pago habilitados |
+| POST | `/me/subscription/quote` | ORGANIZER | Cotiza un cambio (`planCode`, `billingPeriod`, `promoCode`): `IMMEDIATE` (con descuento y saldo no usado), `SCHEDULED`, `TO_FREE` o `CURRENT` |
+| POST | `/me/subscription/checkout` | ORGANIZER | Inicia el pago (`provider`; `idempotencyKey` obligatoria: repetirla devuelve el mismo pago) o programa el cambio. Responde `CHECKOUT` + `checkoutUrl`, `PAID` (importe cero) o `SCHEDULED` |
+| POST | `/me/subscription/trial` · `/cancel` · `/resume` | ORGANIZER | Prueba gratuita (una por organizador, desde Free) · cancelar (al final del periodo; de inmediato en prueba o con pago vencido) · revertir cancelación o cambio programado |
+| GET | `/me/subscription/payments` · `/payments/{id}` · `/history` · `/invoices/{id}` | ORGANIZER | Historial de pagos, detalle, historial de la suscripción y comprobante |
+| POST | `/me/subscription/payments/{id}/sandbox` | ORGANIZER | Aprueba o rechaza un pago de prueba (solo con `BILLING_SANDBOX`, activo fuera de producción) |
+| POST | `/billing/webhooks/stripe` · `/billing/webhooks/mercadopago` | Firma del proveedor | Confirmación de pagos. Stripe: `Stripe-Signature` sobre el cuerpo crudo; Mercado Pago: `x-signature` y consulta del pago a su API. Cada evento se procesa una sola vez y se verifican importe y moneda |
+| GET | `/admin/billing/metrics` | SUPERADMIN | MRR, ARR, ARPU, ingresos del mes y del año, serie de 12 meses, churn de 30 días, conversión FREE→PRO y PRO→BUSINESS, organizadores por plan |
+| GET · POST · PATCH | `/admin/billing/plans` | SUPERADMIN | Crear planes (códigos nuevos), precios, moneda, límites, prueba, gracia, funcionalidades y activar/desactivar (Free no se puede desactivar ni cobrar) |
+| GET · POST · PATCH | `/admin/billing/promotions` | SUPERADMIN | Códigos promocionales (% o monto, planes, vigencia, usos máximos) |
+| GET | `/admin/billing/subscriptions` · `/admin/billing/payments` | SUPERADMIN | Suscriptores (estado, plan, búsqueda, cancelaciones programadas) y pagos por estado |
+| POST | `/admin/billing/lifecycle/run` | SUPERADMIN | Ejecuta ya la revisión de vencimientos (corre sola cada 10 minutos) |
 | GET | `/me/notifications` · PATCH `/{id}/read` · POST `/read-all` | ✔ | Notificaciones |
 | GET · PUT | `/me/notification-preferences` | ✔ | Avisos de transmisiones por canal (`inApp`, `email`, `whatsapp`; WhatsApp exige teléfono en el perfil) |
 | GET | `/matches/{matchId}/stream` | — | Encuentro con su transmisión principal y retransmisiones activas (`streamStatus` = `NOT_CONFIGURED` si no tiene). Las privadas solo entregan el enlace al organizador y a los participantes del encuentro |
@@ -139,6 +151,6 @@ Conexión socket.io a `http://localhost:4100/realtime`, con `auth: { token }` pa
 | `streams:changed` `{ matchId }` | difusión general (alta, cambio de estado o de enlace de una transmisión) |
 | `ranking:updated` `{ gameId }` | difusión general (al recalcularse el ranking de un juego) |
 
-## Endpoints planificados en próximas fases
+## Pendiente fuera de la especificación
 
-Definidos en la especificación: pagos de suscripción con webhooks.
+Envío real de avisos por email y WhatsApp (las preferencias ya se guardan) e integración continua con despliegue.

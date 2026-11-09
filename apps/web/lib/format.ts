@@ -236,3 +236,35 @@ export const STREAM_NOTIFICATION_LABEL: Record<string, { title: string; hint: st
 export const formatDay = (iso: string) => formatDate(iso, { timeZone: 'UTC' });
 
 export const formatPoints = (n: number) => new Intl.NumberFormat('es').format(n);
+
+export const SUBSCRIPTION_STATUS_LABEL: Record<string, string> = {
+  TRIAL: 'Prueba',
+  ACTIVE: 'Activa',
+  PAST_DUE: 'Pago pendiente',
+  CANCELLED: 'Cancelada',
+  EXPIRED: 'Vencida',
+};
+
+export const PAYMENT_STATUS_LABEL: Record<string, string> = {
+  PENDING: 'Pendiente',
+  SUCCEEDED: 'Pagado',
+  FAILED: 'Rechazado',
+  REFUNDED: 'Reembolsado',
+  CANCELLED: 'Anulado',
+};
+
+export const PAYMENT_KIND_LABEL: Record<string, string> = { NEW: 'Alta', UPGRADE: 'Cambio de plan', RENEWAL: 'Renovación' };
+
+export const PERIOD_LABEL: Record<string, string> = { MONTHLY: 'Mensual', YEARLY: 'Anual' };
+
+export const PROVIDER_LABEL: Record<string, string> = { STRIPE: 'Stripe', MERCADOPAGO: 'Mercado Pago', SANDBOX: 'Pago de prueba', MANUAL: 'Sin cobro' };
+
+/** Importe exacto (a diferencia de formatMoney, 0 no se muestra como «Gratis»). */
+export function formatAmount(amount: string | number, currency: string) {
+  const n = Number(amount);
+  try {
+    return new Intl.NumberFormat('es-PE', { style: 'currency', currency, minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 }).format(n);
+  } catch {
+    return `${currency} ${n.toFixed(2)}`;
+  }
+}

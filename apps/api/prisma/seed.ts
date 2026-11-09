@@ -9,7 +9,7 @@ import 'dotenv/config';
 import bcrypt from 'bcryptjs';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../src/generated/prisma/client.js';
-import type { Platform, PlanCode } from '../src/generated/prisma/client.js';
+import type { Platform } from '../src/generated/prisma/client.js';
 import { refreshPlayerStats } from '../src/players/stats.js';
 import { ReputationService } from '../src/trust/reputation.js';
 import { recomputeGame, syncTournament } from '../src/rankings/engine.js';
@@ -24,7 +24,7 @@ const days = (n: number) => new Date(Date.now() + n * 864e5);
 
 async function seedPlans() {
   const plans: {
-    code: PlanCode;
+    code: string;
     name: string;
     description: string;
     priceMonthly: number;
@@ -90,14 +90,10 @@ async function seedPlans() {
     },
   ];
   for (const { features, ...p } of plans) {
-    const plan = await prisma.subscriptionPlan.upsert({ where: { code: p.code }, update: p, create: p });
-    for (const featureKey of features) {
-      await prisma.planFeature.upsert({
-        where: { planId_featureKey: { planId: plan.id, featureKey } },
-        update: { enabled: true },
-        create: { planId: plan.id, featureKey },
-      });
-    }
+    // Precios, límites y funcionalidades se administran desde SUPERADMIN: el seed solo crea lo que falta
+    const existing = await prisma.subscriptionPlan.findUnique({ where: { code: p.code } });
+    if (existing) continue;
+    await prisma.subscriptionPlan.create({ data: { ...p, features: { create: features.map((featureKey) => ({ featureKey })) } } });
   }
 }
 

@@ -752,3 +752,177 @@ export interface ResultReport {
   createdAt: string;
   reviewedAt: string | null;
 }
+
+// ============================================================================ Suscripciones (módulo 17)
+
+export type SubscriptionStatus = 'TRIAL' | 'ACTIVE' | 'PAST_DUE' | 'CANCELLED' | 'EXPIRED';
+export type BillingPeriod = 'MONTHLY' | 'YEARLY';
+export type PaymentStatus = 'PENDING' | 'SUCCEEDED' | 'FAILED' | 'REFUNDED' | 'CANCELLED';
+export type PaymentProvider = 'STRIPE' | 'MERCADOPAGO' | 'SANDBOX' | 'MANUAL';
+
+export interface SubscriptionSummary {
+  plan: { code: string; name: string; description: string | null; priceMonthly: string; priceYearly: string; currency: string; features: string[] };
+  subscription: {
+    id: string;
+    status: SubscriptionStatus;
+    billingPeriod: BillingPeriod;
+    startedAt: string;
+    currentPeriodStart: string;
+    currentPeriodEnd: string | null;
+    cancelAtPeriodEnd: boolean;
+    trialEndsAt: string | null;
+    graceUntil: string | null;
+    provider: PaymentProvider | null;
+    isFree: boolean;
+    plan: { code: string; name: string; priceMonthly: string; priceYearly: string; currency: string };
+    pendingPlan: { code: string; name: string } | null;
+    pendingBillingPeriod: BillingPeriod | null;
+  } | null;
+  usage: {
+    activeTournaments: { used: number; limit: number | null };
+    participantsPerTournament: { used: number; limit: number };
+    admins: { used: number; limit: number };
+  };
+  trialAvailable: boolean;
+  pendingPayment: {
+    id: string;
+    amount: string;
+    currency: string;
+    provider: PaymentProvider;
+    checkoutUrl: string | null;
+    createdAt: string;
+    kind: 'NEW' | 'UPGRADE' | 'RENEWAL';
+    billingPeriod: BillingPeriod;
+    plan: { code: string; name: string };
+  } | null;
+  providers: { code: PaymentProvider; name: string }[];
+}
+
+export interface SubscriptionQuote {
+  change: 'CURRENT' | 'IMMEDIATE' | 'SCHEDULED' | 'TO_FREE';
+  kind: 'NEW' | 'UPGRADE' | 'RENEWAL';
+  plan: { id: string; code: string; name: string };
+  currentPlan: { code: string; name: string };
+  billingPeriod: BillingPeriod;
+  currency: string;
+  listAmount: number;
+  discountAmount: number;
+  creditAmount: number;
+  amount: number;
+  effectiveAt: string | null;
+  periodEnd: string | null;
+  message: string;
+}
+
+export interface SubscriptionPayment {
+  id: string;
+  status: PaymentStatus;
+  kind: 'NEW' | 'UPGRADE' | 'RENEWAL';
+  provider: PaymentProvider;
+  billingPeriod: BillingPeriod;
+  listAmount: string;
+  discountAmount: string;
+  creditAmount: string;
+  amount: string;
+  currency: string;
+  periodStart: string | null;
+  periodEnd: string | null;
+  paidAt: string | null;
+  failureReason: string | null;
+  checkoutUrl: string | null;
+  createdAt: string;
+  plan: { code: string; name: string };
+  promoCode: { code: string } | null;
+  invoice: { id: string; number: string } | null;
+  sandboxAvailable?: boolean;
+}
+
+export interface SubscriptionHistoryEntry {
+  id: string;
+  fromStatus: SubscriptionStatus | null;
+  toStatus: SubscriptionStatus;
+  reason: string | null;
+  createdAt: string;
+  fromPlan: { code: string; name: string } | null;
+  toPlan: { code: string; name: string } | null;
+  changedBy: { username: string; role: string } | null;
+}
+
+export interface SubscriptionInvoice {
+  id: string;
+  number: string;
+  amount: string;
+  currency: string;
+  issuedAt: string;
+  providerUrl: string | null;
+  payment: SubscriptionPayment | null;
+  subscription: { organizer: { id: string; displayName: string; country: string | null; city: string | null; user: { email: string } } };
+}
+
+export interface AdminPlan {
+  id: string;
+  code: string;
+  name: string;
+  description: string | null;
+  priceMonthly: string;
+  priceYearly: string;
+  currency: string;
+  maxActiveTournaments: number | null;
+  maxParticipantsPerTournament: number;
+  maxAdmins: number;
+  trialDays: number;
+  graceDays: number;
+  status: 'ACTIVE' | 'INACTIVE';
+  sortOrder: number;
+  features: { featureKey: string; enabled: boolean }[];
+  _count: { subscriptions: number };
+}
+
+export interface PromoCode {
+  id: string;
+  code: string;
+  description: string | null;
+  percentOff: number | null;
+  amountOff: string | null;
+  appliesToPlans: string[];
+  validFrom: string;
+  validUntil: string | null;
+  maxRedemptions: number | null;
+  redemptions: number;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface AdminSubscription {
+  id: string;
+  status: SubscriptionStatus;
+  billingPeriod: BillingPeriod;
+  startedAt: string;
+  currentPeriodEnd: string | null;
+  graceUntil: string | null;
+  cancelAtPeriodEnd: boolean;
+  cancelledAt: string | null;
+  isCurrent: boolean;
+  provider: PaymentProvider | null;
+  plan: { code: string; name: string; currency: string };
+  pendingPlan: { code: string; name: string } | null;
+  promoCode: { code: string } | null;
+  organizer: { id: string; displayName: string; user: { username: string; email: string } };
+  payments: { amount: string; currency: string; paidAt: string }[];
+}
+
+export type AdminPayment = SubscriptionPayment & { subscription: { organizer: { displayName: string; user: { username: string } } } };
+
+export interface BillingMetrics {
+  generatedAt: string;
+  organizers: number;
+  subscribers: number;
+  paying: number;
+  byPlan: { code: string; name: string; total: number; active: number; trial: number; pastDue: number }[];
+  revenue: { currency: string; mrr: number; arr: number; arpu: number; month: number; year: number; series: { month: string; total: number }[] }[];
+  churn: { last30Days: number; rate: number };
+  conversion: { freeToPro: { count: number; base: number; rate: number }; proToBusiness: { count: number; base: number; rate: number } };
+  pendingPayments: number;
+  pastDue: number;
+  scheduledCancels: number;
+}

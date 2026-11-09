@@ -133,12 +133,6 @@ enum InvitationStatus {
 }
 
 // --- SaaS ---
-enum PlanCode {
-  FREE
-  PRO
-  BUSINESS
-}
-
 enum PlanStatus {
   ACTIVE
   INACTIVE
@@ -162,12 +156,21 @@ enum PaymentStatus {
   SUCCEEDED
   FAILED
   REFUNDED
+  CANCELLED
+}
+
+/// Motivo del cobro: alta o cambio inmediato de plan, o renovación del mismo plan.
+enum PaymentKind {
+  NEW
+  UPGRADE
+  RENEWAL
 }
 
 enum PaymentProvider {
   STRIPE
   MERCADOPAGO
   MANUAL
+  SANDBOX
 }
 
 // --- Verificación ---
@@ -309,32 +312,33 @@ model User {
   createdAt    DateTime   @default(now()) @map("created_at")
   updatedAt    DateTime   @updatedAt @map("updated_at")
 
-  profile          UserProfile?
-  organizerProfile OrganizerProfile?
-  player           Player?          @relation("UserPlayer")
-  memberships      OrganizerMember[]
-  notifications    Notification[]
-  auditLogs        AuditLog[]
+  profile           UserProfile?
+  organizerProfile  OrganizerProfile?
+  player            Player?                  @relation("UserPlayer")
+  memberships       OrganizerMember[]
+  notifications     Notification[]
+  auditLogs         AuditLog[]
   notificationPrefs NotificationPreference[]
 
-  managedPlayers         Player[]                  @relation("PlayerManager")
-  ownedTeams             Team[]                    @relation("TeamOwner")
-  registrationsRequested TournamentRegistration[]  @relation("RegistrationRequester")
-  resultsConfirmed       MatchResult[]             @relation("ResultConfirmedBy")
+  managedPlayers         Player[]                 @relation("PlayerManager")
+  ownedTeams             Team[]                   @relation("TeamOwner")
+  registrationsRequested TournamentRegistration[] @relation("RegistrationRequester")
+  resultsConfirmed       MatchResult[]            @relation("ResultConfirmedBy")
   scheduleChanges        MatchSchedule[]
-  verificationReviews    OrganizerVerification[]   @relation("VerificationReviewer")
+  verificationReviews    OrganizerVerification[]  @relation("VerificationReviewer")
   verificationChanges    VerificationHistory[]
-  ratingsGiven           OrganizerRating[]         @relation("RatingAuthor")
+  ratingsGiven           OrganizerRating[]        @relation("RatingAuthor")
   ratingChanges          RatingHistory[]
   ratingReports          RatingReport[]
-  incidentsReported      OrganizerIncident[]       @relation("IncidentReporter")
-  incidentsReviewed      OrganizerIncident[]       @relation("IncidentReviewer")
+  incidentsReported      OrganizerIncident[]      @relation("IncidentReporter")
+  incidentsReviewed      OrganizerIncident[]      @relation("IncidentReviewer")
   subscriptionChanges    SubscriptionHistory[]
+  subscriptionPayments   SubscriptionPayment[]    @relation("PaymentCreatedBy")
   rankingAudits          RankingAuditLog[]
-  resultReports          RankingResultReport[]     @relation("ResultReporter")
+  resultReports          RankingResultReport[]    @relation("ResultReporter")
   streamsCreated         MatchStream[]
   streamChanges          MatchStreamHistory[]
-  invitationsSent        TeamInvitation[]          @relation("InvitationSender")
+  invitationsSent        TeamInvitation[]         @relation("InvitationSender")
 
   @@index([role, status])
   @@map("users")
@@ -383,17 +387,17 @@ model OrganizerProfile {
   createdAt          DateTime           @default(now()) @map("created_at")
   updatedAt          DateTime           @updatedAt @map("updated_at")
 
-  user           User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  members        OrganizerMember[]
-  competitions   Competition[]
-  tournaments    Tournament[]
-  subscriptions  Subscription[]
-  featureUsage   FeatureUsage[]
-  verifications  OrganizerVerification[]
-  ratings        OrganizerRating[]
-  responses      OrganizerResponse[]
-  reputation     OrganizerReputation?
-  incidents      OrganizerIncident[]
+  user          User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  members       OrganizerMember[]
+  competitions  Competition[]
+  tournaments   Tournament[]
+  subscriptions Subscription[]
+  featureUsage  FeatureUsage[]
+  verifications OrganizerVerification[]
+  ratings       OrganizerRating[]
+  responses     OrganizerResponse[]
+  reputation    OrganizerReputation?
+  incidents     OrganizerIncident[]
 
   @@index([verificationStatus])
   @@index([country, city])
@@ -478,10 +482,10 @@ model GameRank {
   iconUrl   String?       @map("icon_url")
   status    CatalogStatus @default(ACTIVE)
 
-  game           Game                @relation(fields: [gameId], references: [id], onDelete: Cascade)
-  playerProfiles PlayerGameProfile[]
-  minForTournaments Tournament[] @relation("TournamentMinRank")
-  maxForTournaments Tournament[] @relation("TournamentMaxRank")
+  game              Game                @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  playerProfiles    PlayerGameProfile[]
+  minForTournaments Tournament[]        @relation("TournamentMinRank")
+  maxForTournaments Tournament[]        @relation("TournamentMaxRank")
 
   @@unique([gameId, rankName])
   @@unique([gameId, rankOrder])
@@ -511,51 +515,51 @@ model Competition {
 
 // Una "partida" en la UI: competición concreta con inscripción, formato y cuota
 model Tournament {
-  id                   String             @id @default(uuid()) @db.Uuid
-  organizerId          String             @map("organizer_id") @db.Uuid
-  competitionId        String?            @map("competition_id") @db.Uuid
-  name                 String
-  slug                 String             @unique // enlace público compartible
-  description          String?
-  category             DisciplineCategory
-  sportId              String?            @map("sport_id") @db.Uuid
-  gameId               String?            @map("game_id") @db.Uuid
-  platform             Platform?
-  coverUrl             String?            @map("cover_url")
-  startsAt             DateTime           @map("starts_at")
-  endsAt               DateTime?          @map("ends_at")
-  registrationDeadline DateTime           @map("registration_deadline")
-  maxParticipants      Int                @map("max_participants")
-  mode                 TournamentMode
-  format               TournamentFormat
-  groupCount           Int?               @map("group_count")
-  qualifiersPerGroup   Int?               @map("qualifiers_per_group")
-  isOnline             Boolean            @default(false) @map("is_online")
-  location             String?
-  country              String?            @db.Char(2)
-  city                 String?
-  status               TournamentStatus   @default(OPEN)
+  id                     String             @id @default(uuid()) @db.Uuid
+  organizerId            String             @map("organizer_id") @db.Uuid
+  competitionId          String?            @map("competition_id") @db.Uuid
+  name                   String
+  slug                   String             @unique // enlace público compartible
+  description            String?
+  category               DisciplineCategory
+  sportId                String?            @map("sport_id") @db.Uuid
+  gameId                 String?            @map("game_id") @db.Uuid
+  platform               Platform?
+  coverUrl               String?            @map("cover_url")
+  startsAt               DateTime           @map("starts_at")
+  endsAt                 DateTime?          @map("ends_at")
+  registrationDeadline   DateTime           @map("registration_deadline")
+  maxParticipants        Int                @map("max_participants")
+  mode                   TournamentMode
+  format                 TournamentFormat
+  groupCount             Int?               @map("group_count")
+  qualifiersPerGroup     Int?               @map("qualifiers_per_group")
+  isOnline               Boolean            @default(false) @map("is_online")
+  location               String?
+  country                String?            @db.Char(2)
+  city                   String?
+  status                 TournamentStatus   @default(OPEN)
   // Cuota informativa de inscripción (NO es apuesta ni cuota de pronóstico)
-  entryFee             Decimal            @default(0) @map("entry_fee") @db.Decimal(12, 2)
-  currency             String             @default("USD") @db.Char(3)
-  rules                String?
-  refundPolicy         String?            @map("refund_policy")
-  minLevel             CompetitiveLevel?  @map("min_level")
-  maxLevel             CompetitiveLevel?  @map("max_level")
-  minRankId            String?            @map("min_rank_id") @db.Uuid
-  maxRankId            String?            @map("max_rank_id") @db.Uuid
-  pointsWin            Int                @default(3) @map("points_win")
-  pointsDraw           Int                @default(1) @map("points_draw")
-  pointsLoss           Int                @default(0) @map("points_loss")
-  tier                 Int                @default(1) // nivel del torneo para ranking (1..5)
-  isRanked             Boolean            @default(true) @map("is_ranked")
-  isFeatured           Boolean            @default(false) @map("is_featured")
-  cancelledReason      String?            @map("cancelled_reason")
-  cancellationJustified Boolean?          @map("cancellation_justified")
-  championRegistrationId String?          @unique @map("champion_registration_id") @db.Uuid
-  mvpPlayerId          String?            @map("mvp_player_id") @db.Uuid // jugador destacado elegido por el organizador
-  createdAt            DateTime           @default(now()) @map("created_at")
-  updatedAt            DateTime           @updatedAt @map("updated_at")
+  entryFee               Decimal            @default(0) @map("entry_fee") @db.Decimal(12, 2)
+  currency               String             @default("USD") @db.Char(3)
+  rules                  String?
+  refundPolicy           String?            @map("refund_policy")
+  minLevel               CompetitiveLevel?  @map("min_level")
+  maxLevel               CompetitiveLevel?  @map("max_level")
+  minRankId              String?            @map("min_rank_id") @db.Uuid
+  maxRankId              String?            @map("max_rank_id") @db.Uuid
+  pointsWin              Int                @default(3) @map("points_win")
+  pointsDraw             Int                @default(1) @map("points_draw")
+  pointsLoss             Int                @default(0) @map("points_loss")
+  tier                   Int                @default(1) // nivel del torneo para ranking (1..5)
+  isRanked               Boolean            @default(true) @map("is_ranked")
+  isFeatured             Boolean            @default(false) @map("is_featured")
+  cancelledReason        String?            @map("cancelled_reason")
+  cancellationJustified  Boolean?           @map("cancellation_justified")
+  championRegistrationId String?            @unique @map("champion_registration_id") @db.Uuid
+  mvpPlayerId            String?            @map("mvp_player_id") @db.Uuid // jugador destacado elegido por el organizador
+  createdAt              DateTime           @default(now()) @map("created_at")
+  updatedAt              DateTime           @updatedAt @map("updated_at")
 
   organizer     OrganizerProfile         @relation(fields: [organizerId], references: [id], onDelete: Cascade)
   competition   Competition?             @relation(fields: [competitionId], references: [id], onDelete: SetNull)
@@ -582,22 +586,22 @@ model Tournament {
 }
 
 model Team {
-  id                String            @id @default(uuid()) @db.Uuid
-  ownerId           String            @map("owner_id") @db.Uuid
-  name              String
-  slug              String            @unique
-  tag               String?           @db.VarChar(6)
-  logoUrl           String?           @map("logo_url")
-  description       String?
-  country           String?           @db.Char(2)
-  sportId           String?           @map("sport_id") @db.Uuid
-  gameId            String?           @map("game_id") @db.Uuid
-  captainId         String?           @map("captain_id") @db.Uuid
-  recruitmentStatus RecruitmentStatus @default(NOT_LOOKING) @map("recruitment_status")
-  isActive          Boolean           @default(true) @map("is_active")
-  rankingSuspendedUntil DateTime?     @map("ranking_suspended_until") // suspensión administrativa temporal del ranking
-  createdAt         DateTime          @default(now()) @map("created_at")
-  updatedAt         DateTime          @updatedAt @map("updated_at")
+  id                    String            @id @default(uuid()) @db.Uuid
+  ownerId               String            @map("owner_id") @db.Uuid
+  name                  String
+  slug                  String            @unique
+  tag                   String?           @db.VarChar(6)
+  logoUrl               String?           @map("logo_url")
+  description           String?
+  country               String?           @db.Char(2)
+  sportId               String?           @map("sport_id") @db.Uuid
+  gameId                String?           @map("game_id") @db.Uuid
+  captainId             String?           @map("captain_id") @db.Uuid
+  recruitmentStatus     RecruitmentStatus @default(NOT_LOOKING) @map("recruitment_status")
+  isActive              Boolean           @default(true) @map("is_active")
+  rankingSuspendedUntil DateTime?         @map("ranking_suspended_until") // suspensión administrativa temporal del ranking
+  createdAt             DateTime          @default(now()) @map("created_at")
+  updatedAt             DateTime          @updatedAt @map("updated_at")
 
   owner         User                     @relation("TeamOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   sport         Sport?                   @relation(fields: [sportId], references: [id])
@@ -630,21 +634,21 @@ model TeamIdentityHistory {
 }
 
 model Player {
-  id           String    @id @default(uuid()) @db.Uuid
-  userId       String?   @unique @map("user_id") @db.Uuid // null = jugador registrado por un organizador sin cuenta
-  managerId    String?   @map("manager_id") @db.Uuid // organizador que lo gestiona (si no tiene cuenta)
-  fullName     String    @map("full_name")
-  nickname     String
-  avatarUrl    String?   @map("avatar_url")
-  country      String?   @db.Char(2)
-  jerseyNumber Int?      @map("jersey_number")
-  position     String?
-  recruitmentStatus RecruitmentStatus @default(NOT_LOOKING) @map("recruitment_status")
-  availability String?
-  isSuspended  Boolean   @default(false) @map("is_suspended")
-  rankingSuspendedUntil DateTime? @map("ranking_suspended_until") // suspensión administrativa temporal del ranking
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
+  id                    String            @id @default(uuid()) @db.Uuid
+  userId                String?           @unique @map("user_id") @db.Uuid // null = jugador registrado por un organizador sin cuenta
+  managerId             String?           @map("manager_id") @db.Uuid // organizador que lo gestiona (si no tiene cuenta)
+  fullName              String            @map("full_name")
+  nickname              String
+  avatarUrl             String?           @map("avatar_url")
+  country               String?           @db.Char(2)
+  jerseyNumber          Int?              @map("jersey_number")
+  position              String?
+  recruitmentStatus     RecruitmentStatus @default(NOT_LOOKING) @map("recruitment_status")
+  availability          String?
+  isSuspended           Boolean           @default(false) @map("is_suspended")
+  rankingSuspendedUntil DateTime?         @map("ranking_suspended_until") // suspensión administrativa temporal del ranking
+  createdAt             DateTime          @default(now()) @map("created_at")
+  updatedAt             DateTime          @updatedAt @map("updated_at")
 
   user          User?                    @relation("UserPlayer", fields: [userId], references: [id], onDelete: SetNull)
   manager       User?                    @relation("PlayerManager", fields: [managerId], references: [id], onDelete: SetNull)
@@ -717,14 +721,14 @@ model TournamentRegistration {
   createdAt              DateTime           @default(now()) @map("created_at")
   updatedAt              DateTime           @updatedAt @map("updated_at")
 
-  tournament   Tournament          @relation("TournamentRegistrations", fields: [tournamentId], references: [id], onDelete: Cascade)
-  team         Team?               @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  player       Player?             @relation(fields: [playerId], references: [id], onDelete: Cascade)
-  requestedBy  User                @relation("RegistrationRequester", fields: [requestedById], references: [id])
-  championOf   Tournament?         @relation("TournamentChampion")
+  tournament   Tournament           @relation("TournamentRegistrations", fields: [tournamentId], references: [id], onDelete: Cascade)
+  team         Team?                @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  player       Player?              @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  requestedBy  User                 @relation("RegistrationRequester", fields: [requestedById], references: [id])
+  championOf   Tournament?          @relation("TournamentChampion")
   participants MatchParticipant[]
   standings    TournamentStanding[]
-  wonResults   MatchResult[]       @relation("ResultWinner")
+  wonResults   MatchResult[]        @relation("ResultWinner")
 
   // Una inscripción por equipo/jugador y torneo (NULLs distintos en Postgres: se refuerza en servicio)
   @@unique([tournamentId, teamId])
@@ -751,16 +755,16 @@ model Match {
   createdAt        DateTime    @default(now()) @map("created_at")
   updatedAt        DateTime    @updatedAt @map("updated_at")
 
-  tournament   Tournament         @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
-  nextMatch    Match?             @relation("NextMatch", fields: [nextMatchId], references: [id], onDelete: SetNull)
-  feeders      Match[]            @relation("NextMatch")
-  loserNext    Match?             @relation("LoserNextMatch", fields: [loserNextMatchId], references: [id], onDelete: SetNull)
-  loserFeeders Match[]            @relation("LoserNextMatch")
-  participants MatchParticipant[]
-  results      MatchResult[]
-  schedules    MatchSchedule[]
-  lineups      MatchLineup[]
-  streams      MatchStream[]
+  tournament    Tournament            @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  nextMatch     Match?                @relation("NextMatch", fields: [nextMatchId], references: [id], onDelete: SetNull)
+  feeders       Match[]               @relation("NextMatch")
+  loserNext     Match?                @relation("LoserNextMatch", fields: [loserNextMatchId], references: [id], onDelete: SetNull)
+  loserFeeders  Match[]               @relation("LoserNextMatch")
+  participants  MatchParticipant[]
+  results       MatchResult[]
+  schedules     MatchSchedule[]
+  lineups       MatchLineup[]
+  streams       MatchStream[]
   rankingEvents RankingEvent[]
   resultReports RankingResultReport[]
 
@@ -771,9 +775,9 @@ model Match {
 }
 
 model MatchParticipant {
-  id             String  @id @default(uuid()) @db.Uuid
-  matchId        String  @map("match_id") @db.Uuid
-  registrationId String  @map("registration_id") @db.Uuid
+  id             String   @id @default(uuid()) @db.Uuid
+  matchId        String   @map("match_id") @db.Uuid
+  registrationId String   @map("registration_id") @db.Uuid
   slot           Int // 1 = local, 2 = visitante
   score          Decimal? @db.Decimal(10, 2)
   isWinner       Boolean? @map("is_winner")
@@ -885,11 +889,11 @@ model Notification {
 }
 
 model NotificationPreference {
-  id      String  @id @default(uuid()) @db.Uuid
-  userId  String  @map("user_id") @db.Uuid
-  type    String
-  inApp   Boolean @default(true) @map("in_app")
-  email   Boolean @default(false)
+  id       String  @id @default(uuid()) @db.Uuid
+  userId   String  @map("user_id") @db.Uuid
+  type     String
+  inApp    Boolean @default(true) @map("in_app")
+  email    Boolean @default(false)
   whatsapp Boolean @default(false)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -923,27 +927,29 @@ model AuditLog {
 // =============================================================================
 
 model SubscriptionPlan {
-  id                          String        @id @default(uuid()) @db.Uuid
-  code                        PlanCode      @unique
-  name                        String
-  description                 String?
-  priceMonthly                Decimal       @map("price_monthly") @db.Decimal(12, 2)
-  priceYearly                 Decimal       @map("price_yearly") @db.Decimal(12, 2)
-  currency                    String        @default("USD") @db.Char(3)
-  maxActiveTournaments        Int?          @map("max_active_tournaments") // null = ilimitado (uso razonable)
-  maxParticipantsPerTournament Int          @map("max_participants_per_tournament")
-  maxAdmins                   Int           @map("max_admins")
-  trialDays                   Int           @default(0) @map("trial_days")
-  graceDays                   Int           @default(7) @map("grace_days")
-  status                      PlanStatus    @default(ACTIVE)
-  sortOrder                   Int           @default(0) @map("sort_order")
-  createdAt                   DateTime      @default(now()) @map("created_at")
-  updatedAt                   DateTime      @updatedAt @map("updated_at")
+  id                           String     @id @default(uuid()) @db.Uuid
+  code                         String     @unique // FREE, PRO, BUSINESS o los que cree SUPERADMIN
+  name                         String
+  description                  String?
+  priceMonthly                 Decimal    @map("price_monthly") @db.Decimal(12, 2)
+  priceYearly                  Decimal    @map("price_yearly") @db.Decimal(12, 2)
+  currency                     String     @default("USD") @db.Char(3)
+  maxActiveTournaments         Int?       @map("max_active_tournaments") // null = ilimitado (uso razonable)
+  maxParticipantsPerTournament Int        @map("max_participants_per_tournament")
+  maxAdmins                    Int        @map("max_admins")
+  trialDays                    Int        @default(0) @map("trial_days")
+  graceDays                    Int        @default(7) @map("grace_days")
+  status                       PlanStatus @default(ACTIVE)
+  sortOrder                    Int        @default(0) @map("sort_order")
+  createdAt                    DateTime   @default(now()) @map("created_at")
+  updatedAt                    DateTime   @updatedAt @map("updated_at")
 
-  features      PlanFeature[]
-  subscriptions Subscription[]
-  historyFrom   SubscriptionHistory[] @relation("HistoryFromPlan")
-  historyTo     SubscriptionHistory[] @relation("HistoryToPlan")
+  features             PlanFeature[]
+  subscriptions        Subscription[]
+  historyFrom          SubscriptionHistory[] @relation("HistoryFromPlan")
+  historyTo            SubscriptionHistory[] @relation("HistoryToPlan")
+  pendingSubscriptions Subscription[]        @relation("PendingPlan")
+  payments             SubscriptionPayment[]
 
   @@map("subscription_plans")
 }
@@ -979,15 +985,21 @@ model Subscription {
   providerCustomerId     String?            @map("provider_customer_id")
   providerSubscriptionId String?            @unique @map("provider_subscription_id")
   isCurrent              Boolean            @default(true) @map("is_current")
+  // Cambio a un plan inferior (o a periodo mensual) programado para el fin del periodo pagado
+  pendingPlanId          String?            @map("pending_plan_id") @db.Uuid
+  pendingBillingPeriod   BillingPeriod?     @map("pending_billing_period")
+  // Último aviso de vencimiento enviado (uno por periodo)
+  expiryNoticeAt         DateTime?          @map("expiry_notice_at")
   createdAt              DateTime           @default(now()) @map("created_at")
   updatedAt              DateTime           @updatedAt @map("updated_at")
 
-  organizer OrganizerProfile      @relation(fields: [organizerId], references: [id], onDelete: Cascade)
-  plan      SubscriptionPlan      @relation(fields: [planId], references: [id])
-  promoCode PromotionalCode?      @relation(fields: [promoCodeId], references: [id])
-  payments  SubscriptionPayment[]
-  invoices  SubscriptionInvoice[]
-  history   SubscriptionHistory[]
+  organizer   OrganizerProfile      @relation(fields: [organizerId], references: [id], onDelete: Cascade)
+  plan        SubscriptionPlan      @relation(fields: [planId], references: [id])
+  pendingPlan SubscriptionPlan?     @relation("PendingPlan", fields: [pendingPlanId], references: [id])
+  promoCode   PromotionalCode?      @relation(fields: [promoCodeId], references: [id])
+  payments    SubscriptionPayment[]
+  invoices    SubscriptionInvoice[]
+  history     SubscriptionHistory[]
 
   @@index([organizerId, isCurrent])
   @@index([status, currentPeriodEnd])
@@ -997,6 +1009,16 @@ model Subscription {
 model SubscriptionPayment {
   id                String          @id @default(uuid()) @db.Uuid
   subscriptionId    String          @map("subscription_id") @db.Uuid
+  // Lo que se compra: plan y periodo (puede diferir del plan vigente de la suscripción)
+  planId            String          @map("plan_id") @db.Uuid
+  billingPeriod     BillingPeriod   @map("billing_period")
+  kind              PaymentKind     @default(NEW)
+  listAmount        Decimal         @map("list_amount") @db.Decimal(12, 2)
+  discountAmount    Decimal         @default(0) @map("discount_amount") @db.Decimal(12, 2)
+  creditAmount      Decimal         @default(0) @map("credit_amount") @db.Decimal(12, 2) // saldo no usado del periodo anterior
+  promoCodeId       String?         @map("promo_code_id") @db.Uuid
+  createdById       String?         @map("created_by_id") @db.Uuid
+  checkoutUrl       String?         @map("checkout_url")
   amount            Decimal         @db.Decimal(12, 2)
   currency          String          @db.Char(3)
   status            PaymentStatus   @default(PENDING)
@@ -1010,9 +1032,13 @@ model SubscriptionPayment {
   createdAt         DateTime        @default(now()) @map("created_at")
 
   subscription Subscription         @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  plan         SubscriptionPlan     @relation(fields: [planId], references: [id])
+  promoCode    PromotionalCode?     @relation(fields: [promoCodeId], references: [id])
+  createdBy    User?                @relation("PaymentCreatedBy", fields: [createdById], references: [id])
   invoice      SubscriptionInvoice?
 
   @@index([status, createdAt])
+  @@index([subscriptionId, createdAt])
   @@map("subscription_payments")
 }
 
@@ -1073,7 +1099,7 @@ model PromotionalCode {
   description    String?
   percentOff     Int?      @map("percent_off")
   amountOff      Decimal?  @map("amount_off") @db.Decimal(12, 2)
-  appliesToPlans PlanCode[] @map("applies_to_plans")
+  appliesToPlans String[]  @map("applies_to_plans") // vacío = todos los planes de pago
   validFrom      DateTime  @map("valid_from")
   validUntil     DateTime? @map("valid_until")
   maxRedemptions Int?      @map("max_redemptions")
@@ -1082,6 +1108,7 @@ model PromotionalCode {
   createdAt      DateTime  @default(now()) @map("created_at")
 
   subscriptions Subscription[]
+  payments      SubscriptionPayment[]
 
   @@map("promotional_codes")
 }
@@ -1211,14 +1238,14 @@ model OrganizerRating {
 }
 
 model OrganizerResponse {
-  id            String           @id @default(uuid()) @db.Uuid
-  ratingId      String           @unique @map("rating_id") @db.Uuid // una respuesta por valoración
-  organizerId   String           @map("organizer_id") @db.Uuid
-  response      String
+  id               String           @id @default(uuid()) @db.Uuid
+  ratingId         String           @unique @map("rating_id") @db.Uuid // una respuesta por valoración
+  organizerId      String           @map("organizer_id") @db.Uuid
+  response         String
   moderationStatus ModerationStatus @default(APPROVED) @map("moderation_status")
-  editableUntil DateTime         @map("editable_until")
-  createdAt     DateTime         @default(now()) @map("created_at")
-  updatedAt     DateTime         @updatedAt @map("updated_at")
+  editableUntil    DateTime         @map("editable_until")
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
 
   rating    OrganizerRating  @relation(fields: [ratingId], references: [id], onDelete: Cascade)
   organizer OrganizerProfile @relation(fields: [organizerId], references: [id], onDelete: Cascade)
@@ -1227,22 +1254,22 @@ model OrganizerResponse {
 }
 
 model OrganizerReputation {
-  id                    String          @id @default(uuid()) @db.Uuid
-  organizerId           String          @unique @map("organizer_id") @db.Uuid
-  averageScore          Decimal         @default(0) @map("average_score") @db.Decimal(3, 2)
-  totalRatings          Int             @default(0) @map("total_ratings")
-  organizationAverage   Decimal         @default(0) @map("organization_average") @db.Decimal(3, 2)
-  punctualityAverage    Decimal         @default(0) @map("punctuality_average") @db.Decimal(3, 2)
-  communicationAverage  Decimal         @default(0) @map("communication_average") @db.Decimal(3, 2)
-  transparencyAverage   Decimal         @default(0) @map("transparency_average") @db.Decimal(3, 2)
-  experienceAverage     Decimal         @default(0) @map("experience_average") @db.Decimal(3, 2)
-  completedTournaments  Int             @default(0) @map("completed_tournaments")
-  cancelledTournaments  Int             @default(0) @map("cancelled_tournaments")
-  dueTournaments        Int             @default(0) @map("due_tournaments") // torneos que debían finalizar
-  completionRate        Decimal         @default(0) @map("completion_rate") @db.Decimal(5, 2)
-  confirmedIncidents    Int             @default(0) @map("confirmed_incidents")
-  reputationLevel       ReputationLevel @default(NEW) @map("reputation_level")
-  lastCalculatedAt      DateTime        @default(now()) @map("last_calculated_at")
+  id                   String          @id @default(uuid()) @db.Uuid
+  organizerId          String          @unique @map("organizer_id") @db.Uuid
+  averageScore         Decimal         @default(0) @map("average_score") @db.Decimal(3, 2)
+  totalRatings         Int             @default(0) @map("total_ratings")
+  organizationAverage  Decimal         @default(0) @map("organization_average") @db.Decimal(3, 2)
+  punctualityAverage   Decimal         @default(0) @map("punctuality_average") @db.Decimal(3, 2)
+  communicationAverage Decimal         @default(0) @map("communication_average") @db.Decimal(3, 2)
+  transparencyAverage  Decimal         @default(0) @map("transparency_average") @db.Decimal(3, 2)
+  experienceAverage    Decimal         @default(0) @map("experience_average") @db.Decimal(3, 2)
+  completedTournaments Int             @default(0) @map("completed_tournaments")
+  cancelledTournaments Int             @default(0) @map("cancelled_tournaments")
+  dueTournaments       Int             @default(0) @map("due_tournaments") // torneos que debían finalizar
+  completionRate       Decimal         @default(0) @map("completion_rate") @db.Decimal(5, 2)
+  confirmedIncidents   Int             @default(0) @map("confirmed_incidents")
+  reputationLevel      ReputationLevel @default(NEW) @map("reputation_level")
+  lastCalculatedAt     DateTime        @default(now()) @map("last_calculated_at")
 
   organizer OrganizerProfile @relation(fields: [organizerId], references: [id], onDelete: Cascade)
 
@@ -1388,15 +1415,15 @@ model PlayerAchievement {
 }
 
 model PlayerGameHistory {
-  id           String   @id @default(uuid()) @db.Uuid
-  playerId     String   @map("player_id") @db.Uuid
-  gameId       String   @map("game_id") @db.Uuid
-  previousRank String?  @map("previous_rank")
-  newRank      String?  @map("new_rank")
-  previousLevel CompetitiveLevel? @map("previous_level")
-  newLevel     CompetitiveLevel? @map("new_level")
-  source       LevelVerificationType
-  recordedAt   DateTime @default(now()) @map("recorded_at")
+  id            String                @id @default(uuid()) @db.Uuid
+  playerId      String                @map("player_id") @db.Uuid
+  gameId        String                @map("game_id") @db.Uuid
+  previousRank  String?               @map("previous_rank")
+  newRank       String?               @map("new_rank")
+  previousLevel CompetitiveLevel?     @map("previous_level")
+  newLevel      CompetitiveLevel?     @map("new_level")
+  source        LevelVerificationType
+  recordedAt    DateTime              @default(now()) @map("recorded_at")
 
   player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
   game   Game   @relation(fields: [gameId], references: [id], onDelete: Cascade)
@@ -1434,16 +1461,16 @@ model RankingSeason {
 }
 
 model RankingRule {
-  id                   String     @id @default(uuid()) @db.Uuid
-  gameId               String     @map("game_id") @db.Uuid
+  id                   String         @id @default(uuid()) @db.Uuid
+  gameId               String         @map("game_id") @db.Uuid
   competitionType      TournamentMode @map("competition_type")
   // { win:25, draw:10, participation:5, placement:{1:100,2:60,3:40}, tierMultiplier:{1:1,2:1.25,...}, maxPerTournament:... }
-  scoringConfiguration Json       @map("scoring_configuration")
-  minimumMatches       Int        @default(5) @map("minimum_matches")
-  effectiveFrom        DateTime   @map("effective_from")
+  scoringConfiguration Json           @map("scoring_configuration")
+  minimumMatches       Int            @default(5) @map("minimum_matches")
+  effectiveFrom        DateTime       @map("effective_from")
   version              Int
-  status               RuleStatus @default(DRAFT)
-  createdAt            DateTime   @default(now()) @map("created_at")
+  status               RuleStatus     @default(DRAFT)
+  createdAt            DateTime       @default(now()) @map("created_at")
 
   game Game @relation(fields: [gameId], references: [id])
 
@@ -1453,22 +1480,22 @@ model RankingRule {
 
 // season_id NULL = ranking histórico acumulado
 model PlayerRanking {
-  id                String    @id @default(uuid()) @db.Uuid
-  playerId          String    @map("player_id") @db.Uuid
-  gameId            String    @map("game_id") @db.Uuid
-  seasonId          String?   @map("season_id") @db.Uuid
-  countryCode       String?   @map("country_code") @db.Char(2)
-  points            Int       @default(0)
-  wins              Int       @default(0)
-  losses            Int       @default(0)
-  draws             Int       @default(0)
-  matchesPlayed     Int       @default(0) @map("matches_played")
-  tournamentsPlayed Int       @default(0) @map("tournaments_played")
-  tournamentsWon    Int       @default(0) @map("tournaments_won")
-  isProvisional     Boolean   @default(true) @map("is_provisional")
-  positionGlobal    Int?      @map("position_global")
-  positionCountry   Int?      @map("position_country")
-  lastCalculatedAt  DateTime  @default(now()) @map("last_calculated_at")
+  id                String   @id @default(uuid()) @db.Uuid
+  playerId          String   @map("player_id") @db.Uuid
+  gameId            String   @map("game_id") @db.Uuid
+  seasonId          String?  @map("season_id") @db.Uuid
+  countryCode       String?  @map("country_code") @db.Char(2)
+  points            Int      @default(0)
+  wins              Int      @default(0)
+  losses            Int      @default(0)
+  draws             Int      @default(0)
+  matchesPlayed     Int      @default(0) @map("matches_played")
+  tournamentsPlayed Int      @default(0) @map("tournaments_played")
+  tournamentsWon    Int      @default(0) @map("tournaments_won")
+  isProvisional     Boolean  @default(true) @map("is_provisional")
+  positionGlobal    Int?     @map("position_global")
+  positionCountry   Int?     @map("position_country")
+  lastCalculatedAt  DateTime @default(now()) @map("last_calculated_at")
 
   player Player         @relation(fields: [playerId], references: [id], onDelete: Cascade)
   game   Game           @relation(fields: [gameId], references: [id])
@@ -1596,24 +1623,24 @@ model RankingAuditLog {
 // =============================================================================
 
 model MatchStream {
-  id                String         @id @default(uuid()) @db.Uuid
-  matchId           String         @map("match_id") @db.Uuid
-  streamUrl         String         @map("stream_url")
-  streamPlatform    StreamPlatform @map("stream_platform")
-  streamTitle       String?        @map("stream_title")
-  streamDescription String?        @map("stream_description")
-  streamStatus      StreamStatus   @default(SCHEDULED) @map("stream_status")
-  streamVisibility  Visibility     @default(PUBLIC) @map("stream_visibility")
-  isRebroadcast     Boolean        @default(false) @map("is_rebroadcast")
-  isActive          Boolean        @default(true) @map("is_active") // máx. una activa por partida (índice parcial)
-  scheduledStartAt  DateTime?      @map("scheduled_start_at")
-  scheduledEndAt    DateTime?      @map("scheduled_end_at")
-  actualStartAt     DateTime?      @map("actual_start_at")
-  actualEndAt       DateTime?      @map("actual_end_at")
-  upcomingNotifiedAt DateTime?     @map("upcoming_notified_at") // aviso "próxima a transmitirse" ya enviado
-  createdBy         String         @map("created_by") @db.Uuid
-  createdAt         DateTime       @default(now()) @map("created_at")
-  updatedAt         DateTime       @updatedAt @map("updated_at")
+  id                 String         @id @default(uuid()) @db.Uuid
+  matchId            String         @map("match_id") @db.Uuid
+  streamUrl          String         @map("stream_url")
+  streamPlatform     StreamPlatform @map("stream_platform")
+  streamTitle        String?        @map("stream_title")
+  streamDescription  String?        @map("stream_description")
+  streamStatus       StreamStatus   @default(SCHEDULED) @map("stream_status")
+  streamVisibility   Visibility     @default(PUBLIC) @map("stream_visibility")
+  isRebroadcast      Boolean        @default(false) @map("is_rebroadcast")
+  isActive           Boolean        @default(true) @map("is_active") // máx. una activa por partida (índice parcial)
+  scheduledStartAt   DateTime?      @map("scheduled_start_at")
+  scheduledEndAt     DateTime?      @map("scheduled_end_at")
+  actualStartAt      DateTime?      @map("actual_start_at")
+  actualEndAt        DateTime?      @map("actual_end_at")
+  upcomingNotifiedAt DateTime?      @map("upcoming_notified_at") // aviso "próxima a transmitirse" ya enviado
+  createdBy          String         @map("created_by") @db.Uuid
+  createdAt          DateTime       @default(now()) @map("created_at")
+  updatedAt          DateTime       @updatedAt @map("updated_at")
 
   match   Match                @relation(fields: [matchId], references: [id], onDelete: Cascade)
   creator User                 @relation(fields: [createdBy], references: [id])

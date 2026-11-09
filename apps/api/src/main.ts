@@ -8,7 +8,7 @@ import { configureApp } from './app.setup.js';
 import { env } from './config/env.js';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule, { bodyParser: true });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, { bodyParser: true, rawBody: true });
   configureApp(app);
   app.useBodyParser('json', { limit: '1mb' });
 

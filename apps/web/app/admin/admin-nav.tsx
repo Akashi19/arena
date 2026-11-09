@@ -11,6 +11,7 @@ const ITEMS = [
   { href: '/admin/reputacion', label: 'Reputación' },
   { href: '/admin/niveles', label: 'Niveles' },
   { href: '/admin/rankings', label: 'Rankings' },
+  { href: '/admin/suscripciones', label: 'Suscripciones' },
 ];
 
 export function AdminNav() {

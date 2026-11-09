@@ -13,7 +13,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <div className="space-y-6">
       <div>
         <p className="text-xs font-semibold uppercase tracking-wider text-neon-2">SUPERADMIN</p>
-        <h1 className="section-title">Confianza y moderación</h1>
+        <h1 className="section-title">Administración</h1>
       </div>
       <AdminNav />
       <div className="min-w-0">{children}</div>

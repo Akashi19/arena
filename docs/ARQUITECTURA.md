@@ -134,6 +134,35 @@ reportes de resultados incorrectos.
 - Un torneo cuenta como **activo** en estado `DRAFT`, `OPEN` o `IN_PROGRESS`.
 - Si una suscripción de pago vence (o sale del periodo de gracia en `PAST_DUE`) el organizador opera con los
   límites de FREE; sus partidas existentes no se borran.
+
+### Suscripciones y pagos (módulo 17)
+
+- **Solo pagos de la plataforma:** `subscription_payments` cobra la suscripción del organizador; las cuotas de
+  inscripción de los torneos son informativas y nunca pasan por este módulo.
+- **El organizador no fija su plan:** el plan solo cambia al confirmarse un pago (webhook o pago de prueba), al
+  aplicarse un cambio programado o por el ciclo de vida. Los DTO no aceptan `status` ni `planId`.
+- **Cotización** (`billing/pricing.ts`, funciones puras con pruebas): subir de plan o pasar de mensual a anual cobra de
+  inmediato descontando el saldo no usado del periodo pagado; bajar de plan o pasar a mensual queda programado
+  (`pending_plan_id`) para el fin del periodo; pasar a un plan gratuito es una cancelación al final del periodo. El
+  cupón (`promotional_codes`) se descuenta del pago en que se ingresa y suma un uso al confirmarse.
+- **Proveedores** (`billing/providers.ts`): Stripe Checkout y Mercado Pago Checkout Pro por su API REST, cada uno
+  habilitado solo con clave y secreto de webhook. Fuera de producción existe un pago de prueba (`SANDBOX`) que recorre
+  el mismo procesamiento de eventos. Son pagos por periodo, sin cobro recurrente en el proveedor: la renovación la
+  inicia el organizador cuando Arena le avisa.
+- **Idempotencia y seguridad:** cada checkout lleva una clave de idempotencia del cliente (`idempotency_key` única) que
+  también se envía al proveedor; hay un solo pago pendiente por organizador; los webhooks se validan por firma
+  (HMAC-SHA256 con tolerancia de tiempo), se registran en `payment_webhook_events` (único por proveedor + evento) y se
+  aplican con un candado por organizador (`pg_advisory_xact_lock`). Un evento cuyo importe o moneda no coincide se
+  registra y se ignora.
+- **Ciclo de vida** (cada 10 minutos): pagos sin completar en 24 h se anulan; aviso 7 días antes del fin del periodo
+  (3 en la prueba); al vencer, la cancelación o la prueba sin pago cierran la suscripción y abren una FREE vigente, un
+  cambio programado se aplica, y si no, pasa a `PAST_DUE` con los días de gracia del plan; tras la gracia, `EXPIRED` y
+  FREE. Cada transición queda en `subscription_history` y en la auditoría.
+- **Comprobantes:** numeración correlativa `ARN-AAAA-000001` (secuencia de Postgres) al confirmarse cada pago.
+- **Planes configurables:** el código de plan es texto, así que SUPERADMIN crea planes nuevos sin migraciones; Free es
+  el plan de respaldo (sin precio, siempre activo). El seed solo crea los planes que faltan y no pisa precios editados.
+- **Métricas:** MRR con lo efectivamente cobrado (descuentos incluidos) normalizado a mes; ARPU = MRR / organizadores;
+  churn = suscripciones de pago terminadas en 30 días sobre las de pago vigentes más esas; importes agrupados por moneda.
 - Flujo de estados de partida: `DRAFT → OPEN → IN_PROGRESS → FINISHED`, y cancelación desde cualquier estado no
   final, con motivo obligatorio y notificación a los inscritos.
 - Un cambio de horario notifica a los inscritos aprobados.
