@@ -1,13 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { CalendarClock, GitBranch, Radio, Shuffle, Trophy } from 'lucide-react';
+import Link from 'next/link';
+import { CalendarClock, GitBranch, Radio, Shuffle, Trophy, Tv } from 'lucide-react';
 import { generateFixtureAction, generatePlayoffsAction, recordResultAction, updateMatchAction } from '@/app/actions';
 import type { Fixture, FixtureMatch } from '@/lib/types';
 import { buildSections, entrantName, formatScore, isElimination } from '@/lib/fixture';
 import { FORMAT_LABEL, formatDateTime, toLocalInput } from '@/lib/format';
 import { FormMessage, SubmitButton, TzOffsetInput, usePersistentAction } from '@/components/forms';
 import { StandingsTable } from '@/components/fixture-view';
+import { StreamBadge } from '@/components/stream';
 
 export function FixtureManager({ fixture }: { fixture: Fixture }) {
   const t = fixture.tournament;
@@ -84,6 +86,28 @@ function GenerateCard({ tournamentId, format, existing }: { tournamentId: string
           {existing ? 'Regenerar' : 'Generar fixture'}
         </SubmitButton>
       </div>
+      <details className="rounded-xl border border-line bg-surface-2 p-3">
+        <summary className="flex cursor-pointer items-center gap-2 text-sm font-semibold">
+          <Tv className="size-4 text-neon" aria-hidden /> Transmisión en vivo (opcional)
+        </summary>
+        <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto]">
+          <label className="block">
+            <span className="label">Canal para todos los encuentros</span>
+            <input name="streamUrl" type="url" inputMode="url" maxLength={500} placeholder="https://www.twitch.tv/tu-canal" className="input" />
+          </label>
+          <label className="block">
+            <span className="label">Visibilidad</span>
+            <select name="streamVisibility" defaultValue="PUBLIC" className="input">
+              <option value="PUBLIC">Pública</option>
+              <option value="PRIVATE">Solo participantes</option>
+            </select>
+          </label>
+          <p className="text-xs text-muted sm:col-span-2">
+            Solo HTTPS de YouTube, Twitch, Facebook, TikTok, Kick u otra plataforma autorizada. Cada encuentro queda programado con este enlace y luego
+            puedes cambiarlo, activarlo EN VIVO o quitarlo desde el encuentro.
+          </p>
+        </div>
+      </details>
       <FormMessage state={state} />
     </form>
   );
@@ -176,6 +200,7 @@ function MatchEditor({ match, tournamentId, editable }: { match: FixtureMatch; t
         )}
         {match.venue && <span>· {match.venue}</span>}
         {match.result && match.result.version > 1 && <span className="text-amber">· v{match.result.version} (corregido)</span>}
+        {match.stream && match.stream.status !== 'NOT_CONFIGURED' && <StreamBadge status={match.stream.status} />}
         {canEdit && !done && (
           <span className="ml-auto flex gap-1">
             {ready && match.status !== 'LIVE' && (
@@ -191,6 +216,11 @@ function MatchEditor({ match, tournamentId, editable }: { match: FixtureMatch; t
               <CalendarClock className="size-3" /> Horario
             </button>
           </span>
+        )}
+        {match.status !== 'CANCELLED' && (
+          <Link href={`/dashboard/torneos/${tournamentId}/encuentros/${match.id}`} className={`btn-ghost px-2 py-1 text-xs ${canEdit && !done ? '' : 'ml-auto'}`}>
+            <Tv className="size-3" /> Transmisión
+          </Link>
         )}
       </div>
 

@@ -527,6 +527,38 @@ async function main() {
   const finished = await prisma.tournament.findMany({ where: { status: 'FINISHED', gameId: { not: null } }, select: { id: true, gameId: true } });
   for (const t of finished) await syncTournament(prisma as never, t.id);
   for (const gameId of new Set(finished.map((t) => t.gameId!))) await recomputeGame(prisma as never, gameId);
+  await seedStreams();
+}
+
+/** Transmisión de ejemplo (módulo 23): la final de la Fecha 1 del circuito FC, ya emitida en YouTube. */
+async function seedStreams() {
+  const final = await prisma.match.findFirst({
+    where: { tournament: { slug: 'copa-internacional-fc-fecha-1' }, nextMatchId: null, status: 'COMPLETED' },
+    include: { tournament: { select: { organizer: { select: { userId: true } } } } },
+  });
+  if (!final || (await prisma.matchStream.count({ where: { matchId: final.id } }))) return;
+  const start = final.scheduledAt ?? final.updatedAt;
+  const stream = await prisma.matchStream.create({
+    data: {
+      matchId: final.id,
+      streamUrl: 'https://www.youtube.com/watch?v=jfKfPfyJRdk',
+      streamPlatform: 'YOUTUBE',
+      streamTitle: 'Gran final · narración en español',
+      streamStatus: 'ENDED',
+      scheduledStartAt: start,
+      actualStartAt: start,
+      actualEndAt: new Date(start.getTime() + 90 * 60_000),
+      upcomingNotifiedAt: start,
+      createdBy: final.tournament.organizer.userId,
+    },
+  });
+  await prisma.matchStreamHistory.createMany({
+    data: [
+      { matchStreamId: stream.id, newUrl: stream.streamUrl, newStatus: 'SCHEDULED', modifiedBy: stream.createdBy, modificationReason: 'Transmisión configurada', createdAt: new Date(start.getTime() - 864e5) },
+      { matchStreamId: stream.id, newUrl: stream.streamUrl, previousUrl: stream.streamUrl, previousStatus: 'SCHEDULED', newStatus: 'LIVE', modifiedBy: stream.createdBy, createdAt: start },
+      { matchStreamId: stream.id, newUrl: stream.streamUrl, previousUrl: stream.streamUrl, previousStatus: 'LIVE', newStatus: 'ENDED', modifiedBy: stream.createdBy, createdAt: stream.actualEndAt! },
+    ],
+  });
 }
 
 main()

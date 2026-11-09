@@ -4348,6 +4348,339 @@
         ]
       }
     },
+    "/api/matches/{matchId}/stream": {
+      "get": {
+        "operationId": "StreamsController_get",
+        "parameters": [
+          {
+            "name": "matchId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Transmisiones en vivo"
+        ]
+      },
+      "post": {
+        "operationId": "StreamsController_create",
+        "parameters": [
+          {
+            "name": "matchId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateStreamDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Transmisiones en vivo"
+        ]
+      },
+      "put": {
+        "operationId": "StreamsController_update",
+        "parameters": [
+          {
+            "name": "matchId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStreamDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Transmisiones en vivo"
+        ]
+      },
+      "delete": {
+        "operationId": "StreamsController_remove",
+        "parameters": [
+          {
+            "name": "matchId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "streamId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "reason",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Transmisiones en vivo"
+        ]
+      }
+    },
+    "/api/matches/{matchId}/stream/status": {
+      "patch": {
+        "operationId": "StreamsController_status",
+        "parameters": [
+          {
+            "name": "matchId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StreamStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Transmisiones en vivo"
+        ]
+      }
+    },
+    "/api/matches/{matchId}/stream/history": {
+      "get": {
+        "operationId": "StreamsController_history",
+        "parameters": [
+          {
+            "name": "matchId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Transmisiones en vivo"
+        ]
+      }
+    },
+    "/api/streams/live": {
+      "get": {
+        "operationId": "StreamsController_live",
+        "parameters": [
+          {
+            "name": "game",
+            "required": false,
+            "in": "query",
+            "description": "Filtrar por videojuego",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Transmisiones en vivo"
+        ]
+      }
+    },
+    "/api/streams/upcoming": {
+      "get": {
+        "operationId": "StreamsController_upcoming",
+        "parameters": [
+          {
+            "name": "game",
+            "required": false,
+            "in": "query",
+            "description": "Filtrar por videojuego",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Transmisiones en vivo"
+        ]
+      }
+    },
+    "/api/tournaments/{tournamentId}/streams": {
+      "get": {
+        "operationId": "StreamsController_tournament",
+        "parameters": [
+          {
+            "name": "tournamentId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "LIVE",
+                "UPCOMING",
+                "ENDED"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Transmisiones en vivo"
+        ]
+      }
+    },
+    "/api/me/notification-preferences": {
+      "get": {
+        "operationId": "NotificationPreferencesController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Notificaciones"
+        ]
+      },
+      "put": {
+        "operationId": "NotificationPreferencesController_set",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotificationPreferenceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Notificaciones"
+        ]
+      }
+    },
     "/api/me/teams": {
       "get": {
         "operationId": "TeamsController_mine",
@@ -5665,6 +5998,17 @@
           "roundIntervalMinutes": {
             "type": "number",
             "description": "Programar automáticamente cada ronda cada N minutos desde el inicio"
+          },
+          "streamUrl": {
+            "type": "string",
+            "description": "Enlace de transmisión (HTTPS, dominio autorizado) que se programa en todos los encuentros generados"
+          },
+          "streamVisibility": {
+            "type": "string",
+            "enum": [
+              "PUBLIC",
+              "PRIVATE"
+            ]
           }
         }
       },
@@ -6494,6 +6838,170 @@
         "required": [
           "decision",
           "resolution"
+        ]
+      },
+      "CreateStreamDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Título personalizado"
+          },
+          "description": {
+            "type": "string",
+            "description": "Descripción opcional"
+          },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "PUBLIC",
+              "PRIVATE"
+            ],
+            "description": "PRIVATE: solo el organizador y los participantes del encuentro ven el enlace"
+          },
+          "scheduledStartAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Inicio programado (ISO 8601). Por defecto, el horario del encuentro"
+          },
+          "scheduledEndAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fin programado (ISO 8601)"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Motivo del cambio (queda en el historial)"
+          },
+          "url": {
+            "type": "string",
+            "description": "URL HTTPS de la transmisión (YouTube, Twitch, Facebook, TikTok, Kick u otra autorizada)"
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "YOUTUBE",
+              "TWITCH",
+              "FACEBOOK",
+              "TIKTOK",
+              "KICK",
+              "OTHER"
+            ],
+            "description": "Se detecta por el dominio; si se envía debe coincidir"
+          },
+          "isRebroadcast": {
+            "type": "boolean",
+            "description": "Retransmisión adicional (otro canal, idioma…): no reemplaza a la principal",
+            "default": false
+          }
+        },
+        "required": [
+          "url"
+        ]
+      },
+      "UpdateStreamDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Título personalizado"
+          },
+          "description": {
+            "type": "string",
+            "description": "Descripción opcional"
+          },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "PUBLIC",
+              "PRIVATE"
+            ],
+            "description": "PRIVATE: solo el organizador y los participantes del encuentro ven el enlace"
+          },
+          "scheduledStartAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Inicio programado (ISO 8601). Por defecto, el horario del encuentro"
+          },
+          "scheduledEndAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fin programado (ISO 8601)"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Motivo del cambio (queda en el historial)"
+          },
+          "url": {
+            "type": "string"
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "YOUTUBE",
+              "TWITCH",
+              "FACEBOOK",
+              "TIKTOK",
+              "KICK",
+              "OTHER"
+            ]
+          },
+          "streamId": {
+            "type": "string",
+            "description": "Transmisión a editar (por defecto, la principal activa)"
+          }
+        }
+      },
+      "StreamStatusDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "SCHEDULED",
+              "LIVE",
+              "ENDED",
+              "CANCELLED"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          },
+          "streamId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "NotificationPreferenceDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "STREAM_UPCOMING",
+              "STREAM_LIVE",
+              "STREAM_UPDATED",
+              "STREAM_CANCELLED"
+            ]
+          },
+          "inApp": {
+            "type": "boolean"
+          },
+          "email": {
+            "type": "boolean"
+          },
+          "whatsapp": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "type",
+          "inApp",
+          "email",
+          "whatsapp"
         ]
       },
       "CreateTeamDto": {

@@ -38,6 +38,8 @@ import {
   type ScoredResult,
   type StandingRow,
 } from './engine.js';
+import { parseStreamUrl, StreamUrlError } from '../streams/platforms.js';
+import { presentStream } from '../streams/streams.js';
 
 const trim = ({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value);
 
@@ -57,6 +59,18 @@ export class GenerateFixtureDto {
   @Min(5)
   @Max(60 * 24 * 14)
   roundIntervalMinutes?: number;
+
+  @ApiPropertyOptional({ description: 'Enlace de transmisión (HTTPS, dominio autorizado) que se programa en todos los encuentros generados' })
+  @IsOptional()
+  @Transform(trim)
+  @IsString()
+  @MaxLength(500)
+  streamUrl?: string;
+
+  @ApiPropertyOptional({ enum: ['PUBLIC', 'PRIVATE'] })
+  @IsOptional()
+  @IsIn(['PUBLIC', 'PRIVATE'])
+  streamVisibility?: 'PUBLIC' | 'PRIVATE';
 }
 
 export class RecordResultDto {
@@ -191,6 +205,8 @@ export class MatchesService {
             take: 1,
             select: { version: true, isDraw: true, winnerRegistrationId: true, correctionReason: true, createdAt: true },
           },
+          // Transmisión principal activa (la tarjeta del encuentro muestra su estado y el acceso)
+          streams: { where: { isActive: true, isRebroadcast: false }, take: 1 },
         },
       }),
       this.prisma.tournamentStanding.findMany({
@@ -216,7 +232,16 @@ export class MatchesService {
     const { organizerId: _o, ...tournament } = t;
     return {
       tournament,
-      matches: matches.map(({ results, ...m }) => ({ ...m, result: results[0] ?? null })),
+      matches: matches.map(({ results, streams, ...m }) => {
+        const s = streams[0];
+        // Privadas: solo el estado; el enlace se consulta en el detalle (que valida si el usuario participa)
+        const stream = s && (canManage || s.streamStatus !== 'CANCELLED') ? presentStream(s, canManage || s.streamVisibility === 'PUBLIC') : null;
+        return {
+          ...m,
+          result: results[0] ?? null,
+          stream: stream && { id: stream.id, status: stream.status, platform: stream.platform, platformName: stream.platformName, visibility: stream.visibility, url: stream.url, scheduledStartAt: stream.scheduledStartAt },
+        };
+      }),
       standings,
       progress: {
         total: matches.filter((m) => m.status !== 'CANCELLED').length,
@@ -240,6 +265,14 @@ export class MatchesService {
   async generate(user: AuthUser, tournamentId: string, dto: GenerateFixtureDto) {
     const t = await this.getManaged(user, tournamentId);
     if (t.status !== 'IN_PROGRESS') throw new BadRequestException('Inicia la partida para generar el fixture');
+    let stream: ReturnType<typeof parseStreamUrl> | null = null;
+    if (dto.streamUrl) {
+      try {
+        stream = parseStreamUrl(dto.streamUrl);
+      } catch (e) {
+        throw e instanceof StreamUrlError ? new BadRequestException(e.message) : e;
+      }
+    }
 
     const created = await this.prisma.$transaction(
       async (tx) => {
@@ -303,6 +336,23 @@ export class MatchesService {
           }
         }
         await this.persistPlan(tx, tournamentId, plan, t.startsAt, dto.roundIntervalMinutes);
+        if (stream) {
+          // Mismo canal para todo el fixture: una transmisión programada por encuentro, con su historial
+          const created = await tx.match.findMany({ where: { tournamentId }, select: { id: true, scheduledAt: true } });
+          const rows = created.map((m) => ({
+            id: randomUUID(),
+            matchId: m.id,
+            streamUrl: stream.url,
+            streamPlatform: stream.platform,
+            streamVisibility: dto.streamVisibility ?? 'PUBLIC',
+            scheduledStartAt: m.scheduledAt,
+            createdBy: user.id,
+          }));
+          await tx.matchStream.createMany({ data: rows });
+          await tx.matchStreamHistory.createMany({
+            data: rows.map((r) => ({ matchStreamId: r.id, newUrl: r.streamUrl, newStatus: 'SCHEDULED' as const, modifiedBy: user.id, modificationReason: 'Configurada al generar el fixture' })),
+          });
+        }
         return plan.length;
       },
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable, timeout: 20_000 },

@@ -100,6 +100,13 @@
 | PATCH | `/admin/tournaments/{id}/cancellation` | SUPERADMIN | Marca una cancelación como justificada o no |
 | GET | `/plans` · `/me/subscription` | — · Organizador | Planes · plan actual, uso y funcionalidades |
 | GET | `/me/notifications` · PATCH `/{id}/read` · POST `/read-all` | ✔ | Notificaciones |
+| GET · PUT | `/me/notification-preferences` | ✔ | Avisos de transmisiones por canal (`inApp`, `email`, `whatsapp`; WhatsApp exige teléfono en el perfil) |
+| GET | `/matches/{matchId}/stream` | — | Encuentro con su transmisión principal y retransmisiones activas (`streamStatus` = `NOT_CONFIGURED` si no tiene). Las privadas solo entregan el enlace al organizador y a los participantes del encuentro |
+| POST · PUT · DELETE | `/matches/{matchId}/stream` | ORGANIZER | Agregar (`url`, `platform` opcional y verificada, `title`, `description`, `visibility`, `scheduledStartAt`, `scheduledEndAt`, `isRebroadcast`), editar (`streamId` opcional) o quitar el enlace (`?streamId&reason`; deja de estar activo y conserva el historial) |
+| PATCH | `/matches/{matchId}/stream/status` | ORGANIZER | `SCHEDULED → LIVE → ENDED`, `CANCELLED`, reanudar (`ENDED → LIVE`) o reprogramar (`CANCELLED → SCHEDULED`) |
+| GET | `/matches/{matchId}/stream/history` | ORGANIZER | Historial: enlace y estado anterior y nuevo, quién y por qué |
+| GET | `/streams/live` · `/streams/upcoming` | — | Transmisiones públicas en vivo / programadas (`game`, paginación) |
+| GET | `/tournaments/{tournamentId}/streams` | — | «Partidas transmitidas» del torneo (`status` = `LIVE`/`UPCOMING`/`ENDED`) con contadores por filtro |
 | GET | `/rankings` | — | Clasificación de un videojuego: `game`, `type` (`PLAYER`/`TEAM`), `country`, `season` (sin ella, histórico acumulado), `platform`, paginación. Incluye evolución (↑ ↓ = NEW), provisionales y fecha de actualización |
 | GET | `/rankings/global` · `/rankings/games/{gameId}` · `/rankings/countries/{countryCode}` · `/rankings/seasons/{seasonId}` | — | La misma tabla con el alcance fijado por la ruta |
 | GET | `/rankings/seasons` · `/rankings/rules` | — | Temporadas publicadas (con campeones) · reglas de puntuación vigentes (`game`) |
@@ -128,10 +135,10 @@ Conexión socket.io a `http://localhost:4100/realtime`, con `auth: { token }` pa
 | Evento (servidor → cliente) | Sala |
 |---|---|
 | `notification` | `user:{id}` |
-| `registration:changed`, `tournament:updated`, `tournament:status`, `fixture:updated`, `match:updated` | `tournament:{id}` |
+| `registration:changed`, `tournament:updated`, `tournament:status`, `fixture:updated`, `match:updated`, `stream:updated` | `tournament:{id}` |
+| `streams:changed` `{ matchId }` | difusión general (alta, cambio de estado o de enlace de una transmisión) |
 | `ranking:updated` `{ gameId }` | difusión general (al recalcularse el ranking de un juego) |
 
 ## Endpoints planificados en próximas fases
 
-Definidos en la especificación y respaldados por las tablas ya creadas: transmisiones (`/matches/{id}/stream`,
-`/streams/live`) y pagos de suscripción con webhooks.
+Definidos en la especificación: pagos de suscripción con webhooks.

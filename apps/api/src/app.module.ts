@@ -21,6 +21,7 @@ import { ReputationModule } from './trust/reputation.js';
 import { RatingsModule } from './trust/ratings.js';
 import { VerificationModule } from './trust/verification.js';
 import { RankingsModule } from './rankings/rankings.js';
+import { StreamsModule } from './streams/streams.js';
 import { JwtAuthGuard, RolesGuard } from './common/guards/auth.guards.js';
 import { PrismaExceptionFilter } from './common/filters/prisma-exception.filter.js';
 import { Public } from './common/decorators/auth.decorators.js';
@@ -59,6 +60,7 @@ class HealthController {
     RatingsModule,
     VerificationModule,
     RankingsModule,
+    StreamsModule,
     TeamsModule,
     DashboardModule,
   ],

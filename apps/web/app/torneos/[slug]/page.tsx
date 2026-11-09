@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { CalendarClock, CalendarDays, Crown, Gamepad2, MapPin, Medal, Settings, Star, Trophy, Users, Wifi } from 'lucide-react';
 import { api, apiOrNull } from '@/lib/api';
 import { getMe } from '@/lib/session';
-import type { Fixture, Team, TournamentDetail, TournamentFeedback } from '@/lib/types';
+import type { Fixture, Team, TournamentDetail, TournamentFeedback, TournamentStreams } from '@/lib/types';
 import {
   COUNTRIES,
   flag,
@@ -25,6 +25,7 @@ import { RegistrationPanel } from '@/components/registration-panel';
 import { ShareButton } from '@/components/share-button';
 import { FixtureView } from '@/components/fixture-view';
 import { FeedbackPanel } from '@/components/feedback-panel';
+import { TournamentStreamsList } from '@/components/tournament-streams';
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -45,10 +46,11 @@ export default async function TournamentPage({ params }: Props) {
   const t = await apiOrNull<TournamentDetail>(`/tournaments/${encodeURIComponent(slug)}`);
   if (!t) notFound();
   const started = t.status === 'IN_PROGRESS' || t.status === 'FINISHED' || t.status === 'CANCELLED';
-  const [teams, fixture, feedback] = await Promise.all([
+  const [teams, fixture, feedback, streams] = await Promise.all([
     me && t.mode === 'TEAM' ? api<Team[]>('/me/teams').catch(() => []) : Promise.resolve([] as Team[]),
     t.status === 'IN_PROGRESS' || t.status === 'FINISHED' ? apiOrNull<Fixture>(`/tournaments/${t.id}/fixture`) : Promise.resolve(null),
     me && started && !t.viewer?.canManage ? apiOrNull<TournamentFeedback>(`/tournaments/${t.id}/feedback`) : Promise.resolve(null),
+    t.status === 'IN_PROGRESS' || t.status === 'FINISHED' ? apiOrNull<TournamentStreams>(`/tournaments/${t.id}/streams`) : Promise.resolve(null),
   ]);
   const showFeedback = !!feedback && (feedback.canRate || !!feedback.rating || feedback.canReportIncident);
   const ownedTeams = teams.filter((team) => team.ownerId === me?.id || team.captainId === me?.player?.id);
@@ -161,6 +163,12 @@ export default async function TournamentPage({ params }: Props) {
               </p>
             )}
           </Block>
+
+          {streams && streams.items.length > 0 && (
+            <Block title="Partidas transmitidas">
+              <TournamentStreamsList data={streams} />
+            </Block>
+          )}
 
           {fixture && fixture.matches.length > 0 && (
             <Block title="Fixture y resultados">

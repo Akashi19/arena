@@ -215,6 +215,107 @@ export interface FixtureMatch {
   loserNextMatchId: string | null;
   participants: { slot: number; score: string | null; isWinner: boolean | null; registration: FixtureEntrant }[];
   result: { version: number; isDraw: boolean; winnerRegistrationId: string | null; correctionReason: string | null; createdAt: string } | null;
+  stream: FixtureStream | null;
+}
+
+// ---------------------------------------------------------------------------- Transmisiones (módulo 23)
+
+export type StreamStatus = 'NOT_CONFIGURED' | 'SCHEDULED' | 'LIVE' | 'ENDED' | 'CANCELLED';
+export type StreamPlatform = 'YOUTUBE' | 'TWITCH' | 'FACEBOOK' | 'TIKTOK' | 'KICK' | 'OTHER';
+export type StreamVisibility = 'PUBLIC' | 'PRIVATE';
+
+export interface StreamEmbed {
+  provider: 'youtube' | 'twitch' | 'twitch-video' | 'kick' | 'facebook' | 'vimeo';
+  id: string;
+}
+
+export interface FixtureStream {
+  id: string;
+  status: StreamStatus;
+  platform: StreamPlatform;
+  platformName: string;
+  visibility: StreamVisibility;
+  url: string | null;
+  scheduledStartAt: string | null;
+}
+
+export interface MatchStreamInfo {
+  id: string;
+  matchId: string;
+  platform: StreamPlatform;
+  platformName: string;
+  title: string | null;
+  description: string | null;
+  status: StreamStatus;
+  visibility: StreamVisibility;
+  isRebroadcast: boolean;
+  isActive: boolean;
+  scheduledStartAt: string | null;
+  scheduledEndAt: string | null;
+  actualStartAt: string | null;
+  actualEndAt: string | null;
+  updatedAt: string;
+  url: string | null;
+  embed: StreamEmbed | null;
+  restricted: boolean;
+}
+
+export interface StreamMatchSummary {
+  id: string;
+  status: MatchStatus;
+  scheduledAt: string | null;
+  venue: string | null;
+  bracket: BracketSide;
+  round: number;
+  groupLabel: string | null;
+  participants: { slot: number; score: string | null; isWinner: boolean | null; registration: FixtureEntrant }[];
+}
+
+export interface StreamTournamentSummary {
+  id: string;
+  slug: string;
+  name: string;
+  status: TournamentStatus;
+  mode: 'INDIVIDUAL' | 'TEAM';
+  game: { id: string; name: string } | null;
+  sport: { id: string; name: string } | null;
+  organizer: { displayName: string; user: { username: string } };
+}
+
+export interface MatchStreamDetail {
+  match: StreamMatchSummary & { result: { version: number; isDraw: boolean } | null };
+  tournament: StreamTournamentSummary;
+  streamStatus: StreamStatus;
+  stream: MatchStreamInfo | null;
+  rebroadcasts: MatchStreamInfo[];
+  canManage: boolean;
+  canViewPrivate: boolean;
+}
+
+export type StreamListItem = MatchStreamInfo & { match: StreamMatchSummary; tournament: StreamTournamentSummary };
+
+export interface TournamentStreams {
+  items: StreamListItem[];
+  counts: { LIVE: number; UPCOMING: number; ENDED: number };
+}
+
+export interface StreamHistoryEntry {
+  id: string;
+  previousUrl: string | null;
+  newUrl: string | null;
+  previousStatus: StreamStatus | null;
+  newStatus: StreamStatus | null;
+  modificationReason: string | null;
+  createdAt: string;
+  modifiedBy: { username: string; name: string };
+  stream: { id: string; platform: StreamPlatform; isRebroadcast: boolean; isActive: boolean };
+}
+
+export interface NotificationPreference {
+  type: string;
+  inApp: boolean;
+  email: boolean;
+  whatsapp: boolean;
 }
 
 export interface StandingEntry {

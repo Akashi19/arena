@@ -84,7 +84,7 @@ export function TournamentLive({ tournamentId }: { tournamentId: string }) {
       clearTimeout(pending);
       pending = setTimeout(() => router.refresh(), 300);
     };
-    const events = ['registration:changed', 'tournament:updated', 'tournament:status', 'fixture:updated', 'match:updated'];
+    const events = ['registration:changed', 'tournament:updated', 'tournament:status', 'fixture:updated', 'match:updated', 'stream:updated'];
     events.forEach((e) => s.on(e, refresh));
     return () => {
       s.emit('tournament:leave', tournamentId);
@@ -93,6 +93,25 @@ export function TournamentLive({ tournamentId }: { tournamentId: string }) {
       clearTimeout(pending);
     };
   }, [tournamentId, router]);
+  return null;
+}
+
+/** Refresca las listas de transmisiones cuando un organizador cambia el estado o el enlace de alguna. */
+export function StreamsLive() {
+  const router = useRouter();
+  useEffect(() => {
+    const s = getPublicSocket();
+    let pending: ReturnType<typeof setTimeout> | undefined;
+    const onChange = () => {
+      clearTimeout(pending);
+      pending = setTimeout(() => router.refresh(), 500);
+    };
+    s.on('streams:changed', onChange);
+    return () => {
+      s.off('streams:changed', onChange);
+      clearTimeout(pending);
+    };
+  }, [router]);
   return null;
 }
 

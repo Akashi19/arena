@@ -220,6 +220,31 @@ reportes de resultados incorrectos.
   enfrentamientos repetidos y de puntos concentrados en un organizador. Toda acción administrativa queda en
   `ranking_audit_logs`. La reputación, la verificación y el plan del organizador no intervienen.
 
+### Transmisiones en vivo (módulo 23)
+
+- **Por encuentro, no por torneo:** `match_streams` admite una transmisión principal activa por encuentro (índice único
+  parcial) y retransmisiones adicionales marcadas `is_rebroadcast`. Quitar el enlace la deja inactiva: nunca se borra y
+  `match_stream_history` guarda enlace y estado anterior y nuevo, autor y motivo de cada cambio.
+- **Validación de enlaces** (`streams/platforms.ts`, funciones puras con pruebas): solo HTTPS, sin credenciales, puertos,
+  IP ni caracteres de control; la plataforma se detecta por el dominio contra una lista cerrada (YouTube, Twitch,
+  Facebook, TikTok, Kick y otras como Vimeo o Trovo, ampliable con `STREAM_EXTRA_DOMAINS`). Si el organizador indica una
+  plataforma distinta de la detectada, se rechaza. Al leer se vuelve a validar: un dominio retirado de la lista deja de
+  mostrarse.
+- **Reproductor embebido:** la API solo entrega `{ provider, id }`; la web arma el `src` con sus propios hosts de
+  reproductor, en un iframe con `sandbox`, `referrerPolicy` y carga bajo demanda (no se contacta a terceros hasta que el
+  usuario pulsa). `next.config.ts` fija `frame-src` a esos mismos hosts y `frame-ancestors 'self'`. Siempre queda el
+  enlace directo (`noopener noreferrer`) como alternativa; TikTok Live y los canales sin video concreto son solo enlace.
+- **Estados:** `SCHEDULED → LIVE → ENDED`, cancelación desde programada o en vivo, reanudar y reprogramar. Sin enlace, el
+  encuentro informa `NOT_CONFIGURED` y funciona igual que antes. Al generar el fixture se puede programar un mismo canal
+  para todos los encuentros.
+- **Privacidad:** las privadas solo entregan el enlace al organizador y a los participantes del encuentro; no aparecen
+  en `/streams/*` ni en las listas del torneo para el resto.
+- **Avisos:** en vivo, cambio de enlace y cancelación al activarse; «próxima a transmitirse» 30 minutos antes, revisado
+  cada 5 minutos con una marca (`upcoming_notified_at`) reclamada de forma atómica para no duplicar. Destinatarios: los
+  inscritos aprobados del torneo (públicas) o los participantes del encuentro (privadas), sin incluir a quien hizo el
+  cambio. Cada usuario decide por tipo y canal en `notification_preferences`; el canal en la plataforma es inmediato y
+  email/WhatsApp quedan registrados para un proveedor de envío que aún no está conectado.
+
 ## Sistema de confianza (Trust & Reputation System)
 
 Dos indicadores **independientes** que nunca se combinan en una sola puntuación ni dependen del plan contratado:

@@ -201,6 +201,38 @@ export const RANKING_EVENT_LABEL: Record<string, string> = {
 export const REPORT_STATUS_LABEL: Record<string, string> = { OPEN: 'En revisión', UPHELD: 'Procede', DISMISSED: 'Desestimado' };
 
 /** Fechas de calendario (inicio/fin de temporada, vigencia de reglas, semanas): se guardan a las 00:00 UTC. */
+export const MATCH_STATUS_LABEL: Record<string, string> = {
+  PENDING: 'Por definir',
+  SCHEDULED: 'Programado',
+  LIVE: 'En curso',
+  COMPLETED: 'Finalizado',
+  CANCELLED: 'Cancelado',
+};
+
+export const BRACKET_LABEL: Record<string, string> = {
+  WINNERS: 'Llave',
+  LOSERS: 'Llave de perdedores',
+  GRAND_FINAL: 'Gran final',
+  GROUP: 'Grupo',
+  LEAGUE: 'Liga',
+  PLAYOFF: 'Playoffs',
+};
+
+export const STREAM_STATUS_LABEL: Record<string, string> = {
+  NOT_CONFIGURED: 'Sin transmisión',
+  SCHEDULED: 'Próximamente',
+  LIVE: 'En vivo',
+  ENDED: 'Finalizada',
+  CANCELLED: 'Cancelada',
+};
+
+export const STREAM_NOTIFICATION_LABEL: Record<string, { title: string; hint: string }> = {
+  STREAM_UPCOMING: { title: 'Transmisión próxima', hint: '30 minutos antes del inicio programado' },
+  STREAM_LIVE: { title: 'Encuentro en vivo', hint: 'Cuando el organizador activa EN VIVO' },
+  STREAM_UPDATED: { title: 'Cambio de enlace', hint: 'Si la transmisión pasa a otro canal' },
+  STREAM_CANCELLED: { title: 'Transmisión cancelada', hint: 'Si se cancela o se retira el enlace' },
+};
+
 export const formatDay = (iso: string) => formatDate(iso, { timeZone: 'UTC' });
 
 export const formatPoints = (n: number) => new Intl.NumberFormat('es').format(n);

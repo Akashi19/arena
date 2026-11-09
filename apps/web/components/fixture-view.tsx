@@ -4,6 +4,7 @@ import type { Fixture, FixtureMatch, StandingEntry } from '@/lib/types';
 import { buildSections, entrantImage, entrantName, formatScore, type FixtureSection } from '@/lib/fixture';
 import { formatDateTime } from '@/lib/format';
 import { Avatar } from '@/components/ui';
+import { PrivateNote, StreamBadge, WatchLink } from '@/components/stream';
 
 /** Vista pública del fixture: llaves, fechas de liga/grupos y tablas de posiciones. */
 export function FixtureView({ fixture }: { fixture: Fixture }) {
@@ -113,6 +114,7 @@ function BracketMatch({ match, team, championId }: { match: FixtureMatch; team: 
         );
       })}
       <MatchMeta match={match} />
+      <StreamRow match={match} />
     </div>
   );
 }
@@ -126,15 +128,41 @@ function ListMatch({ match }: { match: FixtureMatch }) {
         <span className={`truncate text-right ${home?.isWinner ? 'font-semibold' : done && home?.isWinner === false ? 'text-muted' : ''}`}>
           {entrantName(home?.registration)}
         </span>
-        <span className="rounded-md bg-surface-3 px-2 py-0.5 font-display font-bold tabular-nums">
+        <Link
+          href={`/encuentros/${match.id}`}
+          className="rounded-md bg-surface-3 px-2 py-0.5 font-display font-bold tabular-nums hover:text-neon"
+          aria-label={`Detalle del encuentro ${entrantName(home?.registration)} contra ${entrantName(away?.registration)}`}
+        >
           {done ? `${formatScore(home?.score ?? null)} - ${formatScore(away?.score ?? null)}` : 'vs'}
-        </span>
+        </Link>
         <span className={`truncate ${away?.isWinner ? 'font-semibold' : done && away?.isWinner === false ? 'text-muted' : ''}`}>
           {entrantName(away?.registration)}
         </span>
       </div>
       <MatchMeta match={match} compact />
+      <StreamRow match={match} compact />
     </li>
+  );
+}
+
+/** Transmisión del encuentro: EN VIVO / PRÓXIMAMENTE / FINALIZADA + acceso directo. */
+function StreamRow({ match, compact = false }: { match: FixtureMatch; compact?: boolean }) {
+  const s = match.stream;
+  if (!s || s.status === 'CANCELLED' || s.status === 'NOT_CONFIGURED') {
+    return compact ? null : (
+      <Link href={`/encuentros/${match.id}`} className="block border-t border-line py-1 text-center text-[11px] text-muted hover:text-neon">
+        Ver encuentro
+      </Link>
+    );
+  }
+  return (
+    <div className={`flex flex-wrap items-center justify-center gap-2 ${compact ? 'mt-1.5' : 'border-t border-line px-2 py-1.5'}`}>
+      <Link href={`/encuentros/${match.id}`} aria-label={`Transmisión del encuentro: ${s.platformName}`} className="flex items-center gap-1.5">
+        <StreamBadge status={s.status} />
+        <span className="text-[11px] text-muted">{s.platformName}</span>
+      </Link>
+      {s.url ? <WatchLink url={s.url} platformName={s.platformName} compact className="py-0.5" /> : s.visibility === 'PRIVATE' && <PrivateNote compact />}
+    </div>
   );
 }
 

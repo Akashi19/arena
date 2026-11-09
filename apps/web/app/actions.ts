@@ -489,10 +489,89 @@ export async function generateFixtureAction(_: ActionState, fd: FormData): Promi
   try {
     const res = await api<{ matches: number }>(`/tournaments/${id}/fixture`, {
       method: 'POST',
-      body: { shuffle: fd.get('shuffle') === 'on', roundIntervalMinutes: num(fd, 'roundIntervalMinutes') },
+      body: {
+        shuffle: fd.get('shuffle') === 'on',
+        roundIntervalMinutes: num(fd, 'roundIntervalMinutes'),
+        streamUrl: str(fd, 'streamUrl'),
+        streamVisibility: str(fd, 'streamUrl') ? (str(fd, 'streamVisibility') ?? 'PUBLIC') : undefined,
+      },
     });
     revalidatePath(`/dashboard/torneos/${id}`);
     return { ok: true, message: `Fixture generado: ${res.matches} encuentros. Los participantes fueron notificados.` };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+// ============================================================================ Transmisiones (módulo 23)
+
+function revalidateStream(fd: FormData) {
+  const tid = str(fd, 'tournamentId');
+  const mid = str(fd, 'matchId');
+  revalidatePath(`/dashboard/torneos/${tid}`);
+  revalidatePath(`/dashboard/torneos/${tid}/encuentros/${mid}`);
+  revalidatePath(`/encuentros/${mid}`);
+}
+
+function streamBody(fd: FormData) {
+  return {
+    url: str(fd, 'url'),
+    title: fd.has('title') ? (str(fd, 'title') ?? '') : undefined,
+    description: fd.has('description') ? (str(fd, 'description') ?? '') : undefined,
+    visibility: str(fd, 'visibility'),
+    scheduledStartAt: date(fd, 'scheduledStartAt'),
+    scheduledEndAt: date(fd, 'scheduledEndAt'),
+    reason: str(fd, 'reason'),
+  };
+}
+
+export async function saveStreamAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const matchId = str(fd, 'matchId');
+  const streamId = str(fd, 'streamId');
+  try {
+    if (streamId) {
+      await api(`/matches/${matchId}/stream`, { method: 'PUT', body: { ...streamBody(fd), streamId } });
+    } else {
+      await api(`/matches/${matchId}/stream`, { method: 'POST', body: { ...streamBody(fd), isRebroadcast: fd.get('isRebroadcast') === 'on' } });
+    }
+    revalidateStream(fd);
+    return { ok: true, message: streamId ? 'Transmisión actualizada' : 'Transmisión configurada' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function streamStatusAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    await api(`/matches/${str(fd, 'matchId')}/stream/status`, {
+      method: 'PATCH',
+      body: { status: str(fd, 'status'), reason: str(fd, 'reason'), streamId: str(fd, 'streamId') },
+    });
+    revalidateStream(fd);
+    return { ok: true };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function deleteStreamAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    await api(`/matches/${str(fd, 'matchId')}/stream`, { method: 'DELETE', query: { streamId: str(fd, 'streamId'), reason: str(fd, 'reason') } });
+    revalidateStream(fd);
+    return { ok: true, message: 'Enlace eliminado. El historial se conserva.' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function setNotificationPreferenceAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    await api('/me/notification-preferences', {
+      method: 'PUT',
+      body: { type: str(fd, 'type'), inApp: fd.get('inApp') === 'on', email: fd.get('email') === 'on', whatsapp: fd.get('whatsapp') === 'on' },
+    });
+    revalidatePath('/notificaciones');
+    return { ok: true, message: 'Preferencia guardada' };
   } catch (e) {
     return fail(e);
   }

@@ -1610,6 +1610,7 @@ model MatchStream {
   scheduledEndAt    DateTime?      @map("scheduled_end_at")
   actualStartAt     DateTime?      @map("actual_start_at")
   actualEndAt       DateTime?      @map("actual_end_at")
+  upcomingNotifiedAt DateTime?     @map("upcoming_notified_at") // aviso "próxima a transmitirse" ya enviado
   createdBy         String         @map("created_by") @db.Uuid
   createdAt         DateTime       @default(now()) @map("created_at")
   updatedAt         DateTime       @updatedAt @map("updated_at")

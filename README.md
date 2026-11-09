@@ -24,7 +24,7 @@ solicitan su inscripción.
 | 18-20 | Verificación, reputación y Trust & Reputation System | ✅ solicitudes con documentos privados y revisión SUPERADMIN (vencimiento y conservación automáticos), valoraciones con edición, respuestas, reportes y moderación, incidencias, motor de reputación, centro de confianza público y dashboard de confianza |
 | 21 | Perfiles gamer y niveles competitivos | ✅ perfiles por videojuego (orden, principal, favorito), nivel declarado / verificado por la plataforma / verificado externamente con historial, comparador, búsqueda de reclutamiento e invitaciones de equipos, requisitos de nivel y rango en las partidas, logros por eventos (MVP, tres títulos consecutivos) |
 | 22 | Ranking global de jugadores y equipos | ✅ motor de puntuación idempotente y versionado, rankings global, nacional, por temporada e histórico, temporadas con campeones, evolución por snapshots, comparador, perfiles competitivos, reportes de resultados y panel SUPERADMIN auditado |
-| 23 | Transmisiones en vivo | ⏳ tablas creadas |
+| 23 | Transmisiones en vivo por encuentro | ✅ enlaces HTTPS validados contra dominios autorizados con detección de plataforma, estados programada / en vivo / finalizada / cancelada, retransmisiones, historial de cambios, transmisiones privadas, reproductor embebido seguro, página del encuentro, «Partidas transmitidas» del torneo, `/transmisiones` y avisos con preferencias por usuario |
 
 ## Stack
 
@@ -115,7 +115,7 @@ npm run dev:web
 
 ### Datos de prueba
 
-El seed crea planes, 6 deportes, 8 videojuegos con sus rangos, logros, reglas de ranking v1, la Temporada 2026 de cada juego y datos demo; al final calcula el ranking con el motor real.
+El seed crea planes, 6 deportes, 8 videojuegos con sus rangos, logros, reglas de ranking v1, la Temporada 2026 de cada juego y datos demo; al final calcula el ranking con el motor real y agrega una transmisión de ejemplo (la final de la Fecha 1 del circuito FC).
 Todas las cuentas demo usan la contraseña `Arena2026demo` (solo desarrollo):
 
 | Usuario | Rol | Notas |

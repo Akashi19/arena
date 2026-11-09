@@ -2,16 +2,20 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import { requireMe } from '@/lib/session';
-import type { Notification, Paginated } from '@/lib/types';
+import type { Notification, NotificationPreference, Paginated } from '@/lib/types';
 import { formatDateTime } from '@/lib/format';
 import { markAllReadAction } from '@/app/actions';
 import { EmptyState } from '@/components/ui';
+import { StreamNotificationPreferences } from './preferences';
 
 export const metadata: Metadata = { title: 'Notificaciones' };
 
 export default async function NotificationsPage() {
   await requireMe('/notificaciones');
-  const data = await api<Paginated<Notification> & { unread: number }>('/me/notifications', { query: { pageSize: 50 } });
+  const [data, prefs] = await Promise.all([
+    api<Paginated<Notification> & { unread: number }>('/me/notifications', { query: { pageSize: 50 } }),
+    api<NotificationPreference[]>('/me/notification-preferences'),
+  ]);
   return (
     <div className="mx-auto max-w-3xl">
       <div className="mb-6 flex items-center justify-between gap-4">
@@ -41,6 +45,17 @@ export default async function NotificationsPage() {
       ) : (
         <EmptyState title="No tienes notificaciones" />
       )}
+
+      <section id="preferencias" className="card mt-8 space-y-3 p-5">
+        <div>
+          <h2 className="text-lg font-bold uppercase">Avisos de transmisiones</h2>
+          <p className="text-sm text-muted">
+            Te avisamos de las transmisiones de los torneos en los que participas. Los avisos en Arena llegan al instante; el envío por email y por
+            WhatsApp (requiere un teléfono en tu perfil) queda guardado en tus preferencias y se activará al conectar esos canales.
+          </p>
+        </div>
+        <StreamNotificationPreferences prefs={prefs} />
+      </section>
     </div>
   );
 }

@@ -27,6 +27,7 @@ export function SubmitButton({
   pendingText = 'Guardando…',
   name,
   value,
+  form,
   pending: pendingProp,
 }: {
   children: React.ReactNode;
@@ -34,12 +35,14 @@ export function SubmitButton({
   pendingText?: string;
   name?: string;
   value?: string;
+  /** id del formulario asociado cuando el botón está fuera de él */
+  form?: string;
   pending?: boolean;
 }) {
   const status = useFormStatus();
   const pending = pendingProp ?? status.pending;
   return (
-    <button type="submit" className={className} disabled={pending} name={name} value={value}>
+    <button type="submit" className={className} disabled={pending} name={name} value={value} form={form}>
       {pending ? (
         <>
           <Loader2 className="size-4 animate-spin" /> {pendingText}
