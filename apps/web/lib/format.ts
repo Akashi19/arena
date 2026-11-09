@@ -268,3 +268,22 @@ export function formatAmount(amount: string | number, currency: string) {
     return `${currency} ${n.toFixed(2)}`;
   }
 }
+
+const PERCENT = new Intl.NumberFormat('es-PE', { style: 'percent', maximumFractionDigits: 0 });
+const PERCENT_1 = new Intl.NumberFormat('es-PE', { style: 'percent', maximumFractionDigits: 1 });
+
+/** Proporción 0..1 como porcentaje; «—» cuando no hay base para calcularla. */
+export function formatPercent(v: number | null | undefined, precise = false) {
+  if (v === null || v === undefined) return '—';
+  return (precise ? PERCENT_1 : PERCENT).format(v);
+}
+
+/** Variación frente al periodo anterior («+25 %», «−10 %», «sin cambios»); null si no es comparable. */
+export function formatChange(v: number | null | undefined) {
+  if (v === null || v === undefined) return null;
+  if (Math.abs(v) < 0.005) return 'sin cambios';
+  return `${v > 0 ? '+' : '−'}${PERCENT.format(Math.abs(v))}`;
+}
+
+export const STATS_PERIOD_LABEL: Record<number, string> = { 1: 'Este mes', 3: 'Últimos 3 meses', 6: 'Últimos 6 meses', 12: 'Últimos 12 meses' };
+export const CATEGORY_LABEL: Record<string, string> = { SPORT: 'Deportes', ESPORT: 'eSports' };

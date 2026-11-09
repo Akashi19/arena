@@ -59,7 +59,7 @@ export function FixtureManager({ fixture }: { fixture: Fixture }) {
 function GenerateCard({ tournamentId, format, existing }: { tournamentId: string; format: Fixture['tournament']['format']; existing: boolean }) {
   const [state, onSubmit, pending] = usePersistentAction(generateFixtureAction, {});
   return (
-    <form onSubmit={onSubmit} className="card space-y-3 p-5">
+    <form method="post" onSubmit={onSubmit} className="card space-y-3 p-5">
       <input type="hidden" name="tournamentId" value={tournamentId} />
       <div className="flex items-start gap-3">
         <GitBranch className="mt-0.5 size-5 shrink-0 text-neon" />
@@ -116,7 +116,7 @@ function GenerateCard({ tournamentId, format, existing }: { tournamentId: string
 function PlayoffsCard({ tournamentId, qualifiers }: { tournamentId: string; qualifiers: number }) {
   const [state, onSubmit, pending] = usePersistentAction(generatePlayoffsAction, {});
   return (
-    <form onSubmit={onSubmit} className="card flex flex-wrap items-center gap-3 border-neon/40 p-5">
+    <form method="post" onSubmit={onSubmit} className="card flex flex-wrap items-center gap-3 border-neon/40 p-5">
       <input type="hidden" name="tournamentId" value={tournamentId} />
       <Trophy className="size-5 text-neon" />
       <p className="flex-1 text-sm">
@@ -144,7 +144,7 @@ function MatchEditor({ match, tournamentId, editable }: { match: FixtureMatch; t
 
   return (
     <div className={`card space-y-2 p-3 ${match.status === 'LIVE' ? 'border-danger/60' : ''}`}>
-      <form
+      <form method="post"
         key={`${match.result?.version ?? 0}-${p1?.registration.id}-${p2?.registration.id}`}
         onSubmit={onResult}
         className="space-y-2"
@@ -204,7 +204,7 @@ function MatchEditor({ match, tournamentId, editable }: { match: FixtureMatch; t
         {canEdit && !done && (
           <span className="ml-auto flex gap-1">
             {ready && match.status !== 'LIVE' && (
-              <form onSubmit={onMeta}>
+              <form method="post" onSubmit={onMeta}>
                 <input type="hidden" name="tournamentId" value={tournamentId} />
                 <input type="hidden" name="matchId" value={match.id} />
                 <SubmitButton name="status" value="LIVE" pending={savingMeta} className="btn-ghost px-2 py-1 text-xs" pendingText="…">
@@ -225,7 +225,7 @@ function MatchEditor({ match, tournamentId, editable }: { match: FixtureMatch; t
       </div>
 
       {showSchedule && canEdit && !done && (
-        <form onSubmit={onMeta} className="grid gap-2 rounded-xl border border-line bg-surface-2 p-3 sm:grid-cols-2">
+        <form method="post" onSubmit={onMeta} className="grid gap-2 rounded-xl border border-line bg-surface-2 p-3 sm:grid-cols-2">
           <input type="hidden" name="tournamentId" value={tournamentId} />
           <input type="hidden" name="matchId" value={match.id} />
           <TzOffsetInput />

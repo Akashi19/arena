@@ -926,3 +926,82 @@ export interface BillingMetrics {
   pastDue: number;
   scheduledCancels: number;
 }
+
+// ---------------------------------------------------------------------------------------------
+// Fase 6: estadísticas avanzadas, reporte ejecutivo y estadísticas globales
+// ---------------------------------------------------------------------------------------------
+
+export interface StatsSummary {
+  tournamentsCreated: number;
+  tournamentsStarted: number;
+  tournamentsFinished: number;
+  tournamentsCancelled: number;
+  registrations: number;
+  registrationsApproved: number;
+  registrationsRejected: number;
+  registrationsPending: number;
+  registrationsWithdrawn: number;
+  approvalRate: number | null;
+  capacity: number;
+  occupancyRate: number | null;
+  matchesPlayed: number;
+  drawRate: number | null;
+  activeParticipants: number;
+  newParticipants: number;
+  returningParticipants: number;
+  retentionRate: number | null;
+}
+
+export interface StatsOverview {
+  range: { months: number; from: string; to: string; periodEnd: string; previousFrom: string; previousTo: string };
+  summary: StatsSummary;
+  previous: StatsSummary;
+  changes: Record<keyof StatsSummary, number | null>;
+  monthly: { month: string; tournaments: number; registrations: number; approved: number; matches: number }[];
+  byDiscipline: { name: string; category: 'SPORT' | 'ESPORT'; tournaments: number; participants: number; occupancyRate: number | null }[];
+  byFormat: { format: TournamentFormat; mode: 'INDIVIDUAL' | 'TEAM'; tournaments: number }[];
+  top: { kind: 'TEAM' | 'PLAYER'; id: string; name: string; slug: string | null; played: number; wins: number; titles: number; winRate: number | null }[];
+}
+
+export interface StatsTournamentRow {
+  id: string;
+  name: string;
+  slug: string;
+  status: TournamentStatus;
+  format: TournamentFormat;
+  startsAt: string;
+  maxParticipants: number;
+  approved: number;
+  pending: number;
+  occupancyRate: number | null;
+  matchesTotal: number;
+  matchesCompleted: number;
+  progress: number | null;
+}
+
+export interface OrganizerStats extends StatsOverview {
+  tournaments: StatsTournamentRow[];
+  features: { export: boolean; executiveReport: boolean };
+}
+
+export interface ExecutiveReport extends StatsOverview {
+  generatedAt: string;
+  organizer: { displayName: string; logoUrl: string | null; verificationStatus: VerificationStatus };
+  plan: string;
+  reputation: { level: ReputationLevel; averageScore: string; totalRatings: number; ratingsInPeriod: number } | null;
+  tournaments: StatsTournamentRow[];
+}
+
+export interface PlatformStats extends StatsOverview {
+  users: {
+    total: number;
+    byRole: Record<string, number>;
+    suspended: number;
+    activeLast30Days: number;
+    signups: { month: string; users: number; organizers: number }[];
+  };
+  organizersByVerification: Record<string, number>;
+  tournamentsByStatus: Partial<Record<TournamentStatus, number>>;
+  tournamentsByCategory: Partial<Record<'SPORT' | 'ESPORT', number>>;
+  topOrganizers: { id: string; displayName: string; username: string; tournaments: number; participants: number; matchesPlayed: number }[];
+}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Check, CreditCard, Tag } from 'lucide-react';
 import { subscriptionCheckoutAction, type QuoteState } from '@/app/actions';
 import { FormMessage, SubmitButton, usePersistentAction } from '@/components/forms';
@@ -29,15 +29,26 @@ export function PlanChooser({
   const [planCode, setPlanCode] = useState<string>(plans.find((p) => p.code !== currentCode && Number(p.priceMonthly) > 0)?.code ?? currentCode);
   const [promo, setPromo] = useState('');
   const [state, onSubmit, pending] = usePersistentAction<QuoteState>(subscriptionCheckoutAction, {});
-  const [key, setKey] = useState('');
-  useEffect(() => setKey(newKey()), [planCode, period, promo]);
+  // Clave de idempotencia: la misma mientras no cambie la selección (un reintento no crea otro pago)
+  const key = useRef('');
+  useEffect(() => {
+    key.current = '';
+  }, [planCode, period, promo]);
 
   const q = state.quote;
   const fresh = q && q.plan.code === planCode && q.billingPeriod === period;
   const selected = useMemo(() => plans.find((p) => p.code === planCode), [plans, planCode]);
 
   return (
-    <form onSubmit={onSubmit} className="space-y-5">
+    <form
+      method="post"
+      onSubmitCapture={(e) => {
+        key.current ||= newKey();
+        (e.currentTarget.elements.namedItem('idempotencyKey') as HTMLInputElement | null)?.setAttribute('value', key.current);
+      }}
+      onSubmit={onSubmit}
+      className="space-y-5"
+    >
       <fieldset className="flex flex-wrap items-center gap-2">
         <legend className="sr-only">Periodo de facturación</legend>
         {(['MONTHLY', 'YEARLY'] as const).map((p) => (
@@ -129,7 +140,7 @@ export function PlanChooser({
                 </label>
               )}
               {q.change === 'IMMEDIATE' && q.amount > 0 && providers.length === 1 && <input type="hidden" name="provider" value={providers[0].code} />}
-              <input type="hidden" name="idempotencyKey" value={key} />
+              <input type="hidden" name="idempotencyKey" defaultValue="" />
               <SubmitButton name="intent" value="pay" pending={pending} className={q.change === 'TO_FREE' ? 'btn-danger' : 'btn-primary'} pendingText="Procesando…">
                 {q.change === 'IMMEDIATE' ? (
                   <>

@@ -17,7 +17,7 @@ export function ReportRatingButton({ ratingId }: { ratingId: string }) {
     );
   }
   return (
-    <form onSubmit={onSubmit} className="flex flex-wrap items-center gap-2">
+    <form method="post" onSubmit={onSubmit} className="flex flex-wrap items-center gap-2">
       <input type="hidden" name="ratingId" value={ratingId} />
       <input name="reason" required minLength={5} maxLength={500} placeholder="Motivo del reporte" className="input min-w-48 flex-1 py-1.5 text-xs" />
       <SubmitButton pending={pending} className="btn-danger px-3 py-1.5 text-xs" pendingText="…">

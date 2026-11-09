@@ -1,0 +1,43 @@
+# Despliegue manual en un servidor con Docker: descarga las imágenes publicadas por CI y reinicia el stack.
+# Requiere los secretos DEPLOY_HOST, DEPLOY_USER y DEPLOY_SSH_KEY, y el repositorio clonado en DEPLOY_PATH en el servidor
+# con infra/.env.production y apps/api/.env.production creados (ver docs/DESPLIEGUE.md).
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Etiqueta de imagen a desplegar (SHA del commit o latest)'
+        required: true
+        default: latest
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 15
+    env:
+      DEPLOY_PATH: ${{ vars.DEPLOY_PATH || '/opt/arena' }}
+    steps:
+      - name: Configurar SSH
+        run: |
+          install -m 700 -d ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
+      - name: Desplegar
+        env:
+          TAG: ${{ inputs.tag }}
+          TARGET: ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}
+        run: |
+          # Solo se aceptan etiquetas simples (latest o un SHA): nada que pueda interpretarse como comando
+          echo "$TAG" | grep -Eq '^[A-Za-z0-9._-]{1,72}$' || { echo "Etiqueta inválida: $TAG"; exit 1; }
+          # shellcheck disable=SC2029  # DEPLOY_PATH y TAG se expanden aquí a propósito (ya validados)
+          ssh "$TARGET" "cd '$DEPLOY_PATH' && git pull --ff-only && IMAGE_TAG='$TAG' ./infra/scripts/deploy.sh"

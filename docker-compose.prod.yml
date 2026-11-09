@@ -1,0 +1,137 @@
+# Arena Torneos · producción en un servidor con Docker (ver docs/DESPLIEGUE.md)
+#
+#   cp infra/.env.production.example infra/.env.production          # dominios, imágenes y Postgres
+#   cp apps/api/.env.production.example apps/api/.env.production    # secretos de la API
+#   ./infra/scripts/deploy.sh
+#
+# Solo Caddy publica puertos (80/443, HTTPS automático con Let's Encrypt). Postgres y la API quedan en la red interna.
+# Las imágenes vienen de GHCR (publicadas por CI); `--build` las construye en el propio servidor si se prefiere.
+name: arena-prod
+
+x-api-image: &api-image
+  image: ${API_IMAGE:-arena-api}:${IMAGE_TAG:-latest}
+  build:
+    context: .
+    dockerfile: apps/api/Dockerfile
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?Define POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-arena}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    shm_size: 256mb
+
+  # Antes de arrancar la API: migraciones pendientes y datos base idempotentes (planes, catálogo y el primer
+  # SUPERADMIN tomado de SUPERADMIN_* en apps/api/.env.production). Nunca crea datos demo.
+  migrate:
+    <<: *api-image
+    restart: "no"
+    command: ["sh", "-c", "npx prisma migrate deploy && SEED_MODE=base npx tsx prisma/seed.ts"]
+    env_file: ./apps/api/.env.production
+    environment:
+      DATABASE_URL: &database-url postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-arena}?schema=public
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    <<: *api-image
+    restart: unless-stopped
+    command: ["node", "dist/main.js"]
+    env_file: ./apps/api/.env.production
+    environment:
+      DATABASE_URL: *database-url
+      NODE_ENV: production
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4100/api/health >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      start_period: 20s
+      retries: 5
+
+  web:
+    image: ${WEB_IMAGE:-arena-web}:${IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: https://${API_DOMAIN:?Define API_DOMAIN}
+    restart: unless-stopped
+    environment:
+      API_INTERNAL_URL: http://api:4100
+      NEXT_PUBLIC_API_URL: https://${API_DOMAIN}
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/healthz >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      start_period: 20s
+      retries: 5
+
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      WEB_DOMAIN: ${WEB_DOMAIN:?Define WEB_DOMAIN}
+      API_DOMAIN: ${API_DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL:?Define ACME_EMAIL}
+    volumes:
+      - ./infra/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+      - api
+
+  # Copia diaria de la base (pg_dump comprimido) en ./backups, conserva BACKUP_KEEP_DAYS días
+  backup:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      PGHOST: db
+      PGUSER: ${POSTGRES_USER}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB:-arena}
+      BACKUP_KEEP_DAYS: ${BACKUP_KEEP_DAYS:-14}
+    volumes:
+      - ./backups:/backups
+      - ./infra/scripts/backup-loop.sh:/backup-loop.sh:ro
+    entrypoint: ["sh", "/backup-loop.sh"]
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Almacenamiento S3 propio (opcional). Con AWS S3 / Cloudflare R2 no hace falta: --profile storage para activarlo.
+  storage:
+    profiles: ["storage"]
+    image: chrislusf/seaweedfs:3.97
+    restart: unless-stopped
+    command: server -dir=/data -s3 -s3.port=8333 -s3.config=/etc/seaweedfs/s3.json
+    volumes:
+      - storage_data:/data
+      - ./infra/seaweedfs/s3.production.json:/etc/seaweedfs/s3.json:ro
+
+volumes:
+  db_data:
+  caddy_data:
+  caddy_config:
+  storage_data:

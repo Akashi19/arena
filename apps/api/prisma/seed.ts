@@ -1,7 +1,11 @@
 /**
- * Datos de prueba de Arena Torneos.
+ * Datos iniciales de Arena Torneos.
  * Idempotente para el catálogo y los planes (upsert). Los datos demo
  * (usuarios, equipos, torneos) solo se crean si no existe el superadmin.
+ *
+ * SEED_MODE=base (producción): solo planes, catálogo y el primer SUPERADMIN tomado de
+ * SUPERADMIN_EMAIL / SUPERADMIN_USERNAME / SUPERADMIN_PASSWORD. Con NODE_ENV=production los datos demo
+ * (contraseña pública) nunca se crean.
  *
  * Credenciales demo (SOLO desarrollo): ver README → "Datos de prueba".
  */
@@ -509,9 +513,35 @@ async function seedDemo() {
   console.log(`Datos demo creados. Contraseña de todas las cuentas demo: ${DEMO_PASSWORD}`);
 }
 
+/** Primer SUPERADMIN de un despliegue nuevo (no hace nada si ya existe alguno). */
+async function seedSuperadmin() {
+  if (await prisma.user.findFirst({ where: { role: 'SUPERADMIN' } })) {
+    console.log('Ya existe un SUPERADMIN: se omite su creación.');
+    return;
+  }
+  const email = process.env.SUPERADMIN_EMAIL?.trim().toLowerCase();
+  const username = process.env.SUPERADMIN_USERNAME?.trim() || 'admin';
+  const password = process.env.SUPERADMIN_PASSWORD ?? '';
+  if (!email || password.length < 12 || password === DEMO_PASSWORD) {
+    throw new Error('Define SUPERADMIN_EMAIL y SUPERADMIN_PASSWORD (mínimo 12 caracteres) para crear el primer SUPERADMIN');
+  }
+  await createUser(
+    { username, email, firstName: 'Administrador', lastName: 'Arena', country: process.env.SUPERADMIN_COUNTRY || 'PE', city: process.env.SUPERADMIN_CITY || 'Lima', role: 'SUPERADMIN' },
+    await bcrypt.hash(password, 12),
+  );
+  console.log(`SUPERADMIN creado: ${username}. Cambia la contraseña y quita SUPERADMIN_PASSWORD del entorno.`);
+}
+
 async function main() {
   await seedPlans();
   await seedCatalog();
+  if (process.env.SEED_MODE === 'base') {
+    await seedSuperadmin();
+    return;
+  }
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('Los datos demo usan una contraseña pública: en producción usa SEED_MODE=base');
+  }
   await seedDemo();
   // Estadísticas oficiales y logros (idempotente): rellena los torneos finalizados antes de existir el cálculo
   const players = await prisma.player.findMany({ select: { id: true } });

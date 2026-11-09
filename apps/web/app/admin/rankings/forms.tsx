@@ -22,7 +22,7 @@ export function ActionForm({
 }) {
   const [state, onSubmit, pending] = usePersistentAction(action, {});
   return (
-    <form onSubmit={onSubmit} className={className}>
+    <form method="post" onSubmit={onSubmit} className={className}>
       {children}
       <div className="flex flex-wrap items-center gap-2">
         {buttons.map((b) => (

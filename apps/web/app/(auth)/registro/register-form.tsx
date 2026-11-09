@@ -10,7 +10,7 @@ export function RegisterForm() {
   const [asOrganizer, setAsOrganizer] = useState(true);
 
   return (
-    <form onSubmit={onSubmit} className="mt-6 space-y-5">
+    <form method="post" onSubmit={onSubmit} className="mt-6 space-y-5">
       <div className="grid gap-1 rounded-xl border border-line bg-surface-2 p-1 text-sm font-semibold sm:grid-cols-2">
         {[
           [true, 'Quiero organizar torneos'],

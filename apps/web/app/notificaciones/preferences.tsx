@@ -49,7 +49,7 @@ function PreferenceRow({ pref }: { pref: NotificationPreference }) {
       <td className="py-2.5 pr-2">
         <p className="font-semibold">{label.title}</p>
         <p className="text-xs text-muted">{label.hint}</p>
-        <form id={form} onSubmit={onSubmit}>
+        <form method="post" id={form} onSubmit={onSubmit}>
           <input type="hidden" name="type" value={pref.type} />
         </form>
         <FormMessage state={state} />

@@ -102,6 +102,33 @@ export async function logoutAction() {
   redirect('/');
 }
 
+/** Cambia la contraseña: la API invalida las demás sesiones y devuelve tokens nuevos para esta. */
+export async function changePasswordAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const newPassword = String(fd.get('newPassword') ?? '');
+  if (newPassword !== String(fd.get('confirmPassword') ?? '')) return { error: 'La nueva contraseña y su confirmación no coinciden' };
+  try {
+    const tokens = await api<{ accessToken: string; refreshToken: string }>('/auth/change-password', {
+      method: 'POST',
+      body: { currentPassword: fd.get('currentPassword'), newPassword },
+    });
+    await setSessionCookies(tokens);
+    return { ok: true, message: 'Contraseña actualizada. Se cerraron tus sesiones en otros dispositivos.' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+/** Cierra la sesión en todos los dispositivos (incluido este). */
+export async function logoutAllAction() {
+  try {
+    await api('/auth/logout-all', { method: 'POST' });
+  } catch {
+    // aunque falle la API, esta sesión se cierra
+  }
+  await clearSessionCookies();
+  redirect('/login');
+}
+
 // ============================================================================ Perfil
 
 export async function updateProfileAction(_: ActionState, fd: FormData): Promise<ActionState> {

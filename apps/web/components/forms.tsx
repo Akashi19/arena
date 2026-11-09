@@ -175,7 +175,14 @@ export function ImageField({ name, label }: { name: string; label: string }) {
 
 /** Envía el desfase horario del navegador para interpretar correctamente <input type="datetime-local">. */
 export function TzOffsetInput() {
-  const [offset, setOffset] = useState('');
-  useEffect(() => setOffset(String(new Date().getTimezoneOffset())), []);
-  return <input type="hidden" name="tzOffset" value={offset} />;
+  // El valor se fija en el navegador (en el servidor no se conoce la zona horaria del usuario)
+  return (
+    <input
+      type="hidden"
+      name="tzOffset"
+      ref={(el) => {
+        if (el) el.value = String(new Date().getTimezoneOffset());
+      }}
+    />
+  );
 }

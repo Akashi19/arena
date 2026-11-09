@@ -89,7 +89,7 @@ function RatingForm({
 }) {
   const [state, onSubmit, pending] = usePersistentAction(rateOrganizerAction, {});
   return (
-    <form onSubmit={onSubmit} className="space-y-3">
+    <form method="post" onSubmit={onSubmit} className="space-y-3">
       <input type="hidden" name="tournamentId" value={tournamentId} />
       <input type="hidden" name="organizerId" value={organizerId} />
       <input type="hidden" name="slug" value={slug} />
@@ -156,7 +156,7 @@ function IncidentForm({ tournamentId, slug }: { tournamentId: string; slug: stri
     );
   }
   return (
-    <form onSubmit={onSubmit} className="space-y-2 rounded-xl border border-danger/30 bg-danger/5 p-3">
+    <form method="post" onSubmit={onSubmit} className="space-y-2 rounded-xl border border-danger/30 bg-danger/5 p-3">
       <input type="hidden" name="tournamentId" value={tournamentId} />
       <input type="hidden" name="slug" value={slug} />
       <label className="block">

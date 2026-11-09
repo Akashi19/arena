@@ -1,0 +1,13 @@
+{
+  "identities": [
+    {
+      "name": "arena_api",
+      "credentials": [{ "accessKey": "CAMBIAR_ACCESS_KEY", "secretKey": "CAMBIAR_SECRET_KEY_LARGA_Y_ALEATORIA" }],
+      "actions": ["Admin", "Read", "Write", "List", "Tagging"]
+    },
+    {
+      "name": "anonymous",
+      "actions": ["Read:arena-public"]
+    }
+  ]
+}

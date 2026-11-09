@@ -18,7 +18,7 @@ export function ReportResultButton({ matchId }: { matchId: string }) {
     );
   }
   return (
-    <form onSubmit={onSubmit} className="flex w-full flex-wrap items-center gap-2">
+    <form method="post" onSubmit={onSubmit} className="flex w-full flex-wrap items-center gap-2">
       <input type="hidden" name="matchId" value={matchId} />
       <input name="reason" required minLength={10} maxLength={1000} placeholder="¿Qué está mal en este resultado?" className="input min-w-0 flex-1 py-1.5 text-sm" />
       <SubmitButton pending={pending} className="btn-danger px-3 py-1.5 text-xs" pendingText="Enviando…">

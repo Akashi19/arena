@@ -104,7 +104,7 @@ function StreamCardEditor({ tournamentId, matchId, stream }: { tournamentId: str
 
       <div className="flex flex-wrap items-center gap-2">
         {actions.map((a) => (
-          <form key={a.to} onSubmit={onStatus}>
+          <form method="post" key={a.to} onSubmit={onStatus}>
             <input type="hidden" name="tournamentId" value={tournamentId} />
             <input type="hidden" name="matchId" value={matchId} />
             <input type="hidden" name="streamId" value={stream.id} />
@@ -118,7 +118,7 @@ function StreamCardEditor({ tournamentId, matchId, stream }: { tournamentId: str
             <summary className="btn-ghost cursor-pointer list-none">
               <Ban className="size-4" /> Cancelar transmisión
             </summary>
-            <form onSubmit={onStatus} className="mt-2 flex flex-wrap gap-2">
+            <form method="post" onSubmit={onStatus} className="mt-2 flex flex-wrap gap-2">
               <input type="hidden" name="tournamentId" value={tournamentId} />
               <input type="hidden" name="matchId" value={matchId} />
               <input type="hidden" name="streamId" value={stream.id} />
@@ -142,7 +142,7 @@ function StreamCardEditor({ tournamentId, matchId, stream }: { tournamentId: str
       <FormMessage state={status} />
 
       {removing && (
-        <form onSubmit={onDelete} className="flex flex-wrap items-end gap-2 rounded-xl border border-danger/40 bg-danger/5 p-3">
+        <form method="post" onSubmit={onDelete} className="flex flex-wrap items-end gap-2 rounded-xl border border-danger/40 bg-danger/5 p-3">
           <input type="hidden" name="tournamentId" value={tournamentId} />
           <input type="hidden" name="matchId" value={matchId} />
           <input type="hidden" name="streamId" value={stream.id} />
@@ -187,7 +187,7 @@ function StreamForm({
   const hint = detect(url);
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-3 rounded-xl border border-line bg-surface-2 p-4 sm:grid-cols-2">
+    <form method="post" onSubmit={onSubmit} className="grid gap-3 rounded-xl border border-line bg-surface-2 p-4 sm:grid-cols-2">
       <input type="hidden" name="tournamentId" value={tournamentId} />
       <input type="hidden" name="matchId" value={matchId} />
       {stream && <input type="hidden" name="streamId" value={stream.id} />}

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
-import { CreditCard, LayoutDashboard, ListChecks, PlusCircle, Shield, Trophy, UserCog, Users, Gamepad2, BadgeCheck, Star, ShieldCheck, BarChart3 } from 'lucide-react';
+import { CreditCard, LayoutDashboard, ListChecks, PlusCircle, Shield, Trophy, UserCog, Users, Gamepad2, BadgeCheck, Star, ShieldCheck, BarChart3, LineChart } from 'lucide-react';
 
 export function DashboardNav({ isOrganizer, isAdmin = false }: { isOrganizer: boolean; isAdmin?: boolean }) {
   const pathname = usePathname();
@@ -13,6 +13,7 @@ export function DashboardNav({ isOrganizer, isAdmin = false }: { isOrganizer: bo
       ? [
           { href: '/dashboard/torneos', label: 'Mis partidas', icon: Trophy },
           { href: '/dashboard/torneos/nuevo', label: 'Crear partida', icon: PlusCircle },
+          { href: '/dashboard/estadisticas', label: 'Estadísticas', icon: LineChart },
         ]
       : []),
     { href: '/dashboard/juegos', label: 'Mis juegos', icon: Gamepad2 },

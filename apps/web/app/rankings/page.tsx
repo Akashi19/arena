@@ -1,9 +1,8 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { Crown, GitCompareArrows, Info, Trophy } from 'lucide-react';
 import { api, ApiError, qs } from '@/lib/api';
 import type { Discipline, RankingSeason, RankingTable, RankingTableRow, RankingType } from '@/lib/types';
-import { COUNTRIES, formatDate, formatDay, formatDateTime, formatPoints, MODE_LABEL, PLATFORM_LABEL, SEASON_STATUS_LABEL } from '@/lib/format';
+import { COUNTRIES, formatDay, formatDateTime, formatPoints, MODE_LABEL, PLATFORM_LABEL, SEASON_STATUS_LABEL } from '@/lib/format';
 import { EmptyState, Pagination } from '@/components/ui';
 import { CountryCell, ParticipantCell, TrendBadge } from '@/components/ranking';
 import { RankingLive } from '@/components/realtime';

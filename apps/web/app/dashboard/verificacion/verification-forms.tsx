@@ -10,7 +10,7 @@ const SOCIAL = ['instagram', 'x', 'youtube', 'twitch', 'tiktok', 'facebook', 'di
 export function VerificationForm({ prefill }: { prefill: MyVerification['prefill'] }) {
   const [state, onSubmit, pending] = usePersistentAction(requestVerificationAction, {});
   return (
-    <form onSubmit={onSubmit} className="grid gap-3 sm:grid-cols-2">
+    <form method="post" onSubmit={onSubmit} className="grid gap-3 sm:grid-cols-2">
       <Field label="Nombre del organizador" name="organizerName" defaultValue={prefill.organizerName} required minLength={2} maxLength={80} />
       <Field label="Nombre comercial o razón social (opcional)" name="legalName" defaultValue={prefill.legalName ?? ''} maxLength={160} />
       <label className="block">
@@ -85,7 +85,7 @@ export function VerificationForm({ prefill }: { prefill: MyVerification['prefill
 export function InfoForm() {
   const [state, onSubmit, pending] = usePersistentAction(provideVerificationInfoAction, {});
   return (
-    <form onSubmit={onSubmit} className="space-y-3">
+    <form method="post" onSubmit={onSubmit} className="space-y-3">
       <label className="block">
         <span className="label">Tu respuesta</span>
         <textarea name="message" required minLength={5} maxLength={2000} rows={3} className="input" />

@@ -11,11 +11,14 @@ export function CreateTeamForm({ sports, games }: { sports: Discipline[]; games:
   const [state, onSubmit, pending] = usePersistentAction(createTeamAction, {});
   const [open, setOpen] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
+  // Tras crear el equipo se cierra el formulario (ajuste de estado durante el render, sin efecto)
+  const [handled, setHandled] = useState(state);
+  if (handled !== state) {
+    setHandled(state);
+    if (state.ok) setOpen(false);
+  }
   useEffect(() => {
-    if (state.ok) {
-      formRef.current?.reset();
-      setOpen(false);
-    }
+    if (state.ok) formRef.current?.reset();
   }, [state]);
 
   if (!open) {
@@ -29,7 +32,7 @@ export function CreateTeamForm({ sports, games }: { sports: Discipline[]; games:
     );
   }
   return (
-    <form ref={formRef} onSubmit={onSubmit} className="card space-y-4 p-5">
+    <form method="post" ref={formRef} onSubmit={onSubmit} className="card space-y-4 p-5">
       <h2 className="text-lg font-bold uppercase">Nuevo equipo</h2>
       <div className="flex flex-col gap-4 sm:flex-row">
         <ImageField name="logo" label="Escudo" />

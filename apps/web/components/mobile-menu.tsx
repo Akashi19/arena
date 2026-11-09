@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu, X } from 'lucide-react';
@@ -9,7 +9,12 @@ import { logoutAction } from '@/app/actions';
 export function MobileMenu({ links, loggedIn }: { links: { href: string; label: string }[]; loggedIn: boolean }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
-  useEffect(() => setOpen(false), [pathname]);
+  // Se cierra al navegar (ajuste de estado durante el render)
+  const [lastPath, setLastPath] = useState(pathname);
+  if (lastPath !== pathname) {
+    setLastPath(pathname);
+    setOpen(false);
+  }
 
   return (
     <div className="lg:hidden">

@@ -13,3 +13,6 @@ npm-debug.log*
 apps/api/.env.production
 .api.log
 .web.log
+infra/.env.production
+infra/seaweedfs/s3.production.json
+backups/

@@ -1,9 +1,23 @@
-import { Controller, Get, Injectable, Module } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Controller, Get, Injectable, Module, Param, ParseEnumPipe, Query, Res } from '@nestjs/common';
+import { ApiBearerAuth, ApiOkResponse, ApiPropertyOptional, ApiTags } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
+import { IsIn, IsOptional } from 'class-validator';
+import type { Response } from 'express';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { PlanLimitsService } from '../plans/plans.js';
 import { AuthUser, CurrentUser, Roles } from '../common/decorators/auth.decorators.js';
 import { requireOwnOrganizer } from '../common/utils/access.js';
+import { EXPORT_KINDS, STATS_MONTHS, StatsService, statsRange, type ExportKind } from './stats.js';
+
+export class StatsQuery {
+  @ApiPropertyOptional({ enum: STATS_MONTHS, default: 6, description: 'Meses calendario del periodo (incluye el actual)' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsIn(STATS_MONTHS)
+  months?: number;
+}
+
+const EXPORT_NAME: Record<ExportKind, string> = { tournaments: 'torneos', registrations: 'inscripciones', matches: 'encuentros' };
 
 @Injectable()
 export class DashboardService {
@@ -105,14 +119,98 @@ export class DashboardService {
 @ApiBearerAuth()
 @Controller('me/dashboard')
 export class DashboardController {
-  constructor(private readonly service: DashboardService) {}
+  constructor(
+    private readonly service: DashboardService,
+    private readonly stats: StatsService,
+    private readonly limits: PlanLimitsService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   @Roles('ORGANIZER')
   @Get()
   get(@CurrentUser() user: AuthUser) {
     return this.service.organizer(user);
   }
+
+  /** Estadísticas avanzadas (funcionalidad ADVANCED_STATS: PRO y BUSINESS). */
+  @Roles('ORGANIZER')
+  @Get('stats')
+  async advanced(@CurrentUser() user: AuthUser, @Query() q: StatsQuery) {
+    const organizer = await requireOwnOrganizer(this.prisma, user.id);
+    await this.limits.assertFeature(organizer.id, 'ADVANCED_STATS', 'Las estadísticas avanzadas');
+    const [overview, tournaments, exportable, executive] = await Promise.all([
+      this.stats.overview({ organizerId: organizer.id }, q.months ?? 6),
+      this.stats.tournaments({ organizerId: organizer.id }, statsRange(q.months ?? 6).from, statsRange(q.months ?? 6).periodEnd),
+      this.limits.hasFeature(organizer.id, 'EXPORT_REPORTS'),
+      this.limits.hasFeature(organizer.id, 'EXECUTIVE_REPORTS'),
+    ]);
+    return { ...overview, tournaments, features: { export: exportable, executiveReport: executive } };
+  }
+
+  /** Reporte ejecutivo imprimible con comparación de periodos (funcionalidad EXECUTIVE_REPORTS: BUSINESS). */
+  @Roles('ORGANIZER')
+  @Get('report')
+  async report(@CurrentUser() user: AuthUser, @Query() q: StatsQuery) {
+    const organizer = await requireOwnOrganizer(this.prisma, user.id);
+    await this.limits.assertFeature(organizer.id, 'EXECUTIVE_REPORTS', 'Los reportes ejecutivos');
+    const months = q.months ?? 3;
+    const { from, periodEnd } = statsRange(months);
+    const [overview, tournaments, reputation, ratings, plan] = await Promise.all([
+      this.stats.overview({ organizerId: organizer.id }, months),
+      this.stats.tournaments({ organizerId: organizer.id }, from, periodEnd, 10),
+      this.prisma.organizerReputation.findUnique({ where: { organizerId: organizer.id } }),
+      this.prisma.organizerRating.count({ where: { organizerId: organizer.id, createdAt: { gte: from } } }),
+      this.limits.usageSummary(organizer.id),
+    ]);
+    return {
+      generatedAt: new Date(),
+      organizer: { displayName: organizer.displayName, logoUrl: organizer.logoUrl, verificationStatus: organizer.verificationStatus },
+      plan: plan.plan.name,
+      reputation: reputation && {
+        level: reputation.reputationLevel,
+        averageScore: reputation.averageScore,
+        totalRatings: reputation.totalRatings,
+        ratingsInPeriod: ratings,
+      },
+      ...overview,
+      tournaments,
+    };
+  }
+
+  /** Exportación CSV de torneos, inscripciones o encuentros (funcionalidad EXPORT_REPORTS: PRO y BUSINESS). */
+  @Roles('ORGANIZER')
+  @Get('export/:kind')
+  @ApiOkResponse({ description: 'Archivo CSV (UTF-8 con BOM)', content: { 'text/csv': {} } })
+  async export(
+    @CurrentUser() user: AuthUser,
+    @Param('kind', new ParseEnumPipe(EXPORT_KINDS)) kind: ExportKind,
+    @Query() q: StatsQuery,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const organizer = await requireOwnOrganizer(this.prisma, user.id);
+    await this.limits.assertFeature(organizer.id, 'EXPORT_REPORTS', 'La exportación de reportes');
+    const months = q.months ?? 6;
+    const csv = await this.stats.exportRows(organizer.id, kind, months);
+    res.setHeader('content-type', 'text/csv; charset=utf-8');
+    res.setHeader('content-disposition', `attachment; filename="arena-${EXPORT_NAME[kind]}-${months}m-${new Date().toISOString().slice(0, 10)}.csv"`);
+    res.setHeader('cache-control', 'no-store');
+    return csv;
+  }
 }
 
-@Module({ controllers: [DashboardController], providers: [DashboardService] })
+@ApiTags('Administración · Estadísticas')
+@ApiBearerAuth()
+@Roles('SUPERADMIN')
+@Controller('admin/stats')
+export class AdminStatsController {
+  constructor(private readonly stats: StatsService) {}
+
+  /** Estadísticas globales de la plataforma. */
+  @Get()
+  platform(@Query() q: StatsQuery) {
+    return this.stats.platform(q.months ?? 6);
+  }
+}
+
+@Module({ controllers: [DashboardController, AdminStatsController], providers: [DashboardService, StatsService] })
 export class DashboardModule {}

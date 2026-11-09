@@ -20,6 +20,9 @@ COPY --from=build /app/apps/api/package.json ./apps/api/package.json
 COPY --from=build /app/apps/api/dist ./apps/api/dist
 COPY --from=build /app/apps/api/prisma ./apps/api/prisma
 COPY --from=build /app/apps/api/prisma.config.ts ./apps/api/prisma.config.ts
+# El seed (prisma/seed.ts, con tsx) reutiliza el cliente generado y los motores de estadísticas, reputación y ranking
+COPY --from=build /app/apps/api/src ./apps/api/src
+COPY --from=build /app/apps/api/tsconfig.json ./apps/api/tsconfig.json
 WORKDIR /app/apps/api
 USER node
 EXPOSE 4100

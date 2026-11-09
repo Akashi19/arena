@@ -13,7 +13,7 @@ export function InviteForm({ teamId, defaultUsername }: { teamId: string; defaul
     if (state.ok) ref.current?.reset();
   }, [state]);
   return (
-    <form ref={ref} onSubmit={onSubmit} className="space-y-2">
+    <form method="post" ref={ref} onSubmit={onSubmit} className="space-y-2">
       <input type="hidden" name="teamId" value={teamId} />
       <div className="flex flex-wrap gap-2">
         <input
@@ -39,7 +39,7 @@ export function InviteForm({ teamId, defaultUsername }: { teamId: string; defaul
 export function CancelInvitationButton({ id }: { id: string }) {
   const [state, onSubmit, pending] = usePersistentAction(cancelInvitationAction, {});
   return (
-    <form onSubmit={onSubmit} className="shrink-0">
+    <form method="post" onSubmit={onSubmit} className="shrink-0">
       <input type="hidden" name="id" value={id} />
       <button disabled={pending} className="text-xs text-muted hover:text-danger disabled:opacity-50">
         Cancelar
@@ -52,7 +52,7 @@ export function CancelInvitationButton({ id }: { id: string }) {
 export function RespondInvitation({ id }: { id: string }) {
   const [state, onSubmit, pending] = usePersistentAction(respondInvitationAction, {});
   return (
-    <form onSubmit={onSubmit} className="flex flex-wrap items-center gap-2">
+    <form method="post" onSubmit={onSubmit} className="flex flex-wrap items-center gap-2">
       <input type="hidden" name="id" value={id} />
       <button name="decision" value="accept" disabled={pending} className="btn-primary px-3 py-1.5 text-xs">
         <Check className="size-4" /> Unirme

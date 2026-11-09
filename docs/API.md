@@ -79,6 +79,10 @@
 | PUT | `/admin/game-profiles/{id}/verification` | SUPERADMIN | `EXTERNAL` (fuente autorizada, nivel y rango validados) o `REVOKE`; exige `reason` |
 | PATCH | `/teams/{id}/captain` | Dueño | Capitán |
 | GET | `/me/dashboard` | Organizador | Indicadores del panel |
+| GET | `/me/dashboard/stats?months=1\|3\|6\|12` | Organizador · `ADVANCED_STATS` | Estadísticas avanzadas del periodo y del anterior (`summary`, `previous`, `changes`), series mensuales, disciplinas, formatos, más victorias y rendimiento por partida |
+| GET | `/me/dashboard/report?months=` | Organizador · `EXECUTIVE_REPORTS` | Reporte ejecutivo: lo anterior más organizador, plan y reputación |
+| GET | `/me/dashboard/export/{tournaments\|registrations\|matches}?months=` | Organizador · `EXPORT_REPORTS` | CSV (UTF-8 con BOM, fechas en UTC, protegido contra inyección de fórmulas; máx. 10 000 filas) |
+| GET | `/admin/stats?months=` | SUPERADMIN | Estadísticas globales: usuarios por rol, registros, activos en 30 días, verificación, partidas por estado y categoría, organizadores más activos y los indicadores del periodo |
 | GET · POST | `/me/verification` | Organizador | Estado e historial · solicitud (multipart: datos, `documents[]` hasta 5, `acceptPolicy`) |
 | POST | `/me/verification/info` | Organizador | Responde a una solicitud de información adicional (`message`, `documents[]`) |
 | GET | `/organizers/{id}/reputation` | — | Reputación, distribución de estrellas, evolución mensual e incidencias confirmadas |
@@ -153,4 +157,4 @@ Conexión socket.io a `http://localhost:4100/realtime`, con `auth: { token }` pa
 
 ## Pendiente fuera de la especificación
 
-Envío real de avisos por email y WhatsApp (las preferencias ya se guardan) e integración continua con despliegue.
+Envío real de avisos por email y WhatsApp (las preferencias ya se guardan).

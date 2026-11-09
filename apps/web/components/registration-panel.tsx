@@ -83,7 +83,7 @@ export function RegistrationPanel({ tournament: t, loggedIn, isOwner, myRegistra
             </button>
           </>
         ) : (
-          <form onSubmit={onSubmit} className="space-y-3">
+          <form method="post" onSubmit={onSubmit} className="space-y-3">
             <input type="hidden" name="tournamentId" value={t.id} />
             <input type="hidden" name="slug" value={t.slug} />
             <div className="rounded-xl border border-line bg-surface-2 p-3 text-sm">

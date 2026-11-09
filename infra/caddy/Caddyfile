@@ -1,0 +1,35 @@
+# Proxy inverso con HTTPS automático (Let's Encrypt). Los dominios deben apuntar (DNS A/AAAA) a este servidor.
+{
+	email {$ACME_EMAIL}
+}
+
+(common) {
+	encode zstd gzip
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+	}
+}
+
+{$WEB_DOMAIN} {
+	import common
+	reverse_proxy web:3000
+}
+
+# API REST, Swagger, webhooks de pagos y WebSockets (socket.io); Caddy reenvía Upgrade automáticamente
+{$API_DOMAIN} {
+	import common
+	request_body {
+		max_size 30MB
+	}
+	reverse_proxy api:4100
+}
+
+# Opcional, con --profile storage: archivos públicos servidos desde el S3 propio
+# {$FILES_DOMAIN} {
+# 	import common
+# 	reverse_proxy storage:8333
+# }

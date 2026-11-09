@@ -15,7 +15,7 @@ export function ResponseForm({ ratingId, current }: { ratingId: string; current?
     );
   }
   return (
-    <form onSubmit={onSubmit} className="space-y-2">
+    <form method="post" onSubmit={onSubmit} className="space-y-2">
       <input type="hidden" name="ratingId" value={ratingId} />
       {current && <input type="hidden" name="edit" value="1" />}
       <textarea name="response" defaultValue={current} required minLength={2} maxLength={1000} rows={3} className="input" placeholder="Responde con respeto: tu respuesta es pública." />

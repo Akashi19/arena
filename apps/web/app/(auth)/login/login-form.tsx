@@ -6,7 +6,7 @@ import { FormMessage, SubmitButton, usePersistentAction } from '@/components/for
 export function LoginForm({ next }: { next?: string }) {
   const [state, onSubmit, pending] = usePersistentAction(loginAction, {});
   return (
-    <form onSubmit={onSubmit} className="mt-6 space-y-4">
+    <form method="post" onSubmit={onSubmit} className="mt-6 space-y-4">
       <input type="hidden" name="next" value={next ?? ''} />
       <label className="block">
         <span className="label">Correo o usuario</span>

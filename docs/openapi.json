@@ -100,7 +100,7 @@
           }
         },
         "tags": [
-          "Planes y suscripciÃ³n"
+          "Planes y suscripción"
         ]
       }
     },
@@ -124,7 +124,7 @@
           }
         },
         "tags": [
-          "AutenticaciÃ³n"
+          "Autenticación"
         ]
       }
     },
@@ -148,7 +148,7 @@
           }
         },
         "tags": [
-          "AutenticaciÃ³n"
+          "Autenticación"
         ]
       }
     },
@@ -172,7 +172,7 @@
           }
         },
         "tags": [
-          "AutenticaciÃ³n"
+          "Autenticación"
         ]
       }
     },
@@ -191,7 +191,7 @@
           }
         ],
         "tags": [
-          "AutenticaciÃ³n"
+          "Autenticación"
         ]
       }
     },
@@ -220,7 +220,7 @@
           }
         ],
         "tags": [
-          "AutenticaciÃ³n"
+          "Autenticación"
         ]
       }
     },
@@ -239,7 +239,7 @@
           }
         ],
         "tags": [
-          "AutenticaciÃ³n"
+          "Autenticación"
         ]
       }
     },
@@ -451,7 +451,7 @@
           }
         },
         "tags": [
-          "CatÃ¡logo"
+          "Catálogo"
         ]
       }
     },
@@ -465,7 +465,7 @@
           }
         },
         "tags": [
-          "CatÃ¡logo"
+          "Catálogo"
         ]
       }
     },
@@ -488,7 +488,7 @@
           }
         },
         "tags": [
-          "CatÃ¡logo"
+          "Catálogo"
         ]
       }
     },
@@ -516,7 +516,7 @@
           }
         ],
         "tags": [
-          "Admin Â· CatÃ¡logo"
+          "Admin · Catálogo"
         ]
       },
       "post": {
@@ -543,7 +543,7 @@
           }
         ],
         "tags": [
-          "Admin Â· CatÃ¡logo"
+          "Admin · Catálogo"
         ]
       }
     },
@@ -581,7 +581,7 @@
           }
         ],
         "tags": [
-          "Admin Â· CatÃ¡logo"
+          "Admin · Catálogo"
         ]
       }
     },
@@ -600,7 +600,7 @@
           }
         ],
         "tags": [
-          "Admin Â· CatÃ¡logo"
+          "Admin · Catálogo"
         ]
       },
       "post": {
@@ -627,7 +627,7 @@
           }
         ],
         "tags": [
-          "Admin Â· CatÃ¡logo"
+          "Admin · Catálogo"
         ]
       }
     },
@@ -665,7 +665,7 @@
           }
         ],
         "tags": [
-          "Admin Â· CatÃ¡logo"
+          "Admin · Catálogo"
         ]
       }
     },
@@ -703,7 +703,7 @@
           }
         ],
         "tags": [
-          "Admin Â· CatÃ¡logo"
+          "Admin · Catálogo"
         ]
       }
     },
@@ -741,7 +741,7 @@
           }
         ],
         "tags": [
-          "Admin Â· CatÃ¡logo"
+          "Admin · Catálogo"
         ]
       }
     },
@@ -767,7 +767,7 @@
             "name": "q",
             "required": false,
             "in": "query",
-            "description": "BÃºsqueda por nombre de partida, torneo u organizador",
+            "description": "Búsqueda por nombre de partida, torneo u organizador",
             "schema": {
               "type": "string"
             }
@@ -1423,7 +1423,7 @@
           }
         },
         "tags": [
-          "Encuentros, resultados y clasificaciÃ³n"
+          "Encuentros, resultados y clasificación"
         ]
       },
       "post": {
@@ -1459,7 +1459,7 @@
           }
         ],
         "tags": [
-          "Encuentros, resultados y clasificaciÃ³n"
+          "Encuentros, resultados y clasificación"
         ]
       }
     },
@@ -1487,7 +1487,7 @@
           }
         ],
         "tags": [
-          "Encuentros, resultados y clasificaciÃ³n"
+          "Encuentros, resultados y clasificación"
         ]
       }
     },
@@ -1525,7 +1525,7 @@
           }
         ],
         "tags": [
-          "Encuentros, resultados y clasificaciÃ³n"
+          "Encuentros, resultados y clasificación"
         ]
       }
     },
@@ -1563,7 +1563,7 @@
           }
         ],
         "tags": [
-          "Encuentros, resultados y clasificaciÃ³n"
+          "Encuentros, resultados y clasificación"
         ]
       }
     },
@@ -1645,7 +1645,7 @@
             "name": "rank",
             "required": false,
             "in": "query",
-            "description": "Rango mÃ­nimo (requiere videojuego): compara solo dentro del catÃ¡logo de ese juego",
+            "description": "Rango mínimo (requiere videojuego): compara solo dentro del catálogo de ese juego",
             "schema": {
               "type": "string"
             }
@@ -1654,7 +1654,7 @@
             "name": "role",
             "required": false,
             "in": "query",
-            "description": "Rol o posiciÃ³n (texto)",
+            "description": "Rol o posición (texto)",
             "schema": {
               "type": "string"
             }
@@ -1784,7 +1784,7 @@
             "name": "rank",
             "required": false,
             "in": "query",
-            "description": "Rango mÃ­nimo (requiere videojuego): compara solo dentro del catÃ¡logo de ese juego",
+            "description": "Rango mínimo (requiere videojuego): compara solo dentro del catálogo de ese juego",
             "schema": {
               "type": "string"
             }
@@ -1793,7 +1793,7 @@
             "name": "role",
             "required": false,
             "in": "query",
-            "description": "Rol o posiciÃ³n (texto)",
+            "description": "Rol o posición (texto)",
             "schema": {
               "type": "string"
             }
@@ -2163,7 +2163,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN Â· Niveles competitivos"
+          "SUPERADMIN · Niveles competitivos"
         ]
       }
     },
@@ -2201,7 +2201,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN Â· Niveles competitivos"
+          "SUPERADMIN · Niveles competitivos"
         ]
       }
     },
@@ -2234,7 +2234,7 @@
           }
         },
         "tags": [
-          "ReputaciÃ³n, valoraciones e incidencias"
+          "Reputación, valoraciones e incidencias"
         ]
       },
       "post": {
@@ -2270,7 +2270,7 @@
           }
         ],
         "tags": [
-          "ReputaciÃ³n, valoraciones e incidencias"
+          "Reputación, valoraciones e incidencias"
         ]
       }
     },
@@ -2293,7 +2293,7 @@
           }
         },
         "tags": [
-          "ReputaciÃ³n, valoraciones e incidencias"
+          "Reputación, valoraciones e incidencias"
         ]
       }
     },
@@ -2316,7 +2316,7 @@
           }
         },
         "tags": [
-          "ReputaciÃ³n, valoraciones e incidencias"
+          "Reputación, valoraciones e incidencias"
         ]
       }
     },
@@ -2354,7 +2354,7 @@
           }
         ],
         "tags": [
-          "ReputaciÃ³n, valoraciones e incidencias"
+          "Reputación, valoraciones e incidencias"
         ]
       }
     },
@@ -2392,7 +2392,7 @@
           }
         ],
         "tags": [
-          "ReputaciÃ³n, valoraciones e incidencias"
+          "Reputación, valoraciones e incidencias"
         ]
       },
       "put": {
@@ -2428,7 +2428,7 @@
           }
         ],
         "tags": [
-          "ReputaciÃ³n, valoraciones e incidencias"
+          "Reputación, valoraciones e incidencias"
         ]
       }
     },
@@ -2466,7 +2466,7 @@
           }
         ],
         "tags": [
-          "ReputaciÃ³n, valoraciones e incidencias"
+          "Reputación, valoraciones e incidencias"
         ]
       }
     },
@@ -2494,7 +2494,7 @@
           }
         ],
         "tags": [
-          "ReputaciÃ³n, valoraciones e incidencias"
+          "Reputación, valoraciones e incidencias"
         ]
       }
     },
@@ -2532,7 +2532,7 @@
           }
         ],
         "tags": [
-          "ReputaciÃ³n, valoraciones e incidencias"
+          "Reputación, valoraciones e incidencias"
         ]
       }
     },
@@ -2551,7 +2551,7 @@
           }
         ],
         "tags": [
-          "ReputaciÃ³n, valoraciones e incidencias"
+          "Reputación, valoraciones e incidencias"
         ]
       }
     },
@@ -2570,7 +2570,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN Â· Confianza"
+          "SUPERADMIN · Confianza"
         ]
       }
     },
@@ -2613,7 +2613,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN Â· Confianza"
+          "SUPERADMIN · Confianza"
         ]
       }
     },
@@ -2655,7 +2655,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN Â· Confianza"
+          "SUPERADMIN · Confianza"
         ]
       }
     },
@@ -2693,7 +2693,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN Â· Confianza"
+          "SUPERADMIN · Confianza"
         ]
       }
     },
@@ -2727,7 +2727,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN Â· Confianza"
+          "SUPERADMIN · Confianza"
         ]
       }
     },
@@ -2755,7 +2755,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN Â· Confianza"
+          "SUPERADMIN · Confianza"
         ]
       }
     },
@@ -2793,7 +2793,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN Â· Confianza"
+          "SUPERADMIN · Confianza"
         ]
       }
     },
@@ -2812,7 +2812,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN Â· Confianza"
+          "SUPERADMIN · Confianza"
         ]
       }
     },
@@ -2850,7 +2850,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN Â· Confianza"
+          "SUPERADMIN · Confianza"
         ]
       }
     },
@@ -2869,7 +2869,7 @@
           }
         ],
         "tags": [
-          "VerificaciÃ³n de organizadores"
+          "Verificación de organizadores"
         ]
       },
       "post": {
@@ -2896,7 +2896,7 @@
           }
         ],
         "tags": [
-          "VerificaciÃ³n de organizadores"
+          "Verificación de organizadores"
         ]
       }
     },
@@ -2925,7 +2925,7 @@
           }
         ],
         "tags": [
-          "VerificaciÃ³n de organizadores"
+          "Verificación de organizadores"
         ]
       }
     },
@@ -2970,7 +2970,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN Â· VerificaciÃ³n de organizadores"
+          "SUPERADMIN · Verificación de organizadores"
         ]
       }
     },
@@ -2989,7 +2989,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN Â· VerificaciÃ³n de organizadores"
+          "SUPERADMIN · Verificación de organizadores"
         ]
       }
     },
@@ -3017,7 +3017,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN Â· VerificaciÃ³n de organizadores"
+          "SUPERADMIN · Verificación de organizadores"
         ]
       }
     },
@@ -3053,7 +3053,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN Â· VerificaciÃ³n de organizadores"
+          "SUPERADMIN · Verificación de organizadores"
         ]
       }
     },
@@ -3091,7 +3091,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN Â· VerificaciÃ³n de organizadores"
+          "SUPERADMIN · Verificación de organizadores"
         ]
       }
     },
@@ -3132,7 +3132,7 @@
             "name": "season",
             "required": false,
             "in": "query",
-            "description": "Temporada; sin ella, histÃ³rico acumulado",
+            "description": "Temporada; sin ella, histórico acumulado",
             "schema": {
               "type": "string"
             }
@@ -3211,7 +3211,7 @@
             "name": "season",
             "required": false,
             "in": "query",
-            "description": "Temporada; sin ella, histÃ³rico acumulado",
+            "description": "Temporada; sin ella, histórico acumulado",
             "schema": {
               "type": "string"
             }
@@ -3298,7 +3298,7 @@
             "name": "season",
             "required": false,
             "in": "query",
-            "description": "Temporada; sin ella, histÃ³rico acumulado",
+            "description": "Temporada; sin ella, histórico acumulado",
             "schema": {
               "type": "string"
             }
@@ -3385,7 +3385,7 @@
             "name": "season",
             "required": false,
             "in": "query",
-            "description": "Temporada; sin ella, histÃ³rico acumulado",
+            "description": "Temporada; sin ella, histórico acumulado",
             "schema": {
               "type": "string"
             }
@@ -3495,7 +3495,7 @@
             "name": "season",
             "required": false,
             "in": "query",
-            "description": "Temporada; sin ella, histÃ³rico acumulado",
+            "description": "Temporada; sin ella, histórico acumulado",
             "schema": {
               "type": "string"
             }
@@ -3781,7 +3781,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN Â· Rankings"
+          "SUPERADMIN · Rankings"
         ]
       },
       "post": {
@@ -3808,7 +3808,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN Â· Rankings"
+          "SUPERADMIN · Rankings"
         ]
       }
     },
@@ -3846,7 +3846,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN Â· Rankings"
+          "SUPERADMIN · Rankings"
         ]
       }
     },
@@ -3874,7 +3874,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN Â· Rankings"
+          "SUPERADMIN · Rankings"
         ]
       },
       "post": {
@@ -3901,7 +3901,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN Â· Rankings"
+          "SUPERADMIN · Rankings"
         ]
       }
     },
@@ -3939,7 +3939,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN Â· Rankings"
+          "SUPERADMIN · Rankings"
         ]
       }
     },
@@ -3968,7 +3968,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN Â· Rankings"
+          "SUPERADMIN · Rankings"
         ]
       }
     },
@@ -4004,7 +4004,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN Â· Rankings"
+          "SUPERADMIN · Rankings"
         ]
       }
     },
@@ -4056,7 +4056,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN Â· Rankings"
+          "SUPERADMIN · Rankings"
         ]
       }
     },
@@ -4094,7 +4094,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN Â· Rankings"
+          "SUPERADMIN · Rankings"
         ]
       }
     },
@@ -4123,7 +4123,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN Â· Rankings"
+          "SUPERADMIN · Rankings"
         ]
       }
     },
@@ -4152,7 +4152,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN Â· Rankings"
+          "SUPERADMIN · Rankings"
         ]
       }
     },
@@ -4188,7 +4188,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN Â· Rankings"
+          "SUPERADMIN · Rankings"
         ]
       }
     },
@@ -4226,7 +4226,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN Â· Rankings"
+          "SUPERADMIN · Rankings"
         ]
       }
     },
@@ -4259,7 +4259,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN Â· Rankings"
+          "SUPERADMIN · Rankings"
         ]
       }
     },
@@ -4297,7 +4297,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN Â· Rankings"
+          "SUPERADMIN · Rankings"
         ]
       }
     },
@@ -4325,7 +4325,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN Â· Rankings"
+          "SUPERADMIN · Rankings"
         ]
       }
     },
@@ -4677,7 +4677,7 @@
           }
         ],
         "tags": [
-          "Planes y suscripciÃ³n"
+          "Planes y suscripción"
         ]
       }
     },
@@ -4706,7 +4706,7 @@
           }
         ],
         "tags": [
-          "Planes y suscripciÃ³n"
+          "Planes y suscripción"
         ]
       }
     },
@@ -4735,7 +4735,7 @@
           }
         ],
         "tags": [
-          "Planes y suscripciÃ³n"
+          "Planes y suscripción"
         ]
       }
     },
@@ -4764,7 +4764,7 @@
           }
         ],
         "tags": [
-          "Planes y suscripciÃ³n"
+          "Planes y suscripción"
         ]
       }
     },
@@ -4793,7 +4793,7 @@
           }
         ],
         "tags": [
-          "Planes y suscripciÃ³n"
+          "Planes y suscripción"
         ]
       }
     },
@@ -4812,7 +4812,7 @@
           }
         ],
         "tags": [
-          "Planes y suscripciÃ³n"
+          "Planes y suscripción"
         ]
       }
     },
@@ -4840,7 +4840,7 @@
           }
         ],
         "tags": [
-          "Planes y suscripciÃ³n"
+          "Planes y suscripción"
         ]
       }
     },
@@ -4868,7 +4868,7 @@
           }
         ],
         "tags": [
-          "Planes y suscripciÃ³n"
+          "Planes y suscripción"
         ]
       }
     },
@@ -4906,7 +4906,7 @@
           }
         ],
         "tags": [
-          "Planes y suscripciÃ³n"
+          "Planes y suscripción"
         ]
       }
     },
@@ -4925,7 +4925,7 @@
           }
         ],
         "tags": [
-          "Planes y suscripciÃ³n"
+          "Planes y suscripción"
         ]
       }
     },
@@ -4953,7 +4953,7 @@
           }
         ],
         "tags": [
-          "Planes y suscripciÃ³n"
+          "Planes y suscripción"
         ]
       }
     },
@@ -4976,7 +4976,7 @@
           }
         },
         "tags": [
-          "Planes y suscripciÃ³n"
+          "Planes y suscripción"
         ]
       }
     },
@@ -5007,7 +5007,7 @@
           }
         },
         "tags": [
-          "Planes y suscripciÃ³n"
+          "Planes y suscripción"
         ]
       }
     },
@@ -5026,7 +5026,7 @@
           }
         ],
         "tags": [
-          "AdministraciÃ³n Â· Suscripciones"
+          "Administración · Suscripciones"
         ]
       }
     },
@@ -5045,7 +5045,7 @@
           }
         ],
         "tags": [
-          "AdministraciÃ³n Â· Suscripciones"
+          "Administración · Suscripciones"
         ]
       },
       "post": {
@@ -5072,7 +5072,7 @@
           }
         ],
         "tags": [
-          "AdministraciÃ³n Â· Suscripciones"
+          "Administración · Suscripciones"
         ]
       }
     },
@@ -5110,7 +5110,7 @@
           }
         ],
         "tags": [
-          "AdministraciÃ³n Â· Suscripciones"
+          "Administración · Suscripciones"
         ]
       }
     },
@@ -5129,7 +5129,7 @@
           }
         ],
         "tags": [
-          "AdministraciÃ³n Â· Suscripciones"
+          "Administración · Suscripciones"
         ]
       },
       "post": {
@@ -5156,7 +5156,7 @@
           }
         ],
         "tags": [
-          "AdministraciÃ³n Â· Suscripciones"
+          "Administración · Suscripciones"
         ]
       }
     },
@@ -5194,7 +5194,7 @@
           }
         ],
         "tags": [
-          "AdministraciÃ³n Â· Suscripciones"
+          "Administración · Suscripciones"
         ]
       }
     },
@@ -5254,7 +5254,7 @@
           }
         ],
         "tags": [
-          "AdministraciÃ³n Â· Suscripciones"
+          "Administración · Suscripciones"
         ]
       }
     },
@@ -5289,7 +5289,7 @@
           }
         ],
         "tags": [
-          "AdministraciÃ³n Â· Suscripciones"
+          "Administración · Suscripciones"
         ]
       }
     },
@@ -5308,7 +5308,7 @@
           }
         ],
         "tags": [
-          "AdministraciÃ³n Â· Suscripciones"
+          "Administración · Suscripciones"
         ]
       }
     },
@@ -5810,11 +5810,166 @@
           "Dashboard"
         ]
       }
+    },
+    "/api/me/dashboard/stats": {
+      "get": {
+        "operationId": "DashboardController_advanced",
+        "parameters": [
+          {
+            "name": "months",
+            "required": false,
+            "in": "query",
+            "description": "Meses calendario del periodo (incluye el actual)",
+            "schema": {
+              "default": 6,
+              "type": "number",
+              "enum": [
+                1,
+                3,
+                6,
+                12
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Dashboard"
+        ]
+      }
+    },
+    "/api/me/dashboard/report": {
+      "get": {
+        "operationId": "DashboardController_report",
+        "parameters": [
+          {
+            "name": "months",
+            "required": false,
+            "in": "query",
+            "description": "Meses calendario del periodo (incluye el actual)",
+            "schema": {
+              "default": 6,
+              "type": "number",
+              "enum": [
+                1,
+                3,
+                6,
+                12
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Dashboard"
+        ]
+      }
+    },
+    "/api/me/dashboard/export/{kind}": {
+      "get": {
+        "operationId": "DashboardController_export",
+        "parameters": [
+          {
+            "name": "kind",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "months",
+            "required": false,
+            "in": "query",
+            "description": "Meses calendario del periodo (incluye el actual)",
+            "schema": {
+              "default": 6,
+              "type": "number",
+              "enum": [
+                1,
+                3,
+                6,
+                12
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Archivo CSV (UTF-8 con BOM)",
+            "content": {
+              "text/csv": {}
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Dashboard"
+        ]
+      }
+    },
+    "/api/admin/stats": {
+      "get": {
+        "operationId": "AdminStatsController_platform",
+        "parameters": [
+          {
+            "name": "months",
+            "required": false,
+            "in": "query",
+            "description": "Meses calendario del periodo (incluye el actual)",
+            "schema": {
+              "default": 6,
+              "type": "number",
+              "enum": [
+                1,
+                3,
+                6,
+                12
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Administración · Estadísticas"
+        ]
+      }
     }
   },
   "info": {
     "title": "Arena Torneos API",
-    "description": "API REST de la plataforma de torneos deportivos y eSports. AutenticaciÃ³n JWT (Bearer). Tiempo real vÃ­a socket.io en el namespace /realtime.",
+    "description": "API REST de la plataforma de torneos deportivos y eSports. Autenticación JWT (Bearer). Tiempo real vía socket.io en el namespace /realtime.",
     "version": "0.1.0",
     "contact": {}
   },
@@ -5840,14 +5995,14 @@
           },
           "username": {
             "type": "string",
-            "description": "3-24 caracteres: letras, nÃºmeros, guion bajo o guion"
+            "description": "3-24 caracteres: letras, números, guion bajo o guion"
           },
           "email": {
             "type": "string"
           },
           "password": {
             "type": "string",
-            "description": "MÃ­nimo 8 caracteres, con letras y nÃºmeros"
+            "description": "Mínimo 8 caracteres, con letras y números"
           },
           "country": {
             "type": "string",
@@ -5861,16 +6016,16 @@
           },
           "description": {
             "type": "string",
-            "description": "DescripciÃ³n del organizador / biografÃ­a"
+            "description": "Descripción del organizador / biografía"
           },
           "asOrganizer": {
             "type": "boolean",
-            "description": "Crear tambiÃ©n el perfil de organizador",
+            "description": "Crear también el perfil de organizador",
             "default": true
           },
           "organizerName": {
             "type": "string",
-            "description": "Nombre pÃºblico del organizador (por defecto nombre y apellido)"
+            "description": "Nombre público del organizador (por defecto nombre y apellido)"
           },
           "organizerType": {
             "type": "string",
@@ -5961,7 +6116,7 @@
           },
           "privacy": {
             "type": "object",
-            "description": "Visibilidad del perfil pÃºblico de jugador"
+            "description": "Visibilidad del perfil público de jugador"
           }
         }
       },
@@ -6026,7 +6181,7 @@
           },
           "primaryColor": {
             "type": "string",
-            "description": "Color de acento (#RRGGBB). Requiere personalizaciÃ³n completa (PRO+)"
+            "description": "Color de acento (#RRGGBB). Requiere personalización completa (PRO+)"
           }
         }
       },
@@ -6244,7 +6399,7 @@
           },
           "competitionName": {
             "type": "string",
-            "description": "Nombre del torneo / competiciÃ³n que agrupa la partida"
+            "description": "Nombre del torneo / competición que agrupa la partida"
           },
           "description": {
             "type": "string"
@@ -6282,7 +6437,7 @@
           "registrationDeadline": {
             "format": "date-time",
             "type": "string",
-            "description": "Fecha lÃ­mite de inscripciÃ³n (ISO 8601)"
+            "description": "Fecha límite de inscripción (ISO 8601)"
           },
           "maxParticipants": {
             "type": "number",
@@ -6326,7 +6481,7 @@
           },
           "entryFee": {
             "type": "number",
-            "description": "Cuota informativa de inscripciÃ³n",
+            "description": "Cuota informativa de inscripción",
             "default": 0
           },
           "currency": {
@@ -6361,11 +6516,11 @@
           },
           "minRankId": {
             "type": "object",
-            "description": "Rango mÃ­nimo del catÃ¡logo del videojuego (\"\" para quitarlo)"
+            "description": "Rango mínimo del catálogo del videojuego (\"\" para quitarlo)"
           },
           "maxRankId": {
             "type": "object",
-            "description": "Rango mÃ¡ximo del catÃ¡logo del videojuego (\"\" para quitarlo)"
+            "description": "Rango máximo del catálogo del videojuego (\"\" para quitarlo)"
           },
           "pointsWin": {
             "type": "number",
@@ -6381,7 +6536,7 @@
           },
           "draft": {
             "type": "boolean",
-            "description": "Guardar como borrador (no visible pÃºblicamente)"
+            "description": "Guardar como borrador (no visible públicamente)"
           }
         },
         "required": [
@@ -6403,7 +6558,7 @@
           },
           "competitionName": {
             "type": "string",
-            "description": "Nombre del torneo / competiciÃ³n que agrupa la partida"
+            "description": "Nombre del torneo / competición que agrupa la partida"
           },
           "description": {
             "type": "string"
@@ -6441,7 +6596,7 @@
           "registrationDeadline": {
             "format": "date-time",
             "type": "string",
-            "description": "Fecha lÃ­mite de inscripciÃ³n (ISO 8601)"
+            "description": "Fecha límite de inscripción (ISO 8601)"
           },
           "maxParticipants": {
             "type": "number",
@@ -6485,7 +6640,7 @@
           },
           "entryFee": {
             "type": "number",
-            "description": "Cuota informativa de inscripciÃ³n",
+            "description": "Cuota informativa de inscripción",
             "default": 0
           },
           "currency": {
@@ -6520,11 +6675,11 @@
           },
           "minRankId": {
             "type": "object",
-            "description": "Rango mÃ­nimo del catÃ¡logo del videojuego (\"\" para quitarlo)"
+            "description": "Rango mínimo del catálogo del videojuego (\"\" para quitarlo)"
           },
           "maxRankId": {
             "type": "object",
-            "description": "Rango mÃ¡ximo del catÃ¡logo del videojuego (\"\" para quitarlo)"
+            "description": "Rango máximo del catálogo del videojuego (\"\" para quitarlo)"
           },
           "pointsWin": {
             "type": "number",
@@ -6593,7 +6748,7 @@
           },
           "acceptRules": {
             "type": "boolean",
-            "description": "Confirma haber leÃ­do reglamento, cuota y condiciones"
+            "description": "Confirma haber leído reglamento, cuota y condiciones"
           }
         },
         "required": [
@@ -6628,11 +6783,11 @@
           },
           "roundIntervalMinutes": {
             "type": "number",
-            "description": "Programar automÃ¡ticamente cada ronda cada N minutos desde el inicio"
+            "description": "Programar automáticamente cada ronda cada N minutos desde el inicio"
           },
           "streamUrl": {
             "type": "string",
-            "description": "Enlace de transmisiÃ³n (HTTPS, dominio autorizado) que se programa en todos los encuentros generados"
+            "description": "Enlace de transmisión (HTTPS, dominio autorizado) que se programa en todos los encuentros generados"
           },
           "streamVisibility": {
             "type": "string",
@@ -6656,7 +6811,7 @@
           },
           "winnerSlot": {
             "type": "number",
-            "description": "QuiÃ©n avanza si el marcador empata en eliminaciÃ³n (penales, prÃ³rrogaâ€¦)",
+            "description": "Quién avanza si el marcador empata en eliminación (penales, prórroga…)",
             "enum": [
               1,
               2
@@ -6692,7 +6847,7 @@
           },
           "reason": {
             "type": "string",
-            "description": "Motivo de la reprogramaciÃ³n (se comunica a los participantes)"
+            "description": "Motivo de la reprogramación (se comunica a los participantes)"
           }
         }
       },
@@ -6709,7 +6864,7 @@
           },
           "position": {
             "type": "string",
-            "description": "PosiciÃ³n habitual (deportes)"
+            "description": "Posición habitual (deportes)"
           },
           "availability": {
             "type": "string",
@@ -6757,7 +6912,7 @@
           },
           "playerRole": {
             "type": "string",
-            "description": "Rol o posiciÃ³n (p. ej. Duelista, Soporte)"
+            "description": "Rol o posición (p. ej. Duelista, Soporte)"
           },
           "experienceYears": {
             "type": "number"
@@ -6768,7 +6923,7 @@
           },
           "isFeatured": {
             "type": "boolean",
-            "description": "Mostrar en el perfil pÃºblico"
+            "description": "Mostrar en el perfil público"
           },
           "isFavorite": {
             "type": "boolean",
@@ -6831,7 +6986,7 @@
           },
           "playerRole": {
             "type": "string",
-            "description": "Rol o posiciÃ³n (p. ej. Duelista, Soporte)"
+            "description": "Rol o posición (p. ej. Duelista, Soporte)"
           },
           "experienceYears": {
             "type": "number"
@@ -6842,7 +6997,7 @@
           },
           "isFeatured": {
             "type": "boolean",
-            "description": "Mostrar en el perfil pÃºblico"
+            "description": "Mostrar en el perfil público"
           },
           "isFavorite": {
             "type": "boolean",
@@ -6877,11 +7032,11 @@
           },
           "gameRankId": {
             "type": "string",
-            "description": "Rango validado del catÃ¡logo del juego"
+            "description": "Rango validado del catálogo del juego"
           },
           "reason": {
             "type": "string",
-            "description": "JustificaciÃ³n (queda en auditorÃ­a)"
+            "description": "Justificación (queda en auditoría)"
           }
         },
         "required": [
@@ -7032,7 +7187,7 @@
           },
           "reason": {
             "type": "string",
-            "description": "JustificaciÃ³n obligatoria (auditorÃ­a)"
+            "description": "Justificación obligatoria (auditoría)"
           }
         },
         "required": [
@@ -7053,7 +7208,7 @@
           },
           "resolution": {
             "type": "string",
-            "description": "ResoluciÃ³n administrativa (pÃºblica si se confirma)"
+            "description": "Resolución administrativa (pública si se confirma)"
           }
         },
         "required": [
@@ -7084,7 +7239,7 @@
           },
           "legalName": {
             "type": "string",
-            "description": "Nombre comercial o razÃ³n social"
+            "description": "Nombre comercial o razón social"
           },
           "verificationType": {
             "type": "string",
@@ -7127,7 +7282,7 @@
           },
           "acceptPolicy": {
             "type": "string",
-            "description": "AceptaciÃ³n de las polÃ­ticas de verificaciÃ³n"
+            "description": "Aceptación de las políticas de verificación"
           }
         },
         "required": [
@@ -7169,7 +7324,7 @@
           },
           "reason": {
             "type": "string",
-            "description": "Motivo (obligatorio al pedir informaciÃ³n, rechazar o suspender)"
+            "description": "Motivo (obligatorio al pedir información, rechazar o suspender)"
           },
           "comments": {
             "type": "string",
@@ -7214,7 +7369,7 @@
           },
           "countryCode": {
             "type": "object",
-            "description": "VacÃ­o = global"
+            "description": "Vacío = global"
           },
           "startDate": {
             "format": "date-time",
@@ -7274,7 +7429,7 @@
           },
           "reason": {
             "type": "string",
-            "description": "JustificaciÃ³n (auditorÃ­a)"
+            "description": "Justificación (auditoría)"
           }
         },
         "required": [
@@ -7420,7 +7575,7 @@
           "until": {
             "type": "object",
             "nullable": true,
-            "description": "Hasta cuÃ¡ndo (null = levantar la suspensiÃ³n)"
+            "description": "Hasta cuándo (null = levantar la suspensión)"
           },
           "reason": {
             "type": "string"
@@ -7476,11 +7631,11 @@
         "properties": {
           "title": {
             "type": "string",
-            "description": "TÃ­tulo personalizado"
+            "description": "Título personalizado"
           },
           "description": {
             "type": "string",
-            "description": "DescripciÃ³n opcional"
+            "description": "Descripción opcional"
           },
           "visibility": {
             "type": "string",
@@ -7506,7 +7661,7 @@
           },
           "url": {
             "type": "string",
-            "description": "URL HTTPS de la transmisiÃ³n (YouTube, Twitch, Facebook, TikTok, Kick u otra autorizada)"
+            "description": "URL HTTPS de la transmisión (YouTube, Twitch, Facebook, TikTok, Kick u otra autorizada)"
           },
           "platform": {
             "type": "string",
@@ -7518,11 +7673,11 @@
               "KICK",
               "OTHER"
             ],
-            "description": "Se detecta por el dominio; si se envÃ­a debe coincidir"
+            "description": "Se detecta por el dominio; si se envía debe coincidir"
           },
           "isRebroadcast": {
             "type": "boolean",
-            "description": "RetransmisiÃ³n adicional (otro canal, idiomaâ€¦): no reemplaza a la principal",
+            "description": "Retransmisión adicional (otro canal, idioma…): no reemplaza a la principal",
             "default": false
           }
         },
@@ -7535,11 +7690,11 @@
         "properties": {
           "title": {
             "type": "string",
-            "description": "TÃ­tulo personalizado"
+            "description": "Título personalizado"
           },
           "description": {
             "type": "string",
-            "description": "DescripciÃ³n opcional"
+            "description": "Descripción opcional"
           },
           "visibility": {
             "type": "string",
@@ -7579,7 +7734,7 @@
           },
           "streamId": {
             "type": "string",
-            "description": "TransmisiÃ³n a editar (por defecto, la principal activa)"
+            "description": "Transmisión a editar (por defecto, la principal activa)"
           }
         }
       },
@@ -7685,7 +7840,7 @@
           },
           "idempotencyKey": {
             "type": "string",
-            "description": "Clave de idempotencia generada por el cliente: repetir la peticiÃ³n no crea otro cobro"
+            "description": "Clave de idempotencia generada por el cliente: repetir la petición no crea otro cobro"
           }
         },
         "required": [
@@ -7902,7 +8057,7 @@
             "type": "number"
           },
           "appliesToPlans": {
-            "description": "CÃ³digos de plan; vacÃ­o = todos los de pago",
+            "description": "Códigos de plan; vacío = todos los de pago",
             "type": "array",
             "items": {
               "type": "string"

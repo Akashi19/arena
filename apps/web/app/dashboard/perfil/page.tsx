@@ -4,7 +4,7 @@ import { api } from '@/lib/api';
 import { requireMe } from '@/lib/session';
 import { ImageUpload } from '@/components/forms';
 import type { OrganizerFull } from '@/lib/types';
-import { BecomeOrganizerForm, OrganizerForm, ProfileForm } from './profile-forms';
+import { BecomeOrganizerForm, OrganizerForm, ProfileForm, SecurityForm } from './profile-forms';
 
 export const metadata: Metadata = { title: 'Perfil y logo' };
 
@@ -55,6 +55,13 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
         <h2 className="text-xl font-bold uppercase">Datos personales</h2>
         <ImageUpload target="avatar" current={me.profile.avatarUrl} label="Foto de perfil / avatar" />
         <ProfileForm me={me} />
+      </section>
+
+      <section className="card space-y-4 p-5" aria-labelledby="security-title">
+        <h2 id="security-title" className="text-xl font-bold uppercase">
+          Seguridad
+        </h2>
+        <SecurityForm />
       </section>
     </div>
   );

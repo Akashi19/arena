@@ -37,7 +37,7 @@ export function LevelVerificationForm({
     );
   }
   return (
-    <form onSubmit={onSubmit} className="grid gap-2 rounded-xl border border-line bg-surface-2 p-3 sm:grid-cols-2">
+    <form method="post" onSubmit={onSubmit} className="grid gap-2 rounded-xl border border-line bg-surface-2 p-3 sm:grid-cols-2">
       <input type="hidden" name="id" value={id} />
       <label className="block sm:col-span-2">
         <span className="label">Fuente externa autorizada</span>

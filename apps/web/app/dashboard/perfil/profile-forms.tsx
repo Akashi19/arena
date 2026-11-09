@@ -1,6 +1,6 @@
 'use client';
 
-import { becomeOrganizerAction, updateOrganizerAction, updateProfileAction } from '@/app/actions';
+import { becomeOrganizerAction, changePasswordAction, logoutAllAction, updateOrganizerAction, updateProfileAction } from '@/app/actions';
 import { COUNTRIES, ORGANIZER_TYPE_LABEL } from '@/lib/format';
 import type { Me, OrganizerFull } from '@/lib/types';
 import { FormMessage, SubmitButton, usePersistentAction } from '@/components/forms';
@@ -10,7 +10,7 @@ const SOCIALS = ['instagram', 'x', 'youtube', 'twitch', 'tiktok', 'facebook', 'd
 export function OrganizerForm({ organizer, canCustomize }: { organizer: OrganizerFull; canCustomize: boolean }) {
   const [state, onSubmit, pending] = usePersistentAction(updateOrganizerAction, {});
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    <form method="post" onSubmit={onSubmit} className="space-y-4">
       <div className="grid gap-4 md:grid-cols-2">
         <label className="block">
           <span className="label">Nombre público *</span>
@@ -66,7 +66,7 @@ export function OrganizerForm({ organizer, canCustomize }: { organizer: Organize
 export function BecomeOrganizerForm({ defaultName }: { defaultName: string }) {
   const [state, onSubmit, pending] = usePersistentAction(becomeOrganizerAction, {});
   return (
-    <form onSubmit={onSubmit} className="grid gap-4 md:grid-cols-2">
+    <form method="post" onSubmit={onSubmit} className="grid gap-4 md:grid-cols-2">
       <label className="block">
         <span className="label">Nombre público *</span>
         <input name="displayName" required minLength={2} defaultValue={defaultName} className="input" />
@@ -94,7 +94,7 @@ export function ProfileForm({ me }: { me: Me }) {
   const p = me.profile;
   const privacy = p.privacy ?? {};
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    <form method="post" onSubmit={onSubmit} className="space-y-4">
       <div className="grid gap-4 md:grid-cols-2">
         <label className="block">
           <span className="label">Nombres</span>
@@ -150,5 +150,45 @@ export function ProfileForm({ me }: { me: Me }) {
       <FormMessage state={state} />
       <SubmitButton pending={pending}>Guardar datos</SubmitButton>
     </form>
+  );
+}
+
+export function SecurityForm() {
+  const [state, onSubmit, pending] = usePersistentAction(changePasswordAction, {});
+  return (
+    <div className="space-y-5">
+      <form method="post" onSubmit={onSubmit} className="space-y-4" key={state.ok ? 'done' : 'edit'}>
+        <div className="grid gap-4 md:grid-cols-3">
+          <label className="block">
+            <span className="label">Contraseña actual</span>
+            <input name="currentPassword" type="password" required autoComplete="current-password" className="input" />
+          </label>
+          <label className="block">
+            <span className="label">Nueva contraseña</span>
+            <input
+              name="newPassword"
+              type="password"
+              required
+              minLength={8}
+              maxLength={72}
+              pattern="(?=.*[A-Za-z])(?=.*\d).+"
+              title="Entre 8 y 72 caracteres, con letras y números"
+              autoComplete="new-password"
+              className="input"
+            />
+          </label>
+          <label className="block">
+            <span className="label">Repite la nueva contraseña</span>
+            <input name="confirmPassword" type="password" required minLength={8} maxLength={72} autoComplete="new-password" className="input" />
+          </label>
+        </div>
+        <FormMessage state={state} />
+        <SubmitButton pending={pending}>Cambiar contraseña</SubmitButton>
+      </form>
+      <form action={logoutAllAction} className="flex flex-wrap items-center gap-3 border-t border-line pt-4">
+        <p className="min-w-0 flex-1 basis-64 text-sm text-muted">¿Usaste tu cuenta en un equipo ajeno? Cierra la sesión en todos los dispositivos, incluido este.</p>
+        <button className="btn-ghost">Cerrar todas las sesiones</button>
+      </form>
+    </div>
   );
 }

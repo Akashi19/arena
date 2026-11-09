@@ -28,7 +28,7 @@ export function TournamentForm({ sports, games, maxParticipantsLimit, initial }:
   const sameGame = initial?.game?.id === gameId;
 
   return (
-    <form onSubmit={onSubmit} className="space-y-6">
+    <form method="post" onSubmit={onSubmit} className="space-y-6">
       {editing && <input type="hidden" name="id" value={initial.id} />}
       {locked && <input type="hidden" name="locked" value="1" />}
       <TzOffsetInput />

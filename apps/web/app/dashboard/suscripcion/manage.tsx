@@ -17,7 +17,7 @@ export function CancelSubscription({ immediate }: { immediate: boolean }) {
       </div>
     );
   return (
-    <form onSubmit={onSubmit} className="w-full space-y-2 rounded-xl border border-danger/40 p-4">
+    <form method="post" onSubmit={onSubmit} className="w-full space-y-2 rounded-xl border border-danger/40 p-4">
       <p className="text-sm">
         {immediate
           ? 'Tu suscripción no tiene un periodo pagado vigente: pasarás al plan Free de inmediato.'
@@ -43,7 +43,7 @@ export function CancelSubscription({ immediate }: { immediate: boolean }) {
 export function ResumeSubscription({ label }: { label: string }) {
   const [state, onSubmit, pending] = usePersistentAction(resumeSubscriptionAction, {});
   return (
-    <form onSubmit={onSubmit} className="space-y-2">
+    <form method="post" onSubmit={onSubmit} className="space-y-2">
       <SubmitButton pending={pending} className="btn-primary px-3 py-1.5 text-sm" pendingText="…">
         {label}
       </SubmitButton>
@@ -55,7 +55,7 @@ export function ResumeSubscription({ label }: { label: string }) {
 export function StartTrial({ planCode, planName, days }: { planCode: string; planName: string; days: number }) {
   const [state, onSubmit, pending] = usePersistentAction(startTrialAction, {});
   return (
-    <form onSubmit={onSubmit} className="space-y-2">
+    <form method="post" onSubmit={onSubmit} className="space-y-2">
       <input type="hidden" name="planCode" value={planCode} />
       <SubmitButton pending={pending} className="btn-ghost px-3 py-1.5 text-sm" pendingText="Activando…">
         Probar {planName} gratis {days} días
@@ -69,7 +69,7 @@ export function StartTrial({ planCode, planName, days }: { planCode: string; pla
 export function SandboxPayment({ paymentId }: { paymentId: string }) {
   const [state, onSubmit, pending] = usePersistentAction(sandboxPaymentAction, {});
   return (
-    <form onSubmit={onSubmit} className="space-y-3">
+    <form method="post" onSubmit={onSubmit} className="space-y-3">
       <input type="hidden" name="paymentId" value={paymentId} />
       <div className="flex flex-wrap gap-2">
         <SubmitButton name="outcome" value="SUCCEEDED" pending={pending} className="btn-primary" pendingText="Procesando…">

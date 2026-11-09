@@ -1,0 +1,119 @@
+# Integración continua: tipos, lint, pruebas (unitarias + integración contra Postgres y S3 reales) y build de imágenes.
+# En main, además, publica las imágenes en GitHub Container Registry (ghcr.io/<owner>/<repo>-api|web).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: 22
+  NEXT_TELEMETRY_DISABLED: 1
+
+jobs:
+  api:
+    name: API · tipos y pruebas
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      # Mismos datos que apps/api/.env.test (base arena_test en el puerto 5433)
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: arena
+          POSTGRES_PASSWORD: arena_dev_password
+          POSTGRES_DB: arena_test
+        ports: ['5433:5432']
+        options: >-
+          --health-cmd "pg_isready -U arena -d arena_test"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      DATABASE_URL: postgresql://arena:arena_dev_password@localhost:5433/arena_test?schema=public
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      # Almacenamiento S3 (las pruebas de verificación suben documentos). Los "services" no aceptan argumentos.
+      - name: Iniciar SeaweedFS
+        run: |
+          docker run -d --name storage -p 8333:8333 \
+            -v "$GITHUB_WORKSPACE/infra/seaweedfs/s3.json:/etc/seaweedfs/s3.json:ro" \
+            chrislusf/seaweedfs:3.97 server -dir=/data -s3 -s3.port=8333 -s3.config=/etc/seaweedfs/s3.json -master.volumeSizeLimitMB=64
+      - run: npm ci
+      - run: npm run prisma:generate -w apps/api
+      - run: npm run typecheck -w apps/api
+      - name: Esperar a SeaweedFS
+        run: |
+          for _ in $(seq 1 60); do curl -s -o /dev/null http://localhost:8333 && exit 0; sleep 1; done
+          docker logs storage; exit 1
+      - name: Migraciones y datos de prueba
+        run: npm run test:db -w apps/api
+      - run: npm test -w apps/api
+      - name: Compilar
+        run: npm run build -w apps/api
+
+  web:
+    name: Web · lint, tipos y build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npm run lint -w apps/web
+      - run: npm run typecheck -w apps/web
+      - run: npm run build -w apps/web
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:4100
+
+  images:
+    name: Imágenes Docker
+    needs: [api, web]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        app: [api, web]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Nombre de la imagen
+        id: meta
+        run: echo "image=ghcr.io/${GITHUB_REPOSITORY,,}-${{ matrix.app }}" >> "$GITHUB_OUTPUT"
+      - name: Iniciar sesión en GHCR
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/${{ matrix.app }}/Dockerfile
+          # La URL pública de la API queda incrustada en el bundle del navegador (variable del repositorio)
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ vars.PUBLIC_API_URL || 'http://localhost:4100' }}
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          tags: |
+            ${{ steps.meta.outputs.image }}:${{ github.sha }}
+            ${{ steps.meta.outputs.image }}:latest
+          cache-from: type=gha,scope=${{ matrix.app }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.app }}

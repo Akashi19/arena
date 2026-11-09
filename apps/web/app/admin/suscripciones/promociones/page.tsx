@@ -13,6 +13,8 @@ export default async function PromotionsPage() {
   const [promos, plans] = await Promise.all([api<PromoCode[]>('/admin/billing/promotions'), api<AdminPlan[]>('/admin/billing/plans')]);
   const paid = plans.filter((p) => Number(p.priceMonthly) > 0);
   const currency = paid[0]?.currency ?? 'USD';
+  // Componente de servidor: se renderiza una vez por solicitud, la hora actual es estable en ese render
+  // eslint-disable-next-line react-hooks/purity
   const now = Date.now();
 
   return (

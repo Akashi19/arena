@@ -32,7 +32,7 @@ export function VerificationActions({ id, status }: { id: string; status: Verifi
   if (!available.length) return <p className="text-sm text-muted">No hay acciones disponibles para el estado actual.</p>;
 
   return (
-    <form onSubmit={onSubmit} className="space-y-3">
+    <form method="post" onSubmit={onSubmit} className="space-y-3">
       <input type="hidden" name="id" value={id} />
       <input type="hidden" name="action" value={selected} />
       <div className="flex flex-wrap gap-2">
@@ -109,7 +109,7 @@ export function OpenPrivateFile({ kind, id, documentId, label }: { kind: 'verifi
 export function MaintenanceButton() {
   const [state, onSubmit, pending] = usePersistentAction(runVerificationMaintenanceAction, {});
   return (
-    <form onSubmit={onSubmit} className="flex flex-wrap items-center gap-3">
+    <form method="post" onSubmit={onSubmit} className="flex flex-wrap items-center gap-3">
       <SubmitButton pending={pending} className="btn-ghost text-xs" pendingText="Procesando…">
         Procesar vencimientos y conservación
       </SubmitButton>
@@ -121,7 +121,7 @@ export function MaintenanceButton() {
 export function ModerationForm({ id }: { id: string }) {
   const [state, onSubmit, pending] = usePersistentAction(moderateRatingAction, {});
   return (
-    <form onSubmit={onSubmit} className="flex flex-wrap items-end gap-2">
+    <form method="post" onSubmit={onSubmit} className="flex flex-wrap items-end gap-2">
       <input type="hidden" name="id" value={id} />
       <label className="block min-w-48 flex-1">
         <span className="label">Justificación (obligatoria, queda en auditoría)</span>
@@ -146,7 +146,7 @@ export function ModerationForm({ id }: { id: string }) {
 export function ResolveIncidentForm({ id }: { id: string }) {
   const [state, onSubmit, pending] = usePersistentAction(resolveIncidentAction, {});
   return (
-    <form onSubmit={onSubmit} className="space-y-2">
+    <form method="post" onSubmit={onSubmit} className="space-y-2">
       <input type="hidden" name="id" value={id} />
       <label className="block">
         <span className="label">Resolución administrativa (pública si se confirma)</span>
@@ -171,7 +171,7 @@ export function ResolveIncidentForm({ id }: { id: string }) {
 export function CancellationForm({ id }: { id: string }) {
   const [state, onSubmit, pending] = usePersistentAction(reviewCancellationAction, {});
   return (
-    <form onSubmit={onSubmit} className="flex flex-wrap items-end gap-2">
+    <form method="post" onSubmit={onSubmit} className="flex flex-wrap items-end gap-2">
       <input type="hidden" name="id" value={id} />
       <label className="block min-w-48 flex-1">
         <span className="label">Justificación</span>

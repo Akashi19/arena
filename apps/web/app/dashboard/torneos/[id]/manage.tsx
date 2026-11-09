@@ -222,7 +222,7 @@ export function MvpForm({
 }) {
   const [state, onSubmit, pending] = usePersistentAction(setMvpAction, {});
   return (
-    <form onSubmit={onSubmit} className="card space-y-2 p-4">
+    <form method="post" onSubmit={onSubmit} className="card space-y-2 p-4">
       <input type="hidden" name="tournamentId" value={tournamentId} />
       <input type="hidden" name="slug" value={slug} />
       <label className="block">

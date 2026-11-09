@@ -170,6 +170,22 @@ reportes de resultados incorrectos.
 - Retirar a un integrante conserva el historial (`left_at`); un equipo que ya compitió se archiva en vez de borrarse.
 - La verificación, la reputación y el ranking no dependen del plan contratado.
 
+### Estadísticas (fase 6)
+
+- `dashboard/stats.ts` agrega todo en Postgres con SQL parametrizado; el mismo servicio sirve al organizador (filtrado
+  por `organizer_id`) y a SUPERADMIN (sin filtro). Las funciones de periodo, ratio, variación y CSV son puras y tienen
+  pruebas.
+- **Periodo:** N meses calendario en UTC que incluyen el mes en curso, comparados con los N meses anteriores.
+  Inscripciones y encuentros cuentan hasta hoy; las partidas se fechan por su inicio (o su cierre si terminó antes) y
+  cuentan hasta el fin del mes en curso.
+- **Definiciones:** aprobación = aprobadas / (aprobadas + rechazadas); ocupación = inscritos aprobados / cupos de las
+  partidas del periodo (sin borradores ni canceladas); encuentro jugado = `COMPLETED` con dos participantes, fechado por
+  su primer resultado validado; participante = equipo o jugador; nuevo = primera inscripción aprobada con el organizador
+  dentro del periodo; recurrente = jugó más de una partida del organizador. Un ratio sin base es `null` (se muestra «—»).
+- **Planes:** estadísticas avanzadas con `ADVANCED_STATS`, exportación con `EXPORT_REPORTS` (PRO y BUSINESS) y reporte
+  ejecutivo con `EXECUTIVE_REPORTS` (BUSINESS), validados en la API. La web descarga el CSV mediante una ruta
+  (`/dashboard/estadisticas/exportar/[kind]`) que adjunta el JWT de la cookie httpOnly.
+
 ### Fixture, resultados y clasificación
 
 - El fixture se genera con la partida **en curso** a partir de los inscritos aprobados, en orden de siembra (o

@@ -110,7 +110,12 @@ export default async function DashboardPage() {
 
       <div className="grid gap-6 xl:grid-cols-2">
         <section className="card p-5">
-          <h2 className="mb-4 text-lg font-bold uppercase">Inscripciones por mes</h2>
+          <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-lg font-bold uppercase">Inscripciones por mes</h2>
+            <Link href="/dashboard/estadisticas" className="text-sm font-semibold text-neon hover:underline">
+              Estadísticas avanzadas →
+            </Link>
+          </div>
           {d.registrationsByMonth.length ? (
             <div className="flex h-44 items-end gap-2" role="img" aria-label="Gráfico de inscripciones por mes">
               {d.registrationsByMonth.map((m) => (

@@ -26,7 +26,12 @@ export function NotificationBell({ initialUnread, token }: { initialUnread: numb
   const [toast, setToast] = useState<{ title: string; body: string; link?: string } | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  useEffect(() => setUnread(initialUnread), [initialUnread]);
+  // Sincroniza el contador cuando el servidor envía otro valor inicial (al navegar)
+  const [lastInitial, setLastInitial] = useState(initialUnread);
+  if (lastInitial !== initialUnread) {
+    setLastInitial(initialUnread);
+    setUnread(initialUnread);
+  }
 
   useEffect(() => {
     if (!token) return;

@@ -17,7 +17,7 @@ export interface GameOption {
 export function PlayerSettingsForm({ player }: { player: MyPlayer }) {
   const [state, onSubmit, pending] = usePersistentAction(updatePlayerAction, {});
   return (
-    <form onSubmit={onSubmit} className="card grid gap-3 p-5 sm:grid-cols-2 lg:grid-cols-4">
+    <form method="post" onSubmit={onSubmit} className="card grid gap-3 p-5 sm:grid-cols-2 lg:grid-cols-4">
       <label className="block">
         <span className="label">Estado</span>
         <select name="recruitmentStatus" defaultValue={player.recruitmentStatus === 'LOOKING_FOR_TEAM' ? 'LOOKING_FOR_TEAM' : 'NOT_LOOKING'} className="input">
@@ -59,7 +59,7 @@ export function GameProfileForm({ games, profile }: { games: GameOption[]; profi
   if (!profile && !games.length) return <p className="text-sm text-muted">Ya agregaste todos los videojuegos disponibles.</p>;
 
   return (
-    <form ref={formRef} onSubmit={onSubmit} className="grid gap-3 sm:grid-cols-2">
+    <form method="post" ref={formRef} onSubmit={onSubmit} className="grid gap-3 sm:grid-cols-2">
       {profile ? (
         <input type="hidden" name="id" value={profile.id} />
       ) : (
@@ -146,7 +146,7 @@ export function GameProfileForm({ games, profile }: { games: GameOption[]; profi
 export function RemoveGameButton({ id, name }: { id: string; name: string }) {
   const [state, onSubmit, pending] = usePersistentAction(removeGameProfileAction, {});
   return (
-    <form
+    <form method="post"
       onSubmit={(e) => {
         if (!confirm(`¿Retirar ${name} de tu perfil? Tus estadísticas e historial se conservan.`)) {
           e.preventDefault();
@@ -169,7 +169,7 @@ export function RemoveGameButton({ id, name }: { id: string; name: string }) {
 export function MoveGameButtons({ id, order, index }: { id: string; order: string[]; index: number }) {
   const [state, onSubmit, pending] = usePersistentAction(moveGameProfileAction, {});
   return (
-    <form onSubmit={onSubmit} className="flex items-center gap-1">
+    <form method="post" onSubmit={onSubmit} className="flex items-center gap-1">
       <input type="hidden" name="id" value={id} />
       <input type="hidden" name="order" value={order.join(',')} />
       <button name="direction" value="up" disabled={pending || index === 0} className="btn-ghost p-1.5 disabled:opacity-30" aria-label="Subir en el orden">
