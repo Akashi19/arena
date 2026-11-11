@@ -67,7 +67,7 @@ services:
       API_INTERNAL_URL: http://api:4100
       NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:4100}
     ports:
-      - "${WEB_PORT:-3100}:3000"
+      - "${WEB_PORT:-3000}:3000"
 
 volumes:
   db_data:
