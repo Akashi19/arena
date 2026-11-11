@@ -23,8 +23,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main className="mx-auto w-full max-w-7xl px-4 pb-20 pt-6 sm:px-6 lg:px-8">{children}</main>
         <footer className="border-t border-line/60 py-8 text-center text-xs text-muted">
           <p>
-            Arena · Plataforma de torneos deportivos y eSports. Las cuotas de inscripción son importes informativos fijados por cada
-            organizador: no se trata de apuestas ni cuotas de pronóstico.
+            Arena · Plataforma de torneos deportivos y eSports. Las cuotas de inscripción las fija cada organizador y, cuando se pagan en
+            línea, llegan directo a su cuenta de Mercado Pago: no se trata de apuestas ni cuotas de pronóstico.
           </p>
           <p className="mt-2 flex justify-center gap-4">
             <Link href="/torneos" className="hover:text-neon">Torneos</Link>

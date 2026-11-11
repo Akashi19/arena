@@ -10,6 +10,7 @@ export const metadata: Metadata = { title: 'Mis inscripciones' };
 
 const LABEL: Record<RegistrationStatus, [string, string]> = {
   PENDING: ['Pendiente', 'text-amber'],
+  PAYMENT_PENDING: ['Pago pendiente', 'text-amber'],
   APPROVED: ['Aprobada', 'text-lime'],
   REJECTED: ['Rechazada', 'text-danger'],
   WITHDRAWN: ['Retirada', 'text-muted'],
@@ -17,7 +18,7 @@ const LABEL: Record<RegistrationStatus, [string, string]> = {
 
 export default async function MyRegistrationsPage() {
   await requireMe('/dashboard/inscripciones');
-  const regs = await api<{ id: string; status: RegistrationStatus; team: { name: string } | null; tournament: TournamentCard }[]>('/me/registrations');
+  const regs = await api<{ id: string; status: RegistrationStatus; team: { name: string } | null; payments: { id: string }[]; tournament: TournamentCard }[]>('/me/registrations');
   return (
     <div className="space-y-5">
       <h1 className="section-title">Mis inscripciones</h1>
@@ -40,6 +41,11 @@ export default async function MyRegistrationsPage() {
               </div>
               <OrganizerTag organizer={r.tournament.organizer} />
               <span className={`text-sm font-semibold ${LABEL[r.status][1]}`}>{LABEL[r.status][0]}</span>
+              {r.status === 'PAYMENT_PENDING' && r.payments[0] && (
+                <Link href={`/inscripciones/pago/${r.payments[0].id}`} className="btn-primary px-3 py-1.5 text-sm">
+                  Completar pago
+                </Link>
+              )}
             </li>
           ))}
         </ul>

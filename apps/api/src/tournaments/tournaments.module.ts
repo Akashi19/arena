@@ -13,6 +13,7 @@ import {
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
+import { RegistrationPaymentsModule } from '../payments/registration-payments.js';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { AuthUser, CurrentUser, Public, Roles } from '../common/decorators/auth.decorators.js';
@@ -142,5 +143,5 @@ export class TournamentsController {
   }
 }
 
-@Module({ imports: [MatchesModule], controllers: [TournamentsController], providers: [TournamentsService], exports: [TournamentsService] })
+@Module({ imports: [MatchesModule, RegistrationPaymentsModule], controllers: [TournamentsController], providers: [TournamentsService], exports: [TournamentsService] })
 export class TournamentsModule {}

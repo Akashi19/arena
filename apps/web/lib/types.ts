@@ -12,7 +12,7 @@ export type TournamentStatus = 'DRAFT' | 'OPEN' | 'IN_PROGRESS' | 'FINISHED' | '
 export type TournamentMode = 'INDIVIDUAL' | 'TEAM';
 export type TournamentFormat = 'SINGLE_ELIMINATION' | 'DOUBLE_ELIMINATION' | 'ROUND_ROBIN' | 'GROUPS' | 'GROUPS_PLAYOFFS';
 export type Category = 'SPORT' | 'ESPORT';
-export type RegistrationStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'WITHDRAWN';
+export type RegistrationStatus = 'PENDING' | 'PAYMENT_PENDING' | 'APPROVED' | 'REJECTED' | 'WITHDRAWN';
 export type CompetitiveLevel = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'EXPERT' | 'PROFESSIONAL';
 
 export interface Paginated<T> {
@@ -72,6 +72,7 @@ export interface TournamentCard {
   city: string | null;
   entryFee: string;
   currency: string;
+  collectOnline?: boolean;
   coverUrl: string | null;
   platform: string | null;
   isFeatured: boolean;
@@ -115,7 +116,7 @@ export interface TournamentDetail extends TournamentCard {
   registrations: Participant[];
   registrationOpen: boolean;
   organizerHistory: Partial<Record<'FINISHED' | 'CANCELLED', number>>;
-  viewer: { canManage: boolean; myRegistration: { id: string; status: RegistrationStatus; teamId: string | null } | null } | null;
+  viewer: { canManage: boolean; myRegistration: { id: string; status: RegistrationStatus; teamId: string | null; pendingPaymentId: string | null } | null } | null;
 }
 
 export interface Me {
@@ -872,6 +873,7 @@ export interface AdminPlan {
   maxAdmins: number;
   trialDays: number;
   graceDays: number;
+  registrationFeePercent: string;
   status: 'ACTIVE' | 'INACTIVE';
   sortOrder: number;
   features: { featureKey: string; enabled: boolean }[];
@@ -1004,4 +1006,56 @@ export interface PlatformStats extends StatsOverview {
   tournamentsByStatus: Partial<Record<TournamentStatus, number>>;
   tournamentsByCategory: Partial<Record<'SPORT' | 'ESPORT', number>>;
   topOrganizers: { id: string; displayName: string; username: string; tournaments: number; participants: number; matchesPlayed: number }[];
+}
+
+// ---------------------------------------------------------------------------------------------
+// Cobro de inscripciones en línea (Mercado Pago del organizador)
+// ---------------------------------------------------------------------------------------------
+
+export type RegistrationPaymentStatus = 'PENDING' | 'SUCCEEDED' | 'FAILED' | 'REFUNDED' | 'CANCELLED';
+
+export interface PaymentAccountInfo {
+  account: {
+    id: string;
+    provider: 'MERCADOPAGO' | 'SANDBOX';
+    status: 'CONNECTED' | 'NEEDS_RECONNECT' | 'DISCONNECTED';
+    externalUserId: string | null;
+    liveMode: boolean;
+    connectedAt: string;
+    tokenExpiresAt: string | null;
+    lastError: string | null;
+  } | null;
+  canCollect: boolean;
+  providers: { mercadopago: boolean; sandbox: boolean };
+  feePercent: number;
+  plan: string;
+  holdMinutes: number;
+}
+
+export interface RegistrationPaymentView {
+  id: string;
+  status: RegistrationPaymentStatus;
+  provider: 'MERCADOPAGO' | 'SANDBOX';
+  amount: number;
+  currency: string;
+  feePercent: number;
+  platformFee: number;
+  checkoutUrl: string | null;
+  expiresAt: string;
+  paidAt: string | null;
+  refundedAt: string | null;
+  refundReason: string | null;
+  failureReason: string | null;
+  createdAt: string;
+  participant: string | null;
+  expired: boolean;
+  sandbox?: boolean;
+  tournament: { id: string; name: string; slug: string; status: TournamentStatus };
+  registration: { id: string; status: RegistrationStatus };
+  payer: { username: string };
+  organizer?: { displayName: string };
+}
+
+export interface RegistrationPaymentList extends Paginated<RegistrationPaymentView> {
+  totals: { currency: string; payments: number; gross: number; fee: number; net: number }[];
 }

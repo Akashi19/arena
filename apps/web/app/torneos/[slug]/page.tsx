@@ -269,6 +269,7 @@ export default async function TournamentPage({ params }: Props) {
               mode: t.mode,
               entryFee: t.entryFee,
               currency: t.currency,
+              collectOnline: !!t.collectOnline,
               rules: t.rules,
               refundPolicy: t.refundPolicy,
               registrationOpen: t.registrationOpen,

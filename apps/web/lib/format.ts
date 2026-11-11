@@ -287,3 +287,11 @@ export function formatChange(v: number | null | undefined) {
 
 export const STATS_PERIOD_LABEL: Record<number, string> = { 1: 'Este mes', 3: 'Últimos 3 meses', 6: 'Últimos 6 meses', 12: 'Últimos 12 meses' };
 export const CATEGORY_LABEL: Record<string, string> = { SPORT: 'Deportes', ESPORT: 'eSports' };
+
+export const REGISTRATION_PAYMENT_STATUS_LABEL: Record<string, string> = {
+  PENDING: 'Pendiente',
+  SUCCEEDED: 'Pagado',
+  FAILED: 'Fallido',
+  REFUNDED: 'Reembolsado',
+  CANCELLED: 'Anulado',
+};

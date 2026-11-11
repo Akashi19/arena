@@ -7,6 +7,7 @@ const TABS = [
   { href: '/admin/suscripciones', label: 'Métricas' },
   { href: '/admin/suscripciones/suscriptores', label: 'Suscriptores' },
   { href: '/admin/suscripciones/pagos', label: 'Pagos' },
+  { href: '/admin/suscripciones/inscripciones', label: 'Inscripciones cobradas' },
   { href: '/admin/suscripciones/planes', label: 'Planes' },
   { href: '/admin/suscripciones/promociones', label: 'Promociones' },
 ];

@@ -61,6 +61,7 @@ function PlanForm({ plan }: { plan?: AdminPlan }) {
         <Field label="Administradores" name="maxAdmins" type="number" min="1" defaultValue={plan?.maxAdmins ?? 1} required />
         <Field label="Días de prueba" name="trialDays" type="number" min="0" max="90" defaultValue={plan?.trialDays ?? 0} disabled={free} />
         <Field label="Días de gracia" name="graceDays" type="number" min="0" max="60" defaultValue={plan?.graceDays ?? 7} />
+        <Field label="Comisión por inscripción cobrada (%)" name="registrationFeePercent" type="number" step="0.01" min="0" max="30" defaultValue={plan ? Number(plan.registrationFeePercent) : 0} />
         <Field label="Orden" name="sortOrder" type="number" min="0" defaultValue={plan?.sortOrder ?? 10} />
       </div>
       <label className="block">

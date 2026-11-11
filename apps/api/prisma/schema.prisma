@@ -66,6 +66,7 @@ enum TournamentStatus {
 
 enum RegistrationStatus {
   PENDING
+  PAYMENT_PENDING // cupo reservado mientras el jugador completa el pago en línea
   APPROVED
   REJECTED
   WITHDRAWN
@@ -334,6 +335,7 @@ model User {
   incidentsReviewed      OrganizerIncident[]      @relation("IncidentReviewer")
   subscriptionChanges    SubscriptionHistory[]
   subscriptionPayments   SubscriptionPayment[]    @relation("PaymentCreatedBy")
+  registrationPayments   RegistrationPayment[]    @relation("RegistrationPayer")
   rankingAudits          RankingAuditLog[]
   resultReports          RankingResultReport[]    @relation("ResultReporter")
   streamsCreated         MatchStream[]
@@ -387,17 +389,19 @@ model OrganizerProfile {
   createdAt          DateTime           @default(now()) @map("created_at")
   updatedAt          DateTime           @updatedAt @map("updated_at")
 
-  user          User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  members       OrganizerMember[]
-  competitions  Competition[]
-  tournaments   Tournament[]
-  subscriptions Subscription[]
-  featureUsage  FeatureUsage[]
-  verifications OrganizerVerification[]
-  ratings       OrganizerRating[]
-  responses     OrganizerResponse[]
-  reputation    OrganizerReputation?
-  incidents     OrganizerIncident[]
+  user                 User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  members              OrganizerMember[]
+  competitions         Competition[]
+  tournaments          Tournament[]
+  subscriptions        Subscription[]
+  featureUsage         FeatureUsage[]
+  verifications        OrganizerVerification[]
+  ratings              OrganizerRating[]
+  responses            OrganizerResponse[]
+  reputation           OrganizerReputation?
+  incidents            OrganizerIncident[]
+  paymentAccount       OrganizerPaymentAccount?
+  registrationPayments RegistrationPayment[]
 
   @@index([verificationStatus])
   @@index([country, city])
@@ -554,6 +558,8 @@ model Tournament {
   tier                   Int                @default(1) // nivel del torneo para ranking (1..5)
   isRanked               Boolean            @default(true) @map("is_ranked")
   isFeatured             Boolean            @default(false) @map("is_featured")
+  // Cobro en línea de la cuota con la cuenta de Mercado Pago del organizador (si no, la cuota es informativa)
+  collectOnline          Boolean            @default(false) @map("collect_online")
   cancelledReason        String?            @map("cancelled_reason")
   cancellationJustified  Boolean?           @map("cancellation_justified")
   championRegistrationId String?            @unique @map("champion_registration_id") @db.Uuid
@@ -568,6 +574,7 @@ model Tournament {
   minRank       GameRank?                @relation("TournamentMinRank", fields: [minRankId], references: [id])
   maxRank       GameRank?                @relation("TournamentMaxRank", fields: [maxRankId], references: [id])
   champion      TournamentRegistration?  @relation("TournamentChampion", fields: [championRegistrationId], references: [id])
+  payments      RegistrationPayment[]
   mvp           Player?                  @relation("TournamentMvp", fields: [mvpPlayerId], references: [id], onDelete: SetNull)
   registrations TournamentRegistration[] @relation("TournamentRegistrations")
   matches       Match[]
@@ -721,14 +728,15 @@ model TournamentRegistration {
   createdAt              DateTime           @default(now()) @map("created_at")
   updatedAt              DateTime           @updatedAt @map("updated_at")
 
-  tournament   Tournament           @relation("TournamentRegistrations", fields: [tournamentId], references: [id], onDelete: Cascade)
-  team         Team?                @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  player       Player?              @relation(fields: [playerId], references: [id], onDelete: Cascade)
-  requestedBy  User                 @relation("RegistrationRequester", fields: [requestedById], references: [id])
-  championOf   Tournament?          @relation("TournamentChampion")
+  tournament   Tournament            @relation("TournamentRegistrations", fields: [tournamentId], references: [id], onDelete: Cascade)
+  team         Team?                 @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  player       Player?               @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  requestedBy  User                  @relation("RegistrationRequester", fields: [requestedById], references: [id])
+  championOf   Tournament?           @relation("TournamentChampion")
   participants MatchParticipant[]
   standings    TournamentStanding[]
-  wonResults   MatchResult[]        @relation("ResultWinner")
+  wonResults   MatchResult[]         @relation("ResultWinner")
+  payments     RegistrationPayment[]
 
   // Una inscripción por equipo/jugador y torneo (NULLs distintos en Postgres: se refuerza en servicio)
   @@unique([tournamentId, teamId])
@@ -939,6 +947,8 @@ model SubscriptionPlan {
   maxAdmins                    Int        @map("max_admins")
   trialDays                    Int        @default(0) @map("trial_days")
   graceDays                    Int        @default(7) @map("grace_days")
+  // Comisión de Arena sobre cada inscripción cobrada en línea (marketplace_fee de Mercado Pago)
+  registrationFeePercent       Decimal    @default(0) @map("registration_fee_percent") @db.Decimal(5, 2)
   status                       PlanStatus @default(ACTIVE)
   sortOrder                    Int        @default(0) @map("sort_order")
   createdAt                    DateTime   @default(now()) @map("created_at")
@@ -1667,4 +1677,72 @@ model MatchStreamHistory {
 
   @@index([matchStreamId, createdAt])
   @@map("match_stream_history")
+}
+
+enum PaymentAccountStatus {
+  CONNECTED
+  NEEDS_RECONNECT // el token venció o fue revocado: el organizador debe volver a conectar
+  DISCONNECTED
+}
+
+/// Cuenta de cobro del organizador (Mercado Pago vía OAuth de marketplace). Los tokens se guardan cifrados.
+model OrganizerPaymentAccount {
+  id              String               @id @default(uuid()) @db.Uuid
+  organizerId     String               @unique @map("organizer_id") @db.Uuid
+  provider        PaymentProvider
+  status          PaymentAccountStatus @default(CONNECTED)
+  externalUserId  String               @map("external_user_id")
+  publicKey       String?              @map("public_key")
+  accessTokenEnc  String               @map("access_token_enc")
+  refreshTokenEnc String?              @map("refresh_token_enc")
+  tokenExpiresAt  DateTime?            @map("token_expires_at")
+  liveMode        Boolean              @default(false) @map("live_mode")
+  lastError       String?              @map("last_error")
+  connectedById   String?              @map("connected_by_id") @db.Uuid
+  connectedAt     DateTime             @default(now()) @map("connected_at")
+  updatedAt       DateTime             @updatedAt @map("updated_at")
+
+  organizer OrganizerProfile      @relation(fields: [organizerId], references: [id], onDelete: Cascade)
+  payments  RegistrationPayment[]
+
+  @@index([provider, externalUserId])
+  @@map("organizer_payment_accounts")
+}
+
+/// Pago en línea de una inscripción. El dinero va a la cuenta del organizador; Arena retiene platformFee.
+model RegistrationPayment {
+  id                   String          @id @default(uuid()) @db.Uuid
+  registrationId       String          @map("registration_id") @db.Uuid
+  tournamentId         String          @map("tournament_id") @db.Uuid
+  organizerId          String          @map("organizer_id") @db.Uuid
+  accountId            String?         @map("account_id") @db.Uuid
+  payerId              String          @map("payer_id") @db.Uuid
+  provider             PaymentProvider
+  status               PaymentStatus   @default(PENDING)
+  amount               Decimal         @db.Decimal(12, 2)
+  currency             String          @db.Char(3)
+  feePercent           Decimal         @default(0) @map("fee_percent") @db.Decimal(5, 2)
+  platformFee          Decimal         @default(0) @map("platform_fee") @db.Decimal(12, 2)
+  idempotencyKey       String          @unique @map("idempotency_key")
+  providerPreferenceId String?         @map("provider_preference_id")
+  providerPaymentId    String?         @map("provider_payment_id")
+  checkoutUrl          String?         @map("checkout_url")
+  expiresAt            DateTime        @map("expires_at")
+  paidAt               DateTime?       @map("paid_at")
+  refundedAt           DateTime?       @map("refunded_at")
+  refundReason         String?         @map("refund_reason")
+  failureReason        String?         @map("failure_reason")
+  createdAt            DateTime        @default(now()) @map("created_at")
+  updatedAt            DateTime        @updatedAt @map("updated_at")
+
+  registration TournamentRegistration   @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  tournament   Tournament               @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  organizer    OrganizerProfile         @relation(fields: [organizerId], references: [id], onDelete: Cascade)
+  account      OrganizerPaymentAccount? @relation(fields: [accountId], references: [id], onDelete: SetNull)
+  payer        User                     @relation("RegistrationPayer", fields: [payerId], references: [id])
+
+  @@index([registrationId])
+  @@index([organizerId, status])
+  @@index([status, expiresAt])
+  @@map("registration_payments")
 }

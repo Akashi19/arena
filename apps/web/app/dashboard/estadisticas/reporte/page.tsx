@@ -268,8 +268,8 @@ export default async function ExecutiveReportPage({ searchParams }: { searchPara
         </section>
 
         <footer className="border-t border-line pt-4 text-xs text-muted print:text-black/60">
-          Datos calculados por Arena a partir de inscripciones y resultados oficiales. Las cuotas de inscripción son informativas y no se incluyen
-          como ingresos.
+          Datos calculados por Arena a partir de inscripciones y resultados oficiales. Los cobros de inscripciones en línea se detallan en
+          «Cobros».
         </footer>
       </article>
     </div>

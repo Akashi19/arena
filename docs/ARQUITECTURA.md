@@ -137,8 +137,9 @@ reportes de resultados incorrectos.
 
 ### Suscripciones y pagos (módulo 17)
 
-- **Solo pagos de la plataforma:** `subscription_payments` cobra la suscripción del organizador; las cuotas de
-  inscripción de los torneos son informativas y nunca pasan por este módulo.
+- **Solo pagos de la plataforma:** `subscription_payments` cobra la suscripción del organizador con la cuenta de Arena.
+  Las cuotas de inscripción nunca pasan por este módulo: si se cobran en línea, lo hace el módulo de cobros con la
+  cuenta del organizador (sección siguiente).
 - **El organizador no fija su plan:** el plan solo cambia al confirmarse un pago (webhook o pago de prueba), al
   aplicarse un cambio programado o por el ciclo de vida. Los DTO no aceptan `status` ni `planId`.
 - **Cotización** (`billing/pricing.ts`, funciones puras con pruebas): subir de plan o pasar de mensual a anual cobra de
@@ -169,6 +170,35 @@ reportes de resultados incorrectos.
 - El organizador no puede inscribirse en su propia partida; la inscripción exige aceptar reglamento y condiciones.
 - Retirar a un integrante conserva el historial (`left_at`); un equipo que ya compitió se archiva en vez de borrarse.
 - La verificación, la reputación y el ranking no dependen del plan contratado.
+
+### Cobro de inscripciones (Mercado Pago del organizador)
+
+- **El dinero no pasa por Arena:** cada organizador conecta su cuenta con el OAuth de marketplace de Mercado Pago
+  (`organizer_payment_accounts`); el checkout se crea con su token, el pago se acredita en su cuenta y Arena cobra su
+  comisión con `marketplace_fee` (porcentaje `registration_fee_percent` del plan, fijado por SUPERADMIN). Los tokens se
+  guardan cifrados con AES-256-GCM (`PAYMENTS_ENCRYPTION_KEY`) y se renuevan solos antes de vencer; si Mercado Pago los
+  revoca, la cuenta pasa a `NEEDS_RECONNECT` y se avisa al organizador.
+- **OAuth:** el `state` va firmado (HMAC) y atado al organizador y al usuario que inició la conexión, con 15 minutos de
+  vigencia; la vuelta (`/dashboard/cobros/mercadopago`) canjea el código en la API con la sesión del organizador.
+- **Partidas:** `collect_online` exige cuota mayor que cero y la cuenta conectada. Sin cobro en línea la cuota sigue
+  siendo informativa y el flujo de aprobación manual no cambia. Desconectar la cuenta apaga el cobro de todas sus
+  partidas; con pagos en curso no se puede cambiar la cuota ni la moneda.
+- **Reserva de cupo:** inscribirse crea la inscripción `PAYMENT_PENDING` y un `registration_payments` `PENDING` bajo un
+  candado por partida (`pg_advisory_xact_lock`); los cupos cuentan aprobadas más pagos en curso. La reserva dura
+  `REGISTRATION_PAYMENT_HOLD_MINUTES` (30 por defecto), igual que la preferencia de Mercado Pago; repetir la solicitud
+  devuelve el mismo enlace y hay un solo pago pendiente por inscripción (índice único parcial).
+- **Resultado:** el pago aprobado aprueba la inscripción; uno rechazado deja reintentar mientras dure la reserva; una
+  reserva vencida se anula cada minuto y libera el cupo. Si Mercado Pago confirma un pago ya vencido, se aprueba solo si
+  aún hay cupo y, si no, se reembolsa automáticamente.
+- **Reembolsos:** rechazar una inscripción pagada la reembolsa antes de cambiar su estado; el organizador también puede
+  reembolsar desde «Cobros». Retirarse anula el pago en curso; un pago confirmado se devuelve según la política del
+  organizador. Los reembolsos y contracargos notificados por Mercado Pago retiran la inscripción si la partida sigue
+  abierta.
+- **Webhook** (`/api/registration-payments/webhooks/mercadopago?ref=<pago>`): firma `x-signature` con el secreto de la
+  aplicación, consulta del pago real con el token del organizador, verificación de referencia, importe y moneda, y
+  deduplicación en `payment_webhook_events` por pago y estado.
+- **Pruebas:** con `BILLING_SANDBOX` el organizador puede usar una cuenta de prueba y el jugador aprueba o rechaza el pago
+  en `/inscripciones/pago/:id`, recorriendo el mismo procesamiento.
 
 ### Estadísticas (fase 6)
 

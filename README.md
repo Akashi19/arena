@@ -5,8 +5,10 @@ Cada organizador tiene su propio espacio con identidad visual (logo, color, bann
 los participantes descubren competiciones, consultan la **verificación** y la **reputación** del organizador y
 solicitan su inscripción.
 
-> Las cuotas de inscripción son **importes informativos** fijados por cada organizador. La plataforma no procesa
-> apuestas, cuotas de pronóstico ni retiros de dinero. Los pagos de suscripción SaaS están separados por completo.
+> Las cuotas de inscripción las fija cada organizador. Son **informativas** salvo que el organizador active el **cobro en
+> línea**: entonces el jugador paga al inscribirse con Mercado Pago y el dinero llega directo a la cuenta del organizador
+> (Arena solo retiene la comisión de su plan). La plataforma no procesa apuestas, cuotas de pronóstico ni retiros de
+> dinero. Los pagos de suscripción SaaS están separados por completo.
 
 ## Estado del desarrollo
 
@@ -21,6 +23,7 @@ solicitan su inscripción.
 | 6 | Dashboard y estadísticas | ✅ KPIs del organizador; estadísticas avanzadas (PRO) con comparación de periodos, ocupación, aprobación, participantes nuevos y recurrentes, disciplinas, formatos, victorias y avance de cada fixture; exportación CSV (PRO), reporte ejecutivo imprimible (BUSINESS) y estadísticas globales para SUPERADMIN |
 | 7 | Seguridad, pruebas y despliegue | ✅ pruebas unitarias e integración, ESLint, CI en GitHub Actions (tipos, lint, pruebas contra Postgres y S3, build y publicación de imágenes en GHCR), stack de producción con Caddy (HTTPS automático), migraciones y datos base por despliegue, copias diarias, despliegue y vuelta atrás por SSH, cambio de contraseña y cierre de todas las sesiones |
 | 17 | SaaS: planes, suscripciones y pagos | ✅ feature flags y límites en backend, contratación y cambio de plan con cotización (cupones y saldo no usado), pago con Stripe, Mercado Pago o pago de prueba, webhooks firmados e idempotentes, prueba gratuita, renovación, periodo de gracia, vencimiento y avisos, comprobantes, historial y panel SUPERADMIN (planes, precios, límites, promociones, suscriptores, pagos y métricas MRR / ARR / ARPU / churn / conversión) |
+| Cobros | Inscripciones pagadas con Mercado Pago | ✅ cuenta del organizador conectada por OAuth (tokens cifrados), cupo reservado mientras se paga, aprobación automática al confirmarse el pago, vencimiento de reservas, reembolso al rechazar o desde «Cobros», pagos tardíos sin cupo reembolsados solos, comisión de Arena por plan (`marketplace_fee`), webhook firmado e idempotente, cuenta y pagos de prueba |
 | 18-20 | Verificación, reputación y Trust & Reputation System | ✅ solicitudes con documentos privados y revisión SUPERADMIN (vencimiento y conservación automáticos), valoraciones con edición, respuestas, reportes y moderación, incidencias, motor de reputación, centro de confianza público y dashboard de confianza |
 | 21 | Perfiles gamer y niveles competitivos | ✅ perfiles por videojuego (orden, principal, favorito), nivel declarado / verificado por la plataforma / verificado externamente con historial, comparador, búsqueda de reclutamiento e invitaciones de equipos, requisitos de nivel y rango en las partidas, logros por eventos (MVP, tres títulos consecutivos) |
 | 22 | Ranking global de jugadores y equipos | ✅ motor de puntuación idempotente y versionado, rankings global, nacional, por temporada e histórico, temporadas con campeones, evolución por snapshots, comparador, perfiles competitivos, reportes de resultados y panel SUPERADMIN auditado |

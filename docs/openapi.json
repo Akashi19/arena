@@ -100,7 +100,7 @@
           }
         },
         "tags": [
-          "Planes y suscripción"
+          "Planes y suscripciÃ³n"
         ]
       }
     },
@@ -124,7 +124,7 @@
           }
         },
         "tags": [
-          "Autenticación"
+          "AutenticaciÃ³n"
         ]
       }
     },
@@ -148,7 +148,7 @@
           }
         },
         "tags": [
-          "Autenticación"
+          "AutenticaciÃ³n"
         ]
       }
     },
@@ -172,7 +172,7 @@
           }
         },
         "tags": [
-          "Autenticación"
+          "AutenticaciÃ³n"
         ]
       }
     },
@@ -191,7 +191,7 @@
           }
         ],
         "tags": [
-          "Autenticación"
+          "AutenticaciÃ³n"
         ]
       }
     },
@@ -220,7 +220,7 @@
           }
         ],
         "tags": [
-          "Autenticación"
+          "AutenticaciÃ³n"
         ]
       }
     },
@@ -239,7 +239,7 @@
           }
         ],
         "tags": [
-          "Autenticación"
+          "AutenticaciÃ³n"
         ]
       }
     },
@@ -451,7 +451,7 @@
           }
         },
         "tags": [
-          "Catálogo"
+          "CatÃ¡logo"
         ]
       }
     },
@@ -465,7 +465,7 @@
           }
         },
         "tags": [
-          "Catálogo"
+          "CatÃ¡logo"
         ]
       }
     },
@@ -488,7 +488,7 @@
           }
         },
         "tags": [
-          "Catálogo"
+          "CatÃ¡logo"
         ]
       }
     },
@@ -516,7 +516,7 @@
           }
         ],
         "tags": [
-          "Admin · Catálogo"
+          "Admin Â· CatÃ¡logo"
         ]
       },
       "post": {
@@ -543,7 +543,7 @@
           }
         ],
         "tags": [
-          "Admin · Catálogo"
+          "Admin Â· CatÃ¡logo"
         ]
       }
     },
@@ -581,7 +581,7 @@
           }
         ],
         "tags": [
-          "Admin · Catálogo"
+          "Admin Â· CatÃ¡logo"
         ]
       }
     },
@@ -600,7 +600,7 @@
           }
         ],
         "tags": [
-          "Admin · Catálogo"
+          "Admin Â· CatÃ¡logo"
         ]
       },
       "post": {
@@ -627,7 +627,7 @@
           }
         ],
         "tags": [
-          "Admin · Catálogo"
+          "Admin Â· CatÃ¡logo"
         ]
       }
     },
@@ -665,7 +665,7 @@
           }
         ],
         "tags": [
-          "Admin · Catálogo"
+          "Admin Â· CatÃ¡logo"
         ]
       }
     },
@@ -703,7 +703,7 @@
           }
         ],
         "tags": [
-          "Admin · Catálogo"
+          "Admin Â· CatÃ¡logo"
         ]
       }
     },
@@ -741,7 +741,7 @@
           }
         ],
         "tags": [
-          "Admin · Catálogo"
+          "Admin Â· CatÃ¡logo"
         ]
       }
     },
@@ -767,7 +767,7 @@
             "name": "q",
             "required": false,
             "in": "query",
-            "description": "Búsqueda por nombre de partida, torneo u organizador",
+            "description": "BÃºsqueda por nombre de partida, torneo u organizador",
             "schema": {
               "type": "string"
             }
@@ -1283,6 +1283,7 @@
               "type": "string",
               "enum": [
                 "PENDING",
+                "PAYMENT_PENDING",
                 "APPROVED",
                 "REJECTED",
                 "WITHDRAWN"
@@ -1423,7 +1424,7 @@
           }
         },
         "tags": [
-          "Encuentros, resultados y clasificación"
+          "Encuentros, resultados y clasificaciÃ³n"
         ]
       },
       "post": {
@@ -1459,7 +1460,7 @@
           }
         ],
         "tags": [
-          "Encuentros, resultados y clasificación"
+          "Encuentros, resultados y clasificaciÃ³n"
         ]
       }
     },
@@ -1487,7 +1488,7 @@
           }
         ],
         "tags": [
-          "Encuentros, resultados y clasificación"
+          "Encuentros, resultados y clasificaciÃ³n"
         ]
       }
     },
@@ -1525,7 +1526,7 @@
           }
         ],
         "tags": [
-          "Encuentros, resultados y clasificación"
+          "Encuentros, resultados y clasificaciÃ³n"
         ]
       }
     },
@@ -1563,7 +1564,383 @@
           }
         ],
         "tags": [
-          "Encuentros, resultados y clasificación"
+          "Encuentros, resultados y clasificaciÃ³n"
+        ]
+      }
+    },
+    "/api/me/payment-account": {
+      "get": {
+        "operationId": "RegistrationPaymentsController_account",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Cobro de inscripciones"
+        ]
+      },
+      "delete": {
+        "operationId": "RegistrationPaymentsController_disconnect",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Cobro de inscripciones"
+        ]
+      }
+    },
+    "/api/me/payment-account/mercadopago/authorize": {
+      "post": {
+        "operationId": "RegistrationPaymentsController_authorize",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Cobro de inscripciones"
+        ]
+      }
+    },
+    "/api/me/payment-account/mercadopago/connect": {
+      "post": {
+        "operationId": "RegistrationPaymentsController_connect",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectAccountDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Cobro de inscripciones"
+        ]
+      }
+    },
+    "/api/me/payment-account/sandbox": {
+      "post": {
+        "operationId": "RegistrationPaymentsController_sandbox",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Cobro de inscripciones"
+        ]
+      }
+    },
+    "/api/me/registration-payments": {
+      "get": {
+        "operationId": "RegistrationPaymentsController_mine",
+        "parameters": [
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "SUCCEEDED",
+                "FAILED",
+                "REFUNDED",
+                "CANCELLED"
+              ]
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 20,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Cobro de inscripciones"
+        ]
+      }
+    },
+    "/api/admin/registration-payments": {
+      "get": {
+        "operationId": "RegistrationPaymentsController_admin",
+        "parameters": [
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "SUCCEEDED",
+                "FAILED",
+                "REFUNDED",
+                "CANCELLED"
+              ]
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 20,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Cobro de inscripciones"
+        ]
+      }
+    },
+    "/api/registration-payments/{id}": {
+      "get": {
+        "operationId": "RegistrationPaymentsController_get",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Cobro de inscripciones"
+        ]
+      }
+    },
+    "/api/registration-payments/{id}/sandbox": {
+      "post": {
+        "operationId": "RegistrationPaymentsController_completeSandbox",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SandboxPaymentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Cobro de inscripciones"
+        ]
+      }
+    },
+    "/api/registration-payments/{id}/refund": {
+      "post": {
+        "operationId": "RegistrationPaymentsController_refund",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefundDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Cobro de inscripciones"
+        ]
+      }
+    },
+    "/api/registration-payments/webhooks/mercadopago": {
+      "post": {
+        "operationId": "RegistrationPaymentsWebhookController_mercadoPago",
+        "parameters": [
+          {
+            "name": "x-signature",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-request-id",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Cobro de inscripciones"
         ]
       }
     },
@@ -1645,7 +2022,7 @@
             "name": "rank",
             "required": false,
             "in": "query",
-            "description": "Rango mínimo (requiere videojuego): compara solo dentro del catálogo de ese juego",
+            "description": "Rango mÃ­nimo (requiere videojuego): compara solo dentro del catÃ¡logo de ese juego",
             "schema": {
               "type": "string"
             }
@@ -1654,7 +2031,7 @@
             "name": "role",
             "required": false,
             "in": "query",
-            "description": "Rol o posición (texto)",
+            "description": "Rol o posiciÃ³n (texto)",
             "schema": {
               "type": "string"
             }
@@ -1784,7 +2161,7 @@
             "name": "rank",
             "required": false,
             "in": "query",
-            "description": "Rango mínimo (requiere videojuego): compara solo dentro del catálogo de ese juego",
+            "description": "Rango mÃ­nimo (requiere videojuego): compara solo dentro del catÃ¡logo de ese juego",
             "schema": {
               "type": "string"
             }
@@ -1793,7 +2170,7 @@
             "name": "role",
             "required": false,
             "in": "query",
-            "description": "Rol o posición (texto)",
+            "description": "Rol o posiciÃ³n (texto)",
             "schema": {
               "type": "string"
             }
@@ -2163,7 +2540,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN · Niveles competitivos"
+          "SUPERADMIN Â· Niveles competitivos"
         ]
       }
     },
@@ -2201,7 +2578,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN · Niveles competitivos"
+          "SUPERADMIN Â· Niveles competitivos"
         ]
       }
     },
@@ -2234,7 +2611,7 @@
           }
         },
         "tags": [
-          "Reputación, valoraciones e incidencias"
+          "ReputaciÃ³n, valoraciones e incidencias"
         ]
       },
       "post": {
@@ -2270,7 +2647,7 @@
           }
         ],
         "tags": [
-          "Reputación, valoraciones e incidencias"
+          "ReputaciÃ³n, valoraciones e incidencias"
         ]
       }
     },
@@ -2293,7 +2670,7 @@
           }
         },
         "tags": [
-          "Reputación, valoraciones e incidencias"
+          "ReputaciÃ³n, valoraciones e incidencias"
         ]
       }
     },
@@ -2316,7 +2693,7 @@
           }
         },
         "tags": [
-          "Reputación, valoraciones e incidencias"
+          "ReputaciÃ³n, valoraciones e incidencias"
         ]
       }
     },
@@ -2354,7 +2731,7 @@
           }
         ],
         "tags": [
-          "Reputación, valoraciones e incidencias"
+          "ReputaciÃ³n, valoraciones e incidencias"
         ]
       }
     },
@@ -2392,7 +2769,7 @@
           }
         ],
         "tags": [
-          "Reputación, valoraciones e incidencias"
+          "ReputaciÃ³n, valoraciones e incidencias"
         ]
       },
       "put": {
@@ -2428,7 +2805,7 @@
           }
         ],
         "tags": [
-          "Reputación, valoraciones e incidencias"
+          "ReputaciÃ³n, valoraciones e incidencias"
         ]
       }
     },
@@ -2466,7 +2843,7 @@
           }
         ],
         "tags": [
-          "Reputación, valoraciones e incidencias"
+          "ReputaciÃ³n, valoraciones e incidencias"
         ]
       }
     },
@@ -2494,7 +2871,7 @@
           }
         ],
         "tags": [
-          "Reputación, valoraciones e incidencias"
+          "ReputaciÃ³n, valoraciones e incidencias"
         ]
       }
     },
@@ -2532,7 +2909,7 @@
           }
         ],
         "tags": [
-          "Reputación, valoraciones e incidencias"
+          "ReputaciÃ³n, valoraciones e incidencias"
         ]
       }
     },
@@ -2551,7 +2928,7 @@
           }
         ],
         "tags": [
-          "Reputación, valoraciones e incidencias"
+          "ReputaciÃ³n, valoraciones e incidencias"
         ]
       }
     },
@@ -2570,7 +2947,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN · Confianza"
+          "SUPERADMIN Â· Confianza"
         ]
       }
     },
@@ -2613,7 +2990,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN · Confianza"
+          "SUPERADMIN Â· Confianza"
         ]
       }
     },
@@ -2655,7 +3032,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN · Confianza"
+          "SUPERADMIN Â· Confianza"
         ]
       }
     },
@@ -2693,7 +3070,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN · Confianza"
+          "SUPERADMIN Â· Confianza"
         ]
       }
     },
@@ -2727,7 +3104,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN · Confianza"
+          "SUPERADMIN Â· Confianza"
         ]
       }
     },
@@ -2755,7 +3132,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN · Confianza"
+          "SUPERADMIN Â· Confianza"
         ]
       }
     },
@@ -2793,7 +3170,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN · Confianza"
+          "SUPERADMIN Â· Confianza"
         ]
       }
     },
@@ -2812,7 +3189,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN · Confianza"
+          "SUPERADMIN Â· Confianza"
         ]
       }
     },
@@ -2850,7 +3227,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN · Confianza"
+          "SUPERADMIN Â· Confianza"
         ]
       }
     },
@@ -2869,7 +3246,7 @@
           }
         ],
         "tags": [
-          "Verificación de organizadores"
+          "VerificaciÃ³n de organizadores"
         ]
       },
       "post": {
@@ -2896,7 +3273,7 @@
           }
         ],
         "tags": [
-          "Verificación de organizadores"
+          "VerificaciÃ³n de organizadores"
         ]
       }
     },
@@ -2925,7 +3302,7 @@
           }
         ],
         "tags": [
-          "Verificación de organizadores"
+          "VerificaciÃ³n de organizadores"
         ]
       }
     },
@@ -2970,7 +3347,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN · Verificación de organizadores"
+          "SUPERADMIN Â· VerificaciÃ³n de organizadores"
         ]
       }
     },
@@ -2989,7 +3366,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN · Verificación de organizadores"
+          "SUPERADMIN Â· VerificaciÃ³n de organizadores"
         ]
       }
     },
@@ -3017,7 +3394,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN · Verificación de organizadores"
+          "SUPERADMIN Â· VerificaciÃ³n de organizadores"
         ]
       }
     },
@@ -3053,7 +3430,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN · Verificación de organizadores"
+          "SUPERADMIN Â· VerificaciÃ³n de organizadores"
         ]
       }
     },
@@ -3091,7 +3468,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN · Verificación de organizadores"
+          "SUPERADMIN Â· VerificaciÃ³n de organizadores"
         ]
       }
     },
@@ -3132,7 +3509,7 @@
             "name": "season",
             "required": false,
             "in": "query",
-            "description": "Temporada; sin ella, histórico acumulado",
+            "description": "Temporada; sin ella, histÃ³rico acumulado",
             "schema": {
               "type": "string"
             }
@@ -3211,7 +3588,7 @@
             "name": "season",
             "required": false,
             "in": "query",
-            "description": "Temporada; sin ella, histórico acumulado",
+            "description": "Temporada; sin ella, histÃ³rico acumulado",
             "schema": {
               "type": "string"
             }
@@ -3298,7 +3675,7 @@
             "name": "season",
             "required": false,
             "in": "query",
-            "description": "Temporada; sin ella, histórico acumulado",
+            "description": "Temporada; sin ella, histÃ³rico acumulado",
             "schema": {
               "type": "string"
             }
@@ -3385,7 +3762,7 @@
             "name": "season",
             "required": false,
             "in": "query",
-            "description": "Temporada; sin ella, histórico acumulado",
+            "description": "Temporada; sin ella, histÃ³rico acumulado",
             "schema": {
               "type": "string"
             }
@@ -3495,7 +3872,7 @@
             "name": "season",
             "required": false,
             "in": "query",
-            "description": "Temporada; sin ella, histórico acumulado",
+            "description": "Temporada; sin ella, histÃ³rico acumulado",
             "schema": {
               "type": "string"
             }
@@ -3781,7 +4158,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN · Rankings"
+          "SUPERADMIN Â· Rankings"
         ]
       },
       "post": {
@@ -3808,7 +4185,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN · Rankings"
+          "SUPERADMIN Â· Rankings"
         ]
       }
     },
@@ -3846,7 +4223,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN · Rankings"
+          "SUPERADMIN Â· Rankings"
         ]
       }
     },
@@ -3874,7 +4251,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN · Rankings"
+          "SUPERADMIN Â· Rankings"
         ]
       },
       "post": {
@@ -3901,7 +4278,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN · Rankings"
+          "SUPERADMIN Â· Rankings"
         ]
       }
     },
@@ -3939,7 +4316,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN · Rankings"
+          "SUPERADMIN Â· Rankings"
         ]
       }
     },
@@ -3968,7 +4345,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN · Rankings"
+          "SUPERADMIN Â· Rankings"
         ]
       }
     },
@@ -4004,7 +4381,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN · Rankings"
+          "SUPERADMIN Â· Rankings"
         ]
       }
     },
@@ -4056,7 +4433,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN · Rankings"
+          "SUPERADMIN Â· Rankings"
         ]
       }
     },
@@ -4094,7 +4471,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN · Rankings"
+          "SUPERADMIN Â· Rankings"
         ]
       }
     },
@@ -4123,7 +4500,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN · Rankings"
+          "SUPERADMIN Â· Rankings"
         ]
       }
     },
@@ -4152,7 +4529,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN · Rankings"
+          "SUPERADMIN Â· Rankings"
         ]
       }
     },
@@ -4188,7 +4565,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN · Rankings"
+          "SUPERADMIN Â· Rankings"
         ]
       }
     },
@@ -4226,7 +4603,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN · Rankings"
+          "SUPERADMIN Â· Rankings"
         ]
       }
     },
@@ -4259,7 +4636,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN · Rankings"
+          "SUPERADMIN Â· Rankings"
         ]
       }
     },
@@ -4297,7 +4674,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN · Rankings"
+          "SUPERADMIN Â· Rankings"
         ]
       }
     },
@@ -4325,7 +4702,7 @@
           }
         ],
         "tags": [
-          "SUPERADMIN · Rankings"
+          "SUPERADMIN Â· Rankings"
         ]
       }
     },
@@ -4677,7 +5054,7 @@
           }
         ],
         "tags": [
-          "Planes y suscripción"
+          "Planes y suscripciÃ³n"
         ]
       }
     },
@@ -4706,7 +5083,7 @@
           }
         ],
         "tags": [
-          "Planes y suscripción"
+          "Planes y suscripciÃ³n"
         ]
       }
     },
@@ -4735,7 +5112,7 @@
           }
         ],
         "tags": [
-          "Planes y suscripción"
+          "Planes y suscripciÃ³n"
         ]
       }
     },
@@ -4764,7 +5141,7 @@
           }
         ],
         "tags": [
-          "Planes y suscripción"
+          "Planes y suscripciÃ³n"
         ]
       }
     },
@@ -4793,7 +5170,7 @@
           }
         ],
         "tags": [
-          "Planes y suscripción"
+          "Planes y suscripciÃ³n"
         ]
       }
     },
@@ -4812,7 +5189,7 @@
           }
         ],
         "tags": [
-          "Planes y suscripción"
+          "Planes y suscripciÃ³n"
         ]
       }
     },
@@ -4840,7 +5217,7 @@
           }
         ],
         "tags": [
-          "Planes y suscripción"
+          "Planes y suscripciÃ³n"
         ]
       }
     },
@@ -4868,7 +5245,7 @@
           }
         ],
         "tags": [
-          "Planes y suscripción"
+          "Planes y suscripciÃ³n"
         ]
       }
     },
@@ -4906,7 +5283,7 @@
           }
         ],
         "tags": [
-          "Planes y suscripción"
+          "Planes y suscripciÃ³n"
         ]
       }
     },
@@ -4925,7 +5302,7 @@
           }
         ],
         "tags": [
-          "Planes y suscripción"
+          "Planes y suscripciÃ³n"
         ]
       }
     },
@@ -4953,7 +5330,7 @@
           }
         ],
         "tags": [
-          "Planes y suscripción"
+          "Planes y suscripciÃ³n"
         ]
       }
     },
@@ -4976,7 +5353,7 @@
           }
         },
         "tags": [
-          "Planes y suscripción"
+          "Planes y suscripciÃ³n"
         ]
       }
     },
@@ -5007,7 +5384,7 @@
           }
         },
         "tags": [
-          "Planes y suscripción"
+          "Planes y suscripciÃ³n"
         ]
       }
     },
@@ -5026,7 +5403,7 @@
           }
         ],
         "tags": [
-          "Administración · Suscripciones"
+          "AdministraciÃ³n Â· Suscripciones"
         ]
       }
     },
@@ -5045,7 +5422,7 @@
           }
         ],
         "tags": [
-          "Administración · Suscripciones"
+          "AdministraciÃ³n Â· Suscripciones"
         ]
       },
       "post": {
@@ -5072,7 +5449,7 @@
           }
         ],
         "tags": [
-          "Administración · Suscripciones"
+          "AdministraciÃ³n Â· Suscripciones"
         ]
       }
     },
@@ -5110,7 +5487,7 @@
           }
         ],
         "tags": [
-          "Administración · Suscripciones"
+          "AdministraciÃ³n Â· Suscripciones"
         ]
       }
     },
@@ -5129,7 +5506,7 @@
           }
         ],
         "tags": [
-          "Administración · Suscripciones"
+          "AdministraciÃ³n Â· Suscripciones"
         ]
       },
       "post": {
@@ -5156,7 +5533,7 @@
           }
         ],
         "tags": [
-          "Administración · Suscripciones"
+          "AdministraciÃ³n Â· Suscripciones"
         ]
       }
     },
@@ -5194,7 +5571,7 @@
           }
         ],
         "tags": [
-          "Administración · Suscripciones"
+          "AdministraciÃ³n Â· Suscripciones"
         ]
       }
     },
@@ -5254,7 +5631,7 @@
           }
         ],
         "tags": [
-          "Administración · Suscripciones"
+          "AdministraciÃ³n Â· Suscripciones"
         ]
       }
     },
@@ -5289,7 +5666,7 @@
           }
         ],
         "tags": [
-          "Administración · Suscripciones"
+          "AdministraciÃ³n Â· Suscripciones"
         ]
       }
     },
@@ -5308,7 +5685,7 @@
           }
         ],
         "tags": [
-          "Administración · Suscripciones"
+          "AdministraciÃ³n Â· Suscripciones"
         ]
       }
     },
@@ -5962,14 +6339,14 @@
           }
         ],
         "tags": [
-          "Administración · Estadísticas"
+          "AdministraciÃ³n Â· EstadÃ­sticas"
         ]
       }
     }
   },
   "info": {
     "title": "Arena Torneos API",
-    "description": "API REST de la plataforma de torneos deportivos y eSports. Autenticación JWT (Bearer). Tiempo real vía socket.io en el namespace /realtime.",
+    "description": "API REST de la plataforma de torneos deportivos y eSports. AutenticaciÃ³n JWT (Bearer). Tiempo real vÃ­a socket.io en el namespace /realtime.",
     "version": "0.1.0",
     "contact": {}
   },
@@ -5995,14 +6372,14 @@
           },
           "username": {
             "type": "string",
-            "description": "3-24 caracteres: letras, números, guion bajo o guion"
+            "description": "3-24 caracteres: letras, nÃºmeros, guion bajo o guion"
           },
           "email": {
             "type": "string"
           },
           "password": {
             "type": "string",
-            "description": "Mínimo 8 caracteres, con letras y números"
+            "description": "MÃ­nimo 8 caracteres, con letras y nÃºmeros"
           },
           "country": {
             "type": "string",
@@ -6016,16 +6393,16 @@
           },
           "description": {
             "type": "string",
-            "description": "Descripción del organizador / biografía"
+            "description": "DescripciÃ³n del organizador / biografÃ­a"
           },
           "asOrganizer": {
             "type": "boolean",
-            "description": "Crear también el perfil de organizador",
+            "description": "Crear tambiÃ©n el perfil de organizador",
             "default": true
           },
           "organizerName": {
             "type": "string",
-            "description": "Nombre público del organizador (por defecto nombre y apellido)"
+            "description": "Nombre pÃºblico del organizador (por defecto nombre y apellido)"
           },
           "organizerType": {
             "type": "string",
@@ -6116,7 +6493,7 @@
           },
           "privacy": {
             "type": "object",
-            "description": "Visibilidad del perfil público de jugador"
+            "description": "Visibilidad del perfil pÃºblico de jugador"
           }
         }
       },
@@ -6181,7 +6558,7 @@
           },
           "primaryColor": {
             "type": "string",
-            "description": "Color de acento (#RRGGBB). Requiere personalización completa (PRO+)"
+            "description": "Color de acento (#RRGGBB). Requiere personalizaciÃ³n completa (PRO+)"
           }
         }
       },
@@ -6399,7 +6776,7 @@
           },
           "competitionName": {
             "type": "string",
-            "description": "Nombre del torneo / competición que agrupa la partida"
+            "description": "Nombre del torneo / competiciÃ³n que agrupa la partida"
           },
           "description": {
             "type": "string"
@@ -6437,7 +6814,7 @@
           "registrationDeadline": {
             "format": "date-time",
             "type": "string",
-            "description": "Fecha límite de inscripción (ISO 8601)"
+            "description": "Fecha lÃ­mite de inscripciÃ³n (ISO 8601)"
           },
           "maxParticipants": {
             "type": "number",
@@ -6479,9 +6856,14 @@
           "city": {
             "type": "string"
           },
+          "collectOnline": {
+            "type": "boolean",
+            "description": "Cobrar la cuota en lÃ­nea con la cuenta de Mercado Pago del organizador (si no, es informativa)",
+            "default": false
+          },
           "entryFee": {
             "type": "number",
-            "description": "Cuota informativa de inscripción",
+            "description": "Cuota de inscripciÃ³n (informativa salvo que collectOnline sea true)",
             "default": 0
           },
           "currency": {
@@ -6516,11 +6898,11 @@
           },
           "minRankId": {
             "type": "object",
-            "description": "Rango mínimo del catálogo del videojuego (\"\" para quitarlo)"
+            "description": "Rango mÃ­nimo del catÃ¡logo del videojuego (\"\" para quitarlo)"
           },
           "maxRankId": {
             "type": "object",
-            "description": "Rango máximo del catálogo del videojuego (\"\" para quitarlo)"
+            "description": "Rango mÃ¡ximo del catÃ¡logo del videojuego (\"\" para quitarlo)"
           },
           "pointsWin": {
             "type": "number",
@@ -6536,7 +6918,7 @@
           },
           "draft": {
             "type": "boolean",
-            "description": "Guardar como borrador (no visible públicamente)"
+            "description": "Guardar como borrador (no visible pÃºblicamente)"
           }
         },
         "required": [
@@ -6558,7 +6940,7 @@
           },
           "competitionName": {
             "type": "string",
-            "description": "Nombre del torneo / competición que agrupa la partida"
+            "description": "Nombre del torneo / competiciÃ³n que agrupa la partida"
           },
           "description": {
             "type": "string"
@@ -6596,7 +6978,7 @@
           "registrationDeadline": {
             "format": "date-time",
             "type": "string",
-            "description": "Fecha límite de inscripción (ISO 8601)"
+            "description": "Fecha lÃ­mite de inscripciÃ³n (ISO 8601)"
           },
           "maxParticipants": {
             "type": "number",
@@ -6638,9 +7020,14 @@
           "city": {
             "type": "string"
           },
+          "collectOnline": {
+            "type": "boolean",
+            "description": "Cobrar la cuota en lÃ­nea con la cuenta de Mercado Pago del organizador (si no, es informativa)",
+            "default": false
+          },
           "entryFee": {
             "type": "number",
-            "description": "Cuota informativa de inscripción",
+            "description": "Cuota de inscripciÃ³n (informativa salvo que collectOnline sea true)",
             "default": 0
           },
           "currency": {
@@ -6675,11 +7062,11 @@
           },
           "minRankId": {
             "type": "object",
-            "description": "Rango mínimo del catálogo del videojuego (\"\" para quitarlo)"
+            "description": "Rango mÃ­nimo del catÃ¡logo del videojuego (\"\" para quitarlo)"
           },
           "maxRankId": {
             "type": "object",
-            "description": "Rango máximo del catálogo del videojuego (\"\" para quitarlo)"
+            "description": "Rango mÃ¡ximo del catÃ¡logo del videojuego (\"\" para quitarlo)"
           },
           "pointsWin": {
             "type": "number",
@@ -6748,7 +7135,7 @@
           },
           "acceptRules": {
             "type": "boolean",
-            "description": "Confirma haber leído reglamento, cuota y condiciones"
+            "description": "Confirma haber leÃ­do reglamento, cuota y condiciones"
           }
         },
         "required": [
@@ -6783,11 +7170,11 @@
           },
           "roundIntervalMinutes": {
             "type": "number",
-            "description": "Programar automáticamente cada ronda cada N minutos desde el inicio"
+            "description": "Programar automÃ¡ticamente cada ronda cada N minutos desde el inicio"
           },
           "streamUrl": {
             "type": "string",
-            "description": "Enlace de transmisión (HTTPS, dominio autorizado) que se programa en todos los encuentros generados"
+            "description": "Enlace de transmisiÃ³n (HTTPS, dominio autorizado) que se programa en todos los encuentros generados"
           },
           "streamVisibility": {
             "type": "string",
@@ -6811,7 +7198,7 @@
           },
           "winnerSlot": {
             "type": "number",
-            "description": "Quién avanza si el marcador empata en eliminación (penales, prórroga…)",
+            "description": "QuiÃ©n avanza si el marcador empata en eliminaciÃ³n (penales, prÃ³rrogaâ€¦)",
             "enum": [
               1,
               2
@@ -6847,9 +7234,51 @@
           },
           "reason": {
             "type": "string",
-            "description": "Motivo de la reprogramación (se comunica a los participantes)"
+            "description": "Motivo de la reprogramaciÃ³n (se comunica a los participantes)"
           }
         }
+      },
+      "ConnectAccountDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "state"
+        ]
+      },
+      "Object": {
+        "type": "object",
+        "properties": {}
+      },
+      "SandboxPaymentDto": {
+        "type": "object",
+        "properties": {
+          "approve": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "approve"
+        ]
+      },
+      "RefundDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "description": "Motivo (queda en la auditorÃ­a y se informa al jugador)"
+          }
+        },
+        "required": [
+          "reason"
+        ]
       },
       "UpdatePlayerDto": {
         "type": "object",
@@ -6864,7 +7293,7 @@
           },
           "position": {
             "type": "string",
-            "description": "Posición habitual (deportes)"
+            "description": "PosiciÃ³n habitual (deportes)"
           },
           "availability": {
             "type": "string",
@@ -6912,7 +7341,7 @@
           },
           "playerRole": {
             "type": "string",
-            "description": "Rol o posición (p. ej. Duelista, Soporte)"
+            "description": "Rol o posiciÃ³n (p. ej. Duelista, Soporte)"
           },
           "experienceYears": {
             "type": "number"
@@ -6923,7 +7352,7 @@
           },
           "isFeatured": {
             "type": "boolean",
-            "description": "Mostrar en el perfil público"
+            "description": "Mostrar en el perfil pÃºblico"
           },
           "isFavorite": {
             "type": "boolean",
@@ -6986,7 +7415,7 @@
           },
           "playerRole": {
             "type": "string",
-            "description": "Rol o posición (p. ej. Duelista, Soporte)"
+            "description": "Rol o posiciÃ³n (p. ej. Duelista, Soporte)"
           },
           "experienceYears": {
             "type": "number"
@@ -6997,7 +7426,7 @@
           },
           "isFeatured": {
             "type": "boolean",
-            "description": "Mostrar en el perfil público"
+            "description": "Mostrar en el perfil pÃºblico"
           },
           "isFavorite": {
             "type": "boolean",
@@ -7032,11 +7461,11 @@
           },
           "gameRankId": {
             "type": "string",
-            "description": "Rango validado del catálogo del juego"
+            "description": "Rango validado del catÃ¡logo del juego"
           },
           "reason": {
             "type": "string",
-            "description": "Justificación (queda en auditoría)"
+            "description": "JustificaciÃ³n (queda en auditorÃ­a)"
           }
         },
         "required": [
@@ -7187,7 +7616,7 @@
           },
           "reason": {
             "type": "string",
-            "description": "Justificación obligatoria (auditoría)"
+            "description": "JustificaciÃ³n obligatoria (auditorÃ­a)"
           }
         },
         "required": [
@@ -7208,7 +7637,7 @@
           },
           "resolution": {
             "type": "string",
-            "description": "Resolución administrativa (pública si se confirma)"
+            "description": "ResoluciÃ³n administrativa (pÃºblica si se confirma)"
           }
         },
         "required": [
@@ -7239,7 +7668,7 @@
           },
           "legalName": {
             "type": "string",
-            "description": "Nombre comercial o razón social"
+            "description": "Nombre comercial o razÃ³n social"
           },
           "verificationType": {
             "type": "string",
@@ -7282,7 +7711,7 @@
           },
           "acceptPolicy": {
             "type": "string",
-            "description": "Aceptación de las políticas de verificación"
+            "description": "AceptaciÃ³n de las polÃ­ticas de verificaciÃ³n"
           }
         },
         "required": [
@@ -7324,7 +7753,7 @@
           },
           "reason": {
             "type": "string",
-            "description": "Motivo (obligatorio al pedir información, rechazar o suspender)"
+            "description": "Motivo (obligatorio al pedir informaciÃ³n, rechazar o suspender)"
           },
           "comments": {
             "type": "string",
@@ -7369,7 +7798,7 @@
           },
           "countryCode": {
             "type": "object",
-            "description": "Vacío = global"
+            "description": "VacÃ­o = global"
           },
           "startDate": {
             "format": "date-time",
@@ -7429,7 +7858,7 @@
           },
           "reason": {
             "type": "string",
-            "description": "Justificación (auditoría)"
+            "description": "JustificaciÃ³n (auditorÃ­a)"
           }
         },
         "required": [
@@ -7575,7 +8004,7 @@
           "until": {
             "type": "object",
             "nullable": true,
-            "description": "Hasta cuándo (null = levantar la suspensión)"
+            "description": "Hasta cuÃ¡ndo (null = levantar la suspensiÃ³n)"
           },
           "reason": {
             "type": "string"
@@ -7631,11 +8060,11 @@
         "properties": {
           "title": {
             "type": "string",
-            "description": "Título personalizado"
+            "description": "TÃ­tulo personalizado"
           },
           "description": {
             "type": "string",
-            "description": "Descripción opcional"
+            "description": "DescripciÃ³n opcional"
           },
           "visibility": {
             "type": "string",
@@ -7661,7 +8090,7 @@
           },
           "url": {
             "type": "string",
-            "description": "URL HTTPS de la transmisión (YouTube, Twitch, Facebook, TikTok, Kick u otra autorizada)"
+            "description": "URL HTTPS de la transmisiÃ³n (YouTube, Twitch, Facebook, TikTok, Kick u otra autorizada)"
           },
           "platform": {
             "type": "string",
@@ -7673,11 +8102,11 @@
               "KICK",
               "OTHER"
             ],
-            "description": "Se detecta por el dominio; si se envía debe coincidir"
+            "description": "Se detecta por el dominio; si se envÃ­a debe coincidir"
           },
           "isRebroadcast": {
             "type": "boolean",
-            "description": "Retransmisión adicional (otro canal, idioma…): no reemplaza a la principal",
+            "description": "RetransmisiÃ³n adicional (otro canal, idiomaâ€¦): no reemplaza a la principal",
             "default": false
           }
         },
@@ -7690,11 +8119,11 @@
         "properties": {
           "title": {
             "type": "string",
-            "description": "Título personalizado"
+            "description": "TÃ­tulo personalizado"
           },
           "description": {
             "type": "string",
-            "description": "Descripción opcional"
+            "description": "DescripciÃ³n opcional"
           },
           "visibility": {
             "type": "string",
@@ -7734,7 +8163,7 @@
           },
           "streamId": {
             "type": "string",
-            "description": "Transmisión a editar (por defecto, la principal activa)"
+            "description": "TransmisiÃ³n a editar (por defecto, la principal activa)"
           }
         }
       },
@@ -7840,7 +8269,7 @@
           },
           "idempotencyKey": {
             "type": "string",
-            "description": "Clave de idempotencia generada por el cliente: repetir la petición no crea otro cobro"
+            "description": "Clave de idempotencia generada por el cliente: repetir la peticiÃ³n no crea otro cobro"
           }
         },
         "required": [
@@ -7919,6 +8348,10 @@
           },
           "graceDays": {
             "type": "number"
+          },
+          "registrationFeePercent": {
+            "type": "number",
+            "description": "ComisiÃ³n de Arena sobre cada inscripciÃ³n cobrada en lÃ­nea (%)"
           },
           "sortOrder": {
             "type": "number"
@@ -8004,6 +8437,10 @@
           "graceDays": {
             "type": "number"
           },
+          "registrationFeePercent": {
+            "type": "number",
+            "description": "ComisiÃ³n de Arena sobre cada inscripciÃ³n cobrada en lÃ­nea (%)"
+          },
           "sortOrder": {
             "type": "number"
           },
@@ -8057,7 +8494,7 @@
             "type": "number"
           },
           "appliesToPlans": {
-            "description": "Códigos de plan; vacío = todos los de pago",
+            "description": "CÃ³digos de plan; vacÃ­o = todos los de pago",
             "type": "array",
             "items": {
               "type": "string"

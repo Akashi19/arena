@@ -36,9 +36,10 @@ export interface ManagedRegistration {
   } | null;
 }
 
-const LABEL: Record<RegistrationStatus, string> = { PENDING: 'Pendiente', APPROVED: 'Aprobada', REJECTED: 'Rechazada', WITHDRAWN: 'Retirada' };
+const LABEL: Record<RegistrationStatus, string> = { PENDING: 'Pendiente', PAYMENT_PENDING: 'Pago en curso', APPROVED: 'Aprobada', REJECTED: 'Rechazada', WITHDRAWN: 'Retirada' };
 const COLOR: Record<RegistrationStatus, string> = {
   PENDING: 'text-amber',
+  PAYMENT_PENDING: 'text-amber',
   APPROVED: 'text-lime',
   REJECTED: 'text-danger',
   WITHDRAWN: 'text-muted',
@@ -115,7 +116,7 @@ export function RegistrationsManager({
   return (
     <div className="space-y-4">
       <nav className="flex flex-wrap gap-2">
-        {([undefined, 'PENDING', 'APPROVED', 'REJECTED', 'WITHDRAWN'] as const).map((s) => (
+        {([undefined, 'PENDING', 'PAYMENT_PENDING', 'APPROVED', 'REJECTED', 'WITHDRAWN'] as const).map((s) => (
           <Link
             key={s ?? 'all'}
             href={href(s, level)}

@@ -16,6 +16,7 @@ interface Props {
     mode: 'INDIVIDUAL' | 'TEAM';
     entryFee: string;
     currency: string;
+    collectOnline: boolean;
     rules: string | null;
     refundPolicy: string | null;
     registrationOpen: boolean;
@@ -27,12 +28,13 @@ interface Props {
   };
   loggedIn: boolean;
   isOwner: boolean;
-  myRegistration: { id: string; status: RegistrationStatus } | null;
+  myRegistration: { id: string; status: RegistrationStatus; pendingPaymentId?: string | null } | null;
   teams: { id: string; name: string; members: number }[];
 }
 
 const REG_LABEL: Record<RegistrationStatus, { text: string; cls: string }> = {
   PENDING: { text: 'Solicitud pendiente de aprobación', cls: 'border-amber/40 bg-amber/10 text-amber' },
+  PAYMENT_PENDING: { text: 'Cupo reservado: falta completar el pago', cls: 'border-amber/40 bg-amber/10 text-amber' },
   APPROVED: { text: '¡Estás inscrito!', cls: 'border-lime/40 bg-lime/10 text-lime' },
   REJECTED: { text: 'Tu solicitud fue rechazada', cls: 'border-danger/40 bg-danger/10 text-danger' },
   WITHDRAWN: { text: 'Retiraste tu inscripción', cls: 'border-line text-muted' },
@@ -43,17 +45,27 @@ export function RegistrationPanel({ tournament: t, loggedIn, isOwner, myRegistra
   const [state, onSubmit, pending] = usePersistentAction(requestRegistrationAction, {});
   const [withdrawState, withdrawAction] = useActionState(withdrawRegistrationAction, {});
   const [confirming, setConfirming] = useState(false);
+  const paid = t.collectOnline && Number(t.entryFee) > 0;
 
   return (
     <section id="inscripcion" className="card scroll-mt-24 p-5">
       <h2 className="text-lg font-bold uppercase">Inscripción</h2>
       <p className="mt-1 font-display text-3xl font-bold text-neon">{formatMoney(t.entryFee, t.currency)}</p>
-      <p className="text-xs text-muted">Cuota informativa fijada por el organizador. No es una apuesta.</p>
+      <p className="text-xs text-muted">
+        {paid
+          ? 'Se paga al inscribirse con Mercado Pago y llega directo al organizador. No es una apuesta.'
+          : 'Cuota informativa fijada por el organizador. No es una apuesta.'}
+      </p>
 
       <div className="mt-4 space-y-3">
         {myRegistration && myRegistration.status !== 'WITHDRAWN' && myRegistration.status !== 'REJECTED' ? (
           <>
             <div className={`rounded-xl border p-3 text-sm font-semibold ${REG_LABEL[myRegistration.status].cls}`}>{REG_LABEL[myRegistration.status].text}</div>
+            {myRegistration.status === 'PAYMENT_PENDING' && myRegistration.pendingPaymentId && (
+              <Link href={`/inscripciones/pago/${myRegistration.pendingPaymentId}`} className="btn-primary w-full">
+                Completar el pago
+              </Link>
+            )}
             {t.status === 'OPEN' && (
               <form action={withdrawAction}>
                 <input type="hidden" name="registrationId" value={myRegistration.id} />
@@ -79,7 +91,7 @@ export function RegistrationPanel({ tournament: t, loggedIn, isOwner, myRegistra
           <>
             {myRegistration?.status === 'REJECTED' && <div className={`rounded-xl border p-3 text-sm ${REG_LABEL.REJECTED.cls}`}>{REG_LABEL.REJECTED.text}. Puedes volver a solicitarla.</div>}
             <button type="button" className="btn-primary w-full" onClick={() => setConfirming(true)}>
-              Solicitar inscripción
+              {paid ? 'Inscribirme y pagar' : 'Solicitar inscripción'}
             </button>
           </>
         ) : (
@@ -104,7 +116,10 @@ export function RegistrationPanel({ tournament: t, loggedIn, isOwner, myRegistra
                     'sin valoraciones aún'
                   )}
                 </li>
-                <li>Cuota: {formatMoney(t.entryFee, t.currency)}</li>
+                <li>
+                  Cuota: {formatMoney(t.entryFee, t.currency)}
+                  {paid && ' · pago en línea con Mercado Pago; tu cupo queda reservado mientras pagas'}
+                </li>
                 <li>Cancelación y devolución: {t.refundPolicy || 'el organizador no especificó condiciones'}</li>
               </ul>
               <p className="mt-2 text-xs text-muted">La verificación no es una garantía absoluta de cumplimiento.</p>
@@ -140,8 +155,8 @@ export function RegistrationPanel({ tournament: t, loggedIn, isOwner, myRegistra
               <button type="button" className="btn-ghost flex-1" onClick={() => setConfirming(false)}>
                 Volver
               </button>
-              <SubmitButton pending={pending} className="btn-primary flex-1" pendingText="Enviando…">
-                Confirmar
+              <SubmitButton pending={pending} className="btn-primary flex-1" pendingText={paid ? 'Abriendo el pago…' : 'Enviando…'}>
+                {paid ? 'Ir a pagar' : 'Confirmar'}
               </SubmitButton>
             </div>
           </form>

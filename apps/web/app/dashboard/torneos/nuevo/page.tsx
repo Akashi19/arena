@@ -4,7 +4,7 @@ import { Sparkles } from 'lucide-react';
 import { gamesWithRanks } from '@/lib/catalog';
 import { api } from '@/lib/api';
 import { requireOrganizer } from '@/lib/session';
-import type { Discipline } from '@/lib/types';
+import type { Discipline, PaymentAccountInfo } from '@/lib/types';
 import { TournamentForm } from '@/components/tournament-form';
 
 export const metadata: Metadata = { title: 'Crear partida' };
@@ -16,10 +16,11 @@ interface Usage {
 
 export default async function NewTournamentPage() {
   await requireOrganizer('/dashboard/torneos/nuevo');
-  const [sports, games, sub] = await Promise.all([
+  const [sports, games, sub, collect] = await Promise.all([
     api<Discipline[]>('/sports', { auth: false }),
     gamesWithRanks(),
     api<Usage>('/me/subscription'),
+    api<PaymentAccountInfo>('/me/payment-account'),
   ]);
   const { used, limit } = sub.usage.activeTournaments;
   const atLimit = limit !== null && used >= limit;
@@ -39,7 +40,7 @@ export default async function NewTournamentPage() {
           </p>
         </div>
       )}
-      <TournamentForm sports={sports} games={games} maxParticipantsLimit={sub.usage.participantsPerTournament.limit} />
+      <TournamentForm sports={sports} games={games} maxParticipantsLimit={sub.usage.participantsPerTournament.limit} collect={collect} />
     </div>
   );
 }

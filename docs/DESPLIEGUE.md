@@ -76,6 +76,13 @@ cp apps/api/.env.production.example apps/api/.env.production
    `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed` y
    `checkout.session.expired`) y
    `https://<API_DOMAIN>/api/billing/webhooks/mercadopago` en Mercado Pago.
+7. Cobro de inscripciones (opcional): crea en Mercado Pago Developers una aplicación de **marketplace**, registra como
+   URL de redirección `https://<WEB_DOMAIN>/dashboard/cobros/mercadopago` y como webhook de pagos
+   `https://<API_DOMAIN>/api/registration-payments/webhooks/mercadopago`, y define en `apps/api/.env.production`
+   `MERCADOPAGO_CLIENT_ID`, `MERCADOPAGO_CLIENT_SECRET`, `MERCADOPAGO_MARKETPLACE_WEBHOOK_SECRET` (si no, se usa
+   `MERCADOPAGO_WEBHOOK_SECRET`) y `PAYMENTS_ENCRYPTION_KEY` (`openssl rand -base64 32`; sin ella la API no guarda tokens
+   en producción). No cambies esa clave después: los tokens guardados dejarían de poder leerse y los organizadores
+   tendrían que reconectar.
 
 ## Actualizaciones y vuelta atrás
 

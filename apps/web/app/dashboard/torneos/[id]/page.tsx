@@ -5,7 +5,7 @@ import { ExternalLink } from 'lucide-react';
 import { gamesWithRanks } from '@/lib/catalog';
 import { api, apiOrNull } from '@/lib/api';
 import { requireOrganizer } from '@/lib/session';
-import type { CompetitiveLevel, Discipline, Fixture, Paginated, RegistrationStatus, TournamentDetail } from '@/lib/types';
+import type { CompetitiveLevel, Discipline, Fixture, Paginated, RegistrationStatus, TournamentDetail, PaymentAccountInfo } from '@/lib/types';
 import { formatDateTime, formatMoney, LEVEL_LABEL } from '@/lib/format';
 import { StatusBadge } from '@/components/ui';
 import { ImageUpload } from '@/components/forms';
@@ -32,12 +32,13 @@ export default async function ManageTournamentPage({
   const started = t.status === 'IN_PROGRESS' || t.status === 'FINISHED';
   const level = sp.nivel && sp.nivel in LEVEL_LABEL ? (sp.nivel as CompetitiveLevel) : undefined;
   const tab = sp.tab ?? (started ? 'fixture' : 'inscripciones');
-  const [regs, sports, games, sub, fixture] = await Promise.all([
+  const [regs, sports, games, sub, fixture, collect] = await Promise.all([
     api<Paginated<ManagedRegistration>>(`/tournaments/${id}/registrations`, { query: { status: sp.estado, level: level, pageSize: 100 } }),
     tab === 'editar' ? api<Discipline[]>('/sports', { auth: false }) : Promise.resolve([]),
     tab === 'editar' ? gamesWithRanks() : Promise.resolve([]),
     tab === 'editar' ? api<{ usage: { participantsPerTournament: { limit: number } } }>('/me/subscription') : Promise.resolve(null),
     tab === 'fixture' && started ? api<Fixture>(`/tournaments/${id}/fixture`) : Promise.resolve(null),
+    tab === 'editar' ? api<PaymentAccountInfo>('/me/payment-account') : Promise.resolve({ canCollect: false, feePercent: 0 }),
   ]);
   const editable = t.status !== 'FINISHED' && t.status !== 'CANCELLED';
   // Candidatos a jugador destacado: jugadores inscritos o integrantes de los equipos aprobados
@@ -112,7 +113,7 @@ export default async function ManageTournamentPage({
         />
       )}
       {tab === 'editar' && editable && sub && (
-        <TournamentForm sports={sports} games={games} maxParticipantsLimit={sub.usage.participantsPerTournament.limit} initial={t} />
+        <TournamentForm sports={sports} games={games} maxParticipantsLimit={sub.usage.participantsPerTournament.limit} initial={t} collect={collect} />
       )}
       {tab === 'portada' && (
         <div className="card max-w-xl p-5">

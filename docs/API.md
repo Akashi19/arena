@@ -109,6 +109,14 @@
 | POST | `/me/subscription/trial` · `/cancel` · `/resume` | ORGANIZER | Prueba gratuita (una por organizador, desde Free) · cancelar (al final del periodo; de inmediato en prueba o con pago vencido) · revertir cancelación o cambio programado |
 | GET | `/me/subscription/payments` · `/payments/{id}` · `/history` · `/invoices/{id}` | ORGANIZER | Historial de pagos, detalle, historial de la suscripción y comprobante |
 | POST | `/me/subscription/payments/{id}/sandbox` | ORGANIZER | Aprueba o rechaza un pago de prueba (solo con `BILLING_SANDBOX`, activo fuera de producción) |
+| GET · DELETE | `/me/payment-account` | ORGANIZER | Cuenta de cobro (proveedor, estado, comisión del plan, reserva) · desconectar (apaga el cobro en línea de sus partidas) |
+| POST | `/me/payment-account/mercadopago/authorize` · `/mercadopago/connect` | ORGANIZER | URL de autorización OAuth de Mercado Pago · canje del `code` con el `state` firmado |
+| POST | `/me/payment-account/sandbox` | ORGANIZER | Cuenta de prueba sin dinero real (solo con `BILLING_SANDBOX`) |
+| GET | `/me/registration-payments` · `/admin/registration-payments` | ORGANIZER · SUPERADMIN | Pagos de inscripción con totales por moneda (bruto, comisión de Arena y neto) |
+| GET | `/registration-payments/{id}` | Quien paga, organizador o SUPERADMIN | Estado del pago; el enlace de pago solo lo ve quien paga mientras está pendiente |
+| POST | `/registration-payments/{id}/sandbox` | Quien paga | Aprueba o rechaza un pago de prueba |
+| POST | `/registration-payments/{id}/refund` | Organizador | Reembolso completo (`reason`) en Mercado Pago |
+| POST | `/registration-payments/webhooks/mercadopago?ref=` | Firma del proveedor | Notificaciones de pagos de inscripción |
 | POST | `/billing/webhooks/stripe` · `/billing/webhooks/mercadopago` | Firma del proveedor | Confirmación de pagos. Stripe: `Stripe-Signature` sobre el cuerpo crudo; Mercado Pago: `x-signature` y consulta del pago a su API. Cada evento se procesa una sola vez y se verifican importe y moneda |
 | GET | `/admin/billing/metrics` | SUPERADMIN | MRR, ARR, ARPU, ingresos del mes y del año, serie de 12 meses, churn de 30 días, conversión FREE→PRO y PRO→BUSINESS, organizadores por plan |
 | GET · POST · PATCH | `/admin/billing/plans` | SUPERADMIN | Crear planes (códigos nuevos), precios, moneda, límites, prueba, gracia, funcionalidades y activar/desactivar (Free no se puede desactivar ni cobrar) |

@@ -15,6 +15,7 @@ import { MatchesService } from '../matches/matches.js';
 import { refreshPlayerStats, tournamentPlayerIds } from '../players/stats.js';
 import { ReputationService } from '../trust/reputation.js';
 import { RankingEngineService } from '../rankings/rankings.js';
+import { RegistrationPaymentsService } from '../payments/registration-payments.js';
 import type { AuthUser } from '../common/decorators/auth.decorators.js';
 import { organizerPublicSelect, paginate, slugify, uniqueSlug } from '../common/utils/index.js';
 import { assertCanManageOrganizer, levelIndex, requireOwnOrganizer } from '../common/utils/access.js';
@@ -51,6 +52,7 @@ export const tournamentCardSelect = {
   city: true,
   entryFee: true,
   currency: true,
+  collectOnline: true,
   coverUrl: true,
   platform: true,
   isFeatured: true,
@@ -89,6 +91,7 @@ export class TournamentsService {
     private readonly matches: MatchesService,
     private readonly reputation: ReputationService,
     private readonly rankings: RankingEngineService,
+    private readonly payments: RegistrationPaymentsService,
   ) {}
 
   // =========================================================================== Consulta pública
@@ -281,16 +284,18 @@ export class TournamentsService {
     }
     if (t.status === 'DRAFT' && !canManage) throw new NotFoundException('Partida no encontrada');
 
-    let myRegistration: { id: string; status: string; teamId: string | null } | null = null;
+    let myRegistration: { id: string; status: string; teamId: string | null; pendingPaymentId: string | null } | null = null;
     if (viewer) {
-      myRegistration = await this.prisma.tournamentRegistration.findFirst({
+      const reg = await this.prisma.tournamentRegistration.findFirst({
         where: {
           tournamentId: t.id,
           status: { not: 'WITHDRAWN' },
           OR: [{ requestedById: viewer.id }, { player: { userId: viewer.id } }, { team: { ownerId: viewer.id } }],
         },
-        select: { id: true, status: true, teamId: true },
+        select: { id: true, status: true, teamId: true, payments: { where: { status: 'PENDING' }, select: { id: true }, take: 1 } },
       });
+      // Con un pago en curso el jugador puede retomarlo desde la página de la partida
+      myRegistration = reg && { id: reg.id, status: reg.status, teamId: reg.teamId, pendingPaymentId: reg.payments[0]?.id ?? null };
     }
 
     // Historial del organizador para la pantalla de confianza previa a la inscripción
@@ -359,6 +364,7 @@ export class TournamentsService {
     this.validateLevels(dto.minLevel, dto.maxLevel);
     await this.validateRanks(dto.category === 'ESPORT' ? dto.gameId : undefined, dto.minRankId, dto.maxRankId);
     if (!dto.isOnline && !dto.location) throw new BadRequestException('Indica la ubicación o marca la partida como online');
+    await this.validateOnlineCollection(organizer.id, dto.collectOnline, dto.entryFee ?? 0);
 
     const created = await this.prisma.$transaction(
       async (tx) => {
@@ -446,6 +452,19 @@ export class TournamentsService {
     const minRankId = dto.minRankId !== undefined ? dto.minRankId : gameChanged ? null : current.minRankId;
     const maxRankId = dto.maxRankId !== undefined ? dto.maxRankId : gameChanged ? null : current.maxRankId;
     await this.validateRanks(category === 'ESPORT' ? gameId : undefined, minRankId, maxRankId);
+
+    if (dto.collectOnline !== undefined || dto.entryFee !== undefined || dto.currency !== undefined) {
+      const collect = dto.collectOnline ?? current.collectOnline;
+      await this.validateOnlineCollection(current.organizerId, collect, dto.entryFee ?? Number(current.entryFee));
+      const pending = await this.prisma.tournamentRegistration.count({ where: { tournamentId: id, status: 'PAYMENT_PENDING' } });
+      const feeChanged =
+        (dto.entryFee !== undefined && dto.entryFee !== Number(current.entryFee)) ||
+        (dto.currency !== undefined && dto.currency !== current.currency) ||
+        (dto.collectOnline === false && current.collectOnline);
+      if (pending && feeChanged) {
+        throw new BadRequestException(`Hay ${pending} pagos de inscripción en curso: espera a que se completen o venzan para cambiar la cuota`);
+      }
+    }
 
     const { competitionName, changeReason, ...data } = dto;
     let competitionId: string | null | undefined;
@@ -661,13 +680,21 @@ export class TournamentsService {
       playerId = player.id;
     }
 
+    // Cuota cobrada en línea: se reserva el cupo y se abre el pago en la cuenta del organizador
+    if (t.collectOnline && Number(t.entryFee) > 0) {
+      return this.payments.registerWithPayment(user, t, { teamId, playerId, notes: dto.notes });
+    }
+
     const existing = await this.prisma.tournamentRegistration.findFirst({
       where: { tournamentId, ...(teamId ? { teamId } : { playerId }) },
     });
     if (existing && existing.status !== 'WITHDRAWN' && existing.status !== 'REJECTED') {
       throw new ConflictException('Ya existe una solicitud de inscripción para esta partida');
     }
-    const approved = await this.prisma.tournamentRegistration.count({ where: { tournamentId, status: 'APPROVED' } });
+    // Los cupos reservados por pagos en curso también cuentan
+    const approved = await this.prisma.tournamentRegistration.count({
+      where: { tournamentId, status: { in: ['APPROVED', 'PAYMENT_PENDING'] } },
+    });
     if (approved >= t.maxParticipants) throw new BadRequestException('No quedan cupos disponibles');
 
     const data = {
@@ -721,6 +748,8 @@ export class TournamentsService {
       where: { id: registrationId },
       data: { status: 'WITHDRAWN' },
     });
+    // Un pago en curso se anula; un pago ya confirmado se reembolsa según la política del organizador
+    if (reg.status === 'PAYMENT_PENDING') await this.payments.cancelPending(registrationId, 'El participante retiró la inscripción');
     await this.audit.log({ actorId: user.id, action: 'REGISTRATION_WITHDRAWN', entityType: 'TournamentRegistration', entityId: reg.id });
     this.realtime.emitToTournament(reg.tournamentId, 'registration:changed', { tournamentId: reg.tournamentId });
     return updated;
@@ -800,12 +829,23 @@ export class TournamentsService {
     if (reg.tournament.status !== 'OPEN' && dto.status === 'APPROVED') {
       throw new BadRequestException('Solo se aprueban inscripciones con la partida abierta');
     }
+    // Rechazar una inscripción pagada devuelve el dinero antes de cambiar su estado
+    let refunded = false;
+    if (dto.status === 'REJECTED') {
+      refunded = await this.payments.refundForRegistration(registrationId, dto.note ?? 'Inscripción rechazada por el organizador', user.id);
+    }
+    if (reg.status === 'PAYMENT_PENDING') {
+      await this.payments.cancelPending(
+        registrationId,
+        dto.status === 'APPROVED' ? 'Aprobada por el organizador sin pago en línea' : 'Inscripción rechazada por el organizador',
+      );
+    }
 
     const updated = await this.prisma.$transaction(
       async (tx) => {
         if (dto.status === 'APPROVED') {
           const approved = await tx.tournamentRegistration.count({
-            where: { tournamentId: reg.tournamentId, status: 'APPROVED' },
+            where: { tournamentId: reg.tournamentId, status: { in: ['APPROVED', 'PAYMENT_PENDING'] }, id: { not: registrationId } },
           });
           if (approved >= reg.tournament.maxParticipants) throw new BadRequestException('El cupo está completo');
         }
@@ -833,7 +873,7 @@ export class TournamentsService {
       body:
         dto.status === 'APPROVED'
           ? `Ya estás dentro de ${reg.tournament.name}.`
-          : `Tu solicitud para ${reg.tournament.name} fue rechazada.${dto.note ? ` Motivo: ${dto.note}` : ''}`,
+          : `Tu solicitud para ${reg.tournament.name} fue rechazada.${refunded ? ' Se reembolsó tu pago.' : ''}${dto.note ? ` Motivo: ${dto.note}` : ''}`,
       link: `/torneos/${reg.tournament.slug}`,
     });
     this.realtime.emitToTournament(reg.tournamentId, 'registration:changed', { tournamentId: reg.tournamentId });
@@ -853,12 +893,20 @@ export class TournamentsService {
         status: true,
         createdAt: true,
         team: { select: { name: true, slug: true, logoUrl: true } },
+        payments: { where: { status: 'PENDING' }, select: { id: true, expiresAt: true }, take: 1 },
         tournament: { select: tournamentCardSelect },
       },
     }).then((rows) => rows.map((r) => ({ ...r, tournament: toCard(r.tournament) })));
   }
 
   // =========================================================================== Helpers
+
+  /** Cobro en línea: requiere cuota mayor que cero y la cuenta de Mercado Pago conectada. */
+  private async validateOnlineCollection(organizerId: string, collect: boolean | undefined, fee: number) {
+    if (!collect) return;
+    if (!(fee > 0)) throw new BadRequestException('Para cobrar en línea la cuota de inscripción debe ser mayor que cero');
+    await this.payments.assertCanCollect(organizerId);
+  }
 
   private async getManaged(user: AuthUser, id: string): Promise<Tournament> {
     const t = await this.prisma.tournament.findUnique({ where: { id } });

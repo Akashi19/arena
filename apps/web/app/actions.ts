@@ -254,6 +254,7 @@ function tournamentBody(fd: FormData) {
     city: str(fd, 'city'),
     entryFee: num(fd, 'entryFee') ?? 0,
     currency: str(fd, 'currency'),
+    collectOnline: fd.get('collectOnline') === 'on',
     rules: (fd.get('rules') as string | null) ?? undefined,
     refundPolicy: (fd.get('refundPolicy') as string | null) ?? undefined,
     minLevel: str(fd, 'minLevel'),
@@ -334,13 +335,70 @@ export async function cancelTournamentAction(_: ActionState, fd: FormData): Prom
 
 export async function requestRegistrationAction(_: ActionState, fd: FormData): Promise<ActionState> {
   const id = str(fd, 'tournamentId');
+  let checkoutUrl: string | null = null;
   try {
-    await api(`/tournaments/${id}/registrations`, {
+    const res = await api<{ payment?: { id: string; checkoutUrl: string | null } }>(`/tournaments/${id}/registrations`, {
       method: 'POST',
       body: { teamId: str(fd, 'teamId'), notes: str(fd, 'notes'), acceptRules: fd.get('acceptRules') === 'on' },
     });
     revalidatePath(`/torneos/${str(fd, 'slug')}`);
-    return { ok: true, message: 'Solicitud enviada. El organizador revisará tu inscripción.' };
+    if (!res.payment) return { ok: true, message: 'Solicitud enviada. El organizador revisará tu inscripción.' };
+    checkoutUrl = res.payment.checkoutUrl ?? `/inscripciones/pago/${res.payment.id}`;
+  } catch (e) {
+    return fail(e);
+  }
+  // Cuota cobrada en línea: al checkout de Mercado Pago (o a la página del pago de prueba)
+  redirect(checkoutUrl);
+}
+
+// ============================================================================ Cobro de inscripciones
+
+export async function connectMercadoPagoAction() {
+  let url: string;
+  try {
+    url = (await api<{ url: string }>('/me/payment-account/mercadopago/authorize', { method: 'POST' })).url;
+  } catch (e) {
+    redirect(`/dashboard/cobros?error=${encodeURIComponent(e instanceof ApiError ? e.message : 'No se pudo iniciar la conexión')}`);
+  }
+  redirect(url);
+}
+
+export async function connectSandboxAccountAction(_: ActionState): Promise<ActionState> {
+  try {
+    await api('/me/payment-account/sandbox', { method: 'POST' });
+    revalidatePath('/dashboard/cobros');
+    return { ok: true, message: 'Cuenta de prueba conectada. Ya puedes cobrar inscripciones sin dinero real.' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function disconnectPaymentAccountAction(_: ActionState): Promise<ActionState> {
+  try {
+    await api('/me/payment-account', { method: 'DELETE' });
+    revalidatePath('/dashboard/cobros');
+    return { ok: true, message: 'Cuenta desconectada. Tus partidas dejaron de cobrar en línea.' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function refundRegistrationPaymentAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    await api(`/registration-payments/${str(fd, 'paymentId')}/refund`, { method: 'POST', body: { reason: str(fd, 'reason') } });
+    revalidatePath('/dashboard/cobros');
+    return { ok: true, message: 'Pago reembolsado. El jugador recibirá el importe en su medio de pago.' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function registrationSandboxAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const id = str(fd, 'paymentId');
+  try {
+    await api(`/registration-payments/${id}/sandbox`, { method: 'POST', body: { approve: fd.get('approve') === 'true' } });
+    revalidatePath(`/inscripciones/pago/${id}`);
+    return { ok: true };
   } catch (e) {
     return fail(e);
   }
@@ -1212,6 +1270,7 @@ export async function savePlanAction(_: ActionState, fd: FormData): Promise<Acti
     maxAdmins: num(fd, 'maxAdmins'),
     trialDays: num(fd, 'trialDays'),
     graceDays: num(fd, 'graceDays'),
+    registrationFeePercent: num(fd, 'registrationFeePercent'),
     sortOrder: num(fd, 'sortOrder'),
     status: fd.get('active') === 'on' ? 'ACTIVE' : 'INACTIVE',
     features: fd.getAll('features').map(String),
