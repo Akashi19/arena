@@ -364,7 +364,7 @@ export class TournamentsService {
     this.validateLevels(dto.minLevel, dto.maxLevel);
     await this.validateRanks(dto.category === 'ESPORT' ? dto.gameId : undefined, dto.minRankId, dto.maxRankId);
     if (!dto.isOnline && !dto.location) throw new BadRequestException('Indica la ubicación o marca la partida como online');
-    await this.validateOnlineCollection(organizer.id, dto.collectOnline, dto.entryFee ?? 0);
+    await this.validateOnlineCollection(organizer.id, dto.entryFee ?? 0);
 
     const created = await this.prisma.$transaction(
       async (tx) => {
@@ -395,6 +395,8 @@ export class TournamentsService {
             gameId: dto.category === 'ESPORT' ? dto.gameId : null,
             currency: dto.currency ?? 'USD',
             entryFee: dto.entryFee ?? 0,
+            // Toda cuota mayor que cero se cobra con Mercado Pago
+            collectOnline: (dto.entryFee ?? 0) > 0,
             country: dto.country ?? (dto.isOnline ? null : organizer.country),
             city: dto.city ?? (dto.isOnline ? null : organizer.city),
           },
@@ -453,14 +455,15 @@ export class TournamentsService {
     const maxRankId = dto.maxRankId !== undefined ? dto.maxRankId : gameChanged ? null : current.maxRankId;
     await this.validateRanks(category === 'ESPORT' ? gameId : undefined, minRankId, maxRankId);
 
-    if (dto.collectOnline !== undefined || dto.entryFee !== undefined || dto.currency !== undefined) {
-      const collect = dto.collectOnline ?? current.collectOnline;
-      await this.validateOnlineCollection(current.organizerId, collect, dto.entryFee ?? Number(current.entryFee));
+    let collectOnline: boolean | undefined;
+    if (dto.entryFee !== undefined || dto.currency !== undefined) {
+      const fee = dto.entryFee ?? Number(current.entryFee);
+      await this.validateOnlineCollection(current.organizerId, fee);
+      collectOnline = fee > 0;
       const pending = await this.prisma.tournamentRegistration.count({ where: { tournamentId: id, status: 'PAYMENT_PENDING' } });
       const feeChanged =
         (dto.entryFee !== undefined && dto.entryFee !== Number(current.entryFee)) ||
-        (dto.currency !== undefined && dto.currency !== current.currency) ||
-        (dto.collectOnline === false && current.collectOnline);
+        (dto.currency !== undefined && dto.currency !== current.currency);
       if (pending && feeChanged) {
         throw new BadRequestException(`Hay ${pending} pagos de inscripción en curso: espera a que se completen o venzan para cambiar la cuota`);
       }
@@ -486,6 +489,7 @@ export class TournamentsService {
       where: { id },
       data: {
         ...data,
+        ...(collectOnline !== undefined ? { collectOnline } : {}),
         competitionId,
         sportId: category === 'SPORT' ? sportId : null,
         gameId: category === 'ESPORT' ? gameId : null,
@@ -680,8 +684,8 @@ export class TournamentsService {
       playerId = player.id;
     }
 
-    // Cuota cobrada en línea: se reserva el cupo y se abre el pago en la cuenta del organizador
-    if (t.collectOnline && Number(t.entryFee) > 0) {
+    // Partida con cuota: siempre se paga con Mercado Pago (se reserva el cupo y se abre el pago del organizador)
+    if (Number(t.entryFee) > 0) {
       return this.payments.registerWithPayment(user, t, { teamId, playerId, notes: dto.notes });
     }
 
@@ -901,11 +905,9 @@ export class TournamentsService {
 
   // =========================================================================== Helpers
 
-  /** Cobro en línea: requiere cuota mayor que cero y la cuenta de Mercado Pago conectada. */
-  private async validateOnlineCollection(organizerId: string, collect: boolean | undefined, fee: number) {
-    if (!collect) return;
-    if (!(fee > 0)) throw new BadRequestException('Para cobrar en línea la cuota de inscripción debe ser mayor que cero');
-    await this.payments.assertCanCollect(organizerId);
+  /** Una partida con cuota solo se publica si el organizador tiene su cuenta de Mercado Pago conectada. */
+  private async validateOnlineCollection(organizerId: string, fee: number) {
+    if (fee > 0) await this.payments.assertCanCollect(organizerId);
   }
 
   private async getManaged(user: AuthUser, id: string): Promise<Tournament> {

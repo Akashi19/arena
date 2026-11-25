@@ -45,7 +45,7 @@ export function RegistrationPanel({ tournament: t, loggedIn, isOwner, myRegistra
   const [state, onSubmit, pending] = usePersistentAction(requestRegistrationAction, {});
   const [withdrawState, withdrawAction] = useActionState(withdrawRegistrationAction, {});
   const [confirming, setConfirming] = useState(false);
-  const paid = t.collectOnline && Number(t.entryFee) > 0;
+  const paid = Number(t.entryFee) > 0;
 
   return (
     <section id="inscripcion" className="card scroll-mt-24 p-5">
@@ -54,7 +54,7 @@ export function RegistrationPanel({ tournament: t, loggedIn, isOwner, myRegistra
       <p className="text-xs text-muted">
         {paid
           ? 'Se paga al inscribirse con Mercado Pago y llega directo al organizador. No es una apuesta.'
-          : 'Cuota informativa fijada por el organizador. No es una apuesta.'}
+          : 'Inscripción gratuita.'}
       </p>
 
       <div className="mt-4 space-y-3">

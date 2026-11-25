@@ -262,21 +262,28 @@ export class RegistrationPaymentsService implements OnModuleInit, OnModuleDestro
     const organizer = await requireOwnOrganizer(this.prisma, user.id);
     const account = await this.prisma.organizerPaymentAccount.findUnique({ where: { organizerId: organizer.id } });
     if (!account || account.status === 'DISCONNECTED') return this.presentAccount(account);
+    // Las cuotas solo se cobran con Mercado Pago: sin cuenta, una partida con cuota no podría recibir inscripciones
+    const paid = await this.prisma.tournament.count({
+      where: { organizerId: organizer.id, entryFee: { gt: 0 }, status: { in: ['DRAFT', 'OPEN', 'IN_PROGRESS'] } },
+    });
+    if (paid) {
+      throw new BadRequestException(
+        `Tienes ${paid} ${paid === 1 ? 'partida activa con cuota' : 'partidas activas con cuota'}: déjalas gratis, termínalas o cancélalas antes de desconectar Mercado Pago`,
+      );
+    }
     const updated = await this.prisma.organizerPaymentAccount.update({
       where: { id: account.id },
       data: { status: 'DISCONNECTED', accessTokenEnc: encryptSecret(''), refreshTokenEnc: null, tokenExpiresAt: null },
     });
-    // Las partidas dejan de cobrar en línea: sus cuotas vuelven a ser informativas
-    await this.prisma.tournament.updateMany({ where: { organizerId: organizer.id, collectOnline: true }, data: { collectOnline: false } });
     await this.audit.log({ actorId: user.id, action: 'PAYMENT_ACCOUNT_DISCONNECTED', entityType: 'OrganizerPaymentAccount', entityId: account.id });
     return this.presentAccount(updated);
   }
 
-  /** Usado al crear o editar una partida que cobra en línea. */
+  /** Usado al crear o editar una partida con cuota (siempre se cobra con Mercado Pago). */
   async assertCanCollect(organizerId: string) {
     const account = await this.prisma.organizerPaymentAccount.findUnique({ where: { organizerId } });
     if (!this.usable(account)) {
-      throw new BadRequestException('Conecta tu cuenta de Mercado Pago en «Cobros» para cobrar las inscripciones en línea');
+      throw new BadRequestException('Las inscripciones con cuota se pagan con Mercado Pago: conecta tu cuenta en «Cobros» o deja la partida gratis');
     }
   }
 

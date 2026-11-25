@@ -17,6 +17,7 @@ import type { Platform } from '../src/generated/prisma/client.js';
 import { refreshPlayerStats } from '../src/players/stats.js';
 import { ReputationService } from '../src/trust/reputation.js';
 import { recomputeGame, syncTournament } from '../src/rankings/engine.js';
+import { encryptSecret } from '../src/payments/marketplace.js';
 
 const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }) });
 const DEMO_PASSWORD = 'Arena2026demo';
@@ -340,6 +341,18 @@ async function seedDemo() {
     },
     passwordHash,
   );
+  // Las cuotas se cobran con Mercado Pago: los organizadores demo usan la cuenta de prueba (BILLING_SANDBOX)
+  for (const o of [ligaGamer, clubAndes]) {
+    await prisma.organizerPaymentAccount.create({
+      data: {
+        organizerId: o.organizerId!,
+        provider: 'SANDBOX',
+        externalUserId: `sandbox-${o.organizerId}`,
+        accessTokenEnc: encryptSecret('sandbox'),
+        connectedById: o.user.id,
+      },
+    });
+  }
   const players: Awaited<ReturnType<typeof createUser>>[] = [];
   const nicks = [
     ['nova', 'Valeria', 'Soto', 'PE', 'Lima'],
@@ -421,6 +434,7 @@ async function seedDemo() {
       isOnline: true,
       entryFee: 10,
       currency: 'PEN',
+      collectOnline: true,
       rules: '1. Plantillas Ultimate Team no permitidas.\n2. Conexión estable obligatoria.\n3. Capturas del resultado al finalizar.',
       refundPolicy: 'Devolución completa hasta 48 h antes del inicio.',
       isFeatured: true,
@@ -445,6 +459,7 @@ async function seedDemo() {
       isOnline: true,
       entryFee: 25,
       currency: 'USD',
+      collectOnline: true,
       minLevel: 'INTERMEDIATE',
       rules: 'Mapas en rotación competitiva. BO1 en grupos, BO3 en playoffs.',
     },
@@ -468,6 +483,7 @@ async function seedDemo() {
       city: 'Santiago',
       entryFee: 40000,
       currency: 'CLP',
+      collectOnline: true,
       rules: 'Reglamento FIFA adaptado a fútbol 7. Tarjeta amarilla: 2 min de exclusión.',
       isFeatured: true,
     },

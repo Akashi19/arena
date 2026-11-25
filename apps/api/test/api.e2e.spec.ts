@@ -37,7 +37,7 @@ function tournamentPayload(overrides: Record<string, unknown> = {}) {
     mode: 'INDIVIDUAL',
     format: 'SINGLE_ELIMINATION',
     isOnline: true,
-    entryFee: 5,
+    entryFee: 0,
     currency: 'USD',
     ...overrides,
   };

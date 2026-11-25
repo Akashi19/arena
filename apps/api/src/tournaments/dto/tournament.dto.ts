@@ -81,13 +81,10 @@ export class CreateTournamentDto {
   @ApiPropertyOptional() @IsOptional() @Transform(upper) @IsISO31661Alpha2() country?: string;
   @ApiPropertyOptional() @IsOptional() @Transform(trim) @IsString() @MaxLength(80) city?: string;
 
-  @ApiPropertyOptional({ description: 'Cobrar la cuota en línea con la cuenta de Mercado Pago del organizador (si no, es informativa)', default: false })
-  @IsOptional()
-  @Transform(bool)
-  @IsBoolean()
-  collectOnline?: boolean;
-
-  @ApiPropertyOptional({ description: 'Cuota de inscripción (informativa salvo que collectOnline sea true)', default: 0 })
+  @ApiPropertyOptional({
+    description: 'Cuota de inscripción. Si es mayor que cero se cobra siempre con la cuenta de Mercado Pago del organizador',
+    default: 0,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsNumber({ maxDecimalPlaces: 2 })

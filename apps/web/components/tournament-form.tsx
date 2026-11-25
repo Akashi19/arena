@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { createTournamentAction, updateTournamentAction } from '@/app/actions';
 import { COUNTRIES, CURRENCIES, FORMAT_LABEL, LEVEL_LABEL, PLATFORM_LABEL, toLocalInput } from '@/lib/format';
@@ -11,7 +12,7 @@ interface Props {
   games: (Discipline & { platforms?: string[]; ranks?: { id: string; rankName: string; rankOrder: number }[] })[];
   maxParticipantsLimit: number;
   initial?: TournamentDetail & { sportId?: string; gameId?: string };
-  /** Cobro en línea: si la cuenta de Mercado Pago está conectada y la comisión de Arena del plan */
+  /** Cobro de cuotas: si la cuenta de Mercado Pago está conectada y la comisión de Arena del plan */
   collect: { canCollect: boolean; feePercent: number };
 }
 
@@ -23,7 +24,9 @@ export function TournamentForm({ sports, games, maxParticipantsLimit, initial, c
   const [format, setFormat] = useState(initial?.format ?? 'SINGLE_ELIMINATION');
   const [online, setOnline] = useState(initial?.isOnline ?? category === 'ESPORT');
   const [gameId, setGameId] = useState(initial?.game?.id ?? games[0]?.id ?? '');
-  const [collectOnline, setCollectOnline] = useState(initial?.collectOnline ?? false);
+  const [fee, setFee] = useState(initial ? Number(initial.entryFee) : 0);
+  // Toda cuota mayor que cero se cobra con Mercado Pago
+  const paid = fee > 0;
   const locked = initial?.status === 'IN_PROGRESS';
   const platforms = games.find((g) => g.id === gameId)?.platforms ?? Object.keys(PLATFORM_LABEL);
   const ranks = games.find((g) => g.id === gameId)?.ranks ?? [];
@@ -228,14 +231,21 @@ export function TournamentForm({ sports, games, maxParticipantsLimit, initial, c
 
       <Section title="Cuota de participación">
         <p className="-mt-2 mb-3 text-xs text-muted">
-          {collectOnline
-            ? 'Los jugadores pagan al inscribirse con Mercado Pago y el dinero llega a tu cuenta. No es una apuesta.'
-            : 'Importe informativo de inscripción: Arena no lo cobra. No es una apuesta.'}
+          Con monto 0 la inscripción es gratuita. Si fijas una cuota, los jugadores la pagan al inscribirse con Mercado Pago y el
+          dinero llega a tu cuenta. No es una apuesta.
         </p>
         <div className="grid max-w-md grid-cols-2 gap-4">
           <label className="block">
             <span className="label">Monto</span>
-            <input type="number" name="entryFee" min={0} step="0.01" defaultValue={initial ? Number(initial.entryFee) : 0} className="input" />
+            <input
+              type="number"
+              name="entryFee"
+              min={0}
+              step="0.01"
+              defaultValue={initial ? Number(initial.entryFee) : 0}
+              onChange={(e) => setFee(Number(e.target.value) || 0)}
+              className="input"
+            />
           </label>
           <label className="block">
             <span className="label">Moneda</span>
@@ -244,24 +254,21 @@ export function TournamentForm({ sports, games, maxParticipantsLimit, initial, c
             </select>
           </label>
         </div>
-        <label className={`mt-4 flex items-start gap-2 text-sm ${collect.canCollect ? '' : 'opacity-60'}`}>
-          <input
-            type="checkbox"
-            name="collectOnline"
-            checked={collectOnline}
-            onChange={(e) => setCollectOnline(e.target.checked)}
-            disabled={!collect.canCollect && !collectOnline}
-            className="mt-1 size-4 accent-[var(--color-neon)]"
-          />
-          <span>
-            Cobrar la inscripción en línea con Mercado Pago
-            <span className="block text-xs text-muted">
-              {collect.canCollect
-                ? `El cupo se reserva mientras el jugador paga y la inscripción se aprueba sola al confirmarse el pago. Comisión de Arena: ${collect.feePercent} % por inscripción (más la de Mercado Pago).`
-                : 'Primero conecta tu cuenta de Mercado Pago en «Cobros».'}
-            </span>
-          </span>
-        </label>
+        {paid &&
+          (collect.canCollect ? (
+            <p className="mt-4 rounded-xl border border-line bg-surface-2/40 p-3 text-xs text-muted">
+              Se cobra con Mercado Pago: el cupo se reserva mientras el jugador paga y la inscripción se aprueba sola al
+              confirmarse el pago. Comisión de Arena: {collect.feePercent} % por inscripción (más la de Mercado Pago).
+            </p>
+          ) : (
+            <p className="mt-4 rounded-xl border border-amber/40 bg-amber/5 p-3 text-xs">
+              Las cuotas se cobran con Mercado Pago. Para publicar una partida con cuota, primero{' '}
+              <Link href="/dashboard/cobros" className="font-semibold text-neon underline">
+                conecta tu cuenta en «Cobros»
+              </Link>{' '}
+              o deja el monto en 0.
+            </p>
+          ))}
       </Section>
 
       <Section title="Reglamento">

@@ -254,7 +254,6 @@ function tournamentBody(fd: FormData) {
     city: str(fd, 'city'),
     entryFee: num(fd, 'entryFee') ?? 0,
     currency: str(fd, 'currency'),
-    collectOnline: fd.get('collectOnline') === 'on',
     rules: (fd.get('rules') as string | null) ?? undefined,
     refundPolicy: (fd.get('refundPolicy') as string | null) ?? undefined,
     minLevel: str(fd, 'minLevel'),

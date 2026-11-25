@@ -430,7 +430,7 @@ export class StatsService {
         WHERE ${scoped(s)} AND ${tDate()} >= ${from} AND ${tDate()} < ${tEnd}
         ORDER BY t.starts_at DESC LIMIT 10000`;
       return toCsv(
-        ['Torneo', 'Enlace', 'Estado', 'Formato', 'Modalidad', 'Disciplina', 'Inicio (UTC)', 'Cupo', 'Aprobados', 'Pendientes', 'Ocupación %', 'Encuentros jugados', 'Encuentros totales', 'Cuota informativa', 'Moneda', 'Campeón'],
+        ['Torneo', 'Enlace', 'Estado', 'Formato', 'Modalidad', 'Disciplina', 'Inicio (UTC)', 'Cupo', 'Aprobados', 'Pendientes', 'Ocupación %', 'Encuentros jugados', 'Encuentros totales', 'Cuota de inscripción', 'Moneda', 'Campeón'],
         rows.map((x) => [
           x.name, `/torneos/${x.slug}`, label('tournament', x.status), label('format', x.format), label('mode', x.mode), x.discipline, dt(x.starts_at), x.max_participants, n(x.approved), n(x.pending),
           x.max_participants ? Math.round((n(x.approved) / x.max_participants) * 1000) / 10 : '', n(x.done), n(x.total), x.entry_fee, x.currency, x.champion,
@@ -448,7 +448,7 @@ export class StatsService {
         WHERE ${scoped(s)} AND r.created_at >= ${from} AND r.created_at < ${to}
         ORDER BY r.created_at DESC LIMIT 10000`;
       return toCsv(
-        ['Torneo', 'Participante', 'Tipo', 'Estado', 'Solicitada (UTC)', 'Cuota informativa', 'Moneda', 'Posición final'],
+        ['Torneo', 'Participante', 'Tipo', 'Estado', 'Solicitada (UTC)', 'Cuota de inscripción', 'Moneda', 'Posición final'],
         rows.map((x) => [x.tournament, x.participant, x.is_team ? 'Equipo' : 'Jugador', label('registration', x.status), dt(x.created_at), x.fee, x.currency, x.position]),
       );
     }

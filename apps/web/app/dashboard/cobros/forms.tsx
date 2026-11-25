@@ -28,7 +28,10 @@ export function DisconnectForm() {
   }
   return (
     <form method="post" onSubmit={onSubmit} className="space-y-2 rounded-xl border border-danger/40 bg-danger/5 p-3 text-sm">
-      <p>Tus partidas dejarán de cobrar en línea y sus cuotas volverán a ser informativas. Los pagos ya recibidos no cambian.</p>
+      <p>
+        Sin Mercado Pago no puedes tener partidas activas con cuota: antes déjalas gratis, termínalas o cancélalas. Los pagos ya
+        recibidos no cambian.
+      </p>
       <div className="flex gap-2">
         <button type="button" className="btn-ghost px-3 py-1.5 text-sm" onClick={() => setConfirming(false)}>
           Cancelar

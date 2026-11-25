@@ -49,7 +49,7 @@ export class DashboardService {
           where: { organizerId: organizer.id, status: 'OPEN' },
           _sum: { maxParticipants: true },
         }),
-        // Cuotas de inscripción informativas registradas (aprobadas), agrupadas por moneda
+        // Cuotas de inscripción registradas (aprobadas), agrupadas por moneda
         this.prisma.tournamentRegistration.groupBy({
           by: ['feeCurrency'],
           where: { ...orgFilter, status: 'APPROVED' },

@@ -45,7 +45,6 @@ function tournament(overrides: Record<string, unknown> = {}) {
     isOnline: true,
     entryFee: 20,
     currency: 'PEN',
-    collectOnline: true,
     ...overrides,
   };
 }
@@ -77,15 +76,17 @@ describe('cobro de inscripciones en línea', () => {
   let tournamentId: string;
   const players: Auth[] = [];
 
-  it('sin cuenta conectada no se puede crear una partida que cobre en línea', async () => {
+  it('sin cuenta de Mercado Pago no se puede crear una partida con cuota (gratis sí)', async () => {
     org = await register('cobra');
     const res = await http.post('/api/tournaments').set(org).send(tournament()).expect(400);
-    expect(res.body.message).toContain('Conecta tu cuenta de Mercado Pago');
+    expect(res.body.message).toContain('se pagan con Mercado Pago');
+    const free = await http.post('/api/tournaments').set(org).send(tournament({ entryFee: 0 })).expect(201);
+    expect(free.body.collectOnline).toBe(false);
     const account = await http.get('/api/me/payment-account').set(org).expect(200);
     expect(account.body).toMatchObject({ account: null, canCollect: false, feePercent: 5 });
   });
 
-  it('conecta la cuenta de prueba y crea la partida; una cuota de cero no se cobra en línea', async () => {
+  it('conecta la cuenta de prueba y crea la partida: toda cuota se cobra con Mercado Pago', async () => {
     await http.post('/api/me/payment-account/sandbox').set(org).expect(201);
     const account = await http.get('/api/me/payment-account').set(org).expect(200);
     expect(account.body.canCollect).toBe(true);
@@ -93,7 +94,8 @@ describe('cobro de inscripciones en línea', () => {
     // Los tokens nunca salen de la API
     expect(JSON.stringify(account.body)).not.toContain('Enc');
 
-    await http.post('/api/tournaments').set(org).send(tournament({ entryFee: 0 })).expect(400);
+    // collectOnline ya no es una opción: lo define la cuota
+    await http.post('/api/tournaments').set(org).send(tournament({ collectOnline: false })).expect(400);
     const t = await http.post('/api/tournaments').set(org).send(tournament()).expect(201);
     tournamentId = t.body.id;
     expect(t.body.collectOnline).toBe(true);
@@ -193,10 +195,16 @@ describe('cobro de inscripciones en línea', () => {
     expect(theirs.body.total).toBe(0);
   });
 
-  it('desconectar la cuenta apaga el cobro en línea de sus partidas', async () => {
+  it('no se desconecta Mercado Pago con partidas activas con cuota; dejarla gratis la libera', async () => {
+    const res = await http.delete('/api/me/payment-account').set(org).expect(400);
+    expect(res.body.message).toContain('partida activa con cuota');
+    const pending = await prisma.tournamentRegistration.count({ where: { tournamentId, status: 'PAYMENT_PENDING' } });
+    if (pending) await prisma.tournamentRegistration.updateMany({ where: { tournamentId, status: 'PAYMENT_PENDING' }, data: { status: 'WITHDRAWN' } });
+    const free = await http.patch(`/api/tournaments/${tournamentId}`).set(org).send({ entryFee: 0 }).expect(200);
+    expect(free.body.collectOnline).toBe(false);
     await http.delete('/api/me/payment-account').set(org).expect(200);
-    const t = await prisma.tournament.findUniqueOrThrow({ where: { id: tournamentId } });
-    expect(t.collectOnline).toBe(false);
+    // Sin cuenta ya no puede volver a poner cuota
+    await http.patch(`/api/tournaments/${tournamentId}`).set(org).send({ entryFee: 10 }).expect(400);
   });
 
   it('el webhook de Mercado Pago exige firma válida', async () => {
