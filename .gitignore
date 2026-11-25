@@ -17,3 +17,4 @@ infra/.env.production
 infra/seaweedfs/s3.production.json
 backups/
 infra/dokploy.env
+infra/dokploy.*.bak
