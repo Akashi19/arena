@@ -1,0 +1,160 @@
+# Arena Torneos · despliegue en Dokploy (servicio "Docker Compose" con este archivo)
+#
+# Las variables se definen en la pestaña "Environment" de Dokploy (plantilla: infra/dokploy.env.example).
+# Los dominios se asignan en la pestaña "Domains": web → puerto 3000, api → 4100, storage → 8333.
+# Traefik de Dokploy hace de proxy (y de HTTPS con dominio propio); aquí no se publica ningún puerto.
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-arena}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-arena}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    shm_size: 256mb
+
+  # Almacenamiento S3 (SeaweedFS). Las credenciales salen de las variables, no del archivo de desarrollo del repo.
+  storage:
+    image: chrislusf/seaweedfs:3.97
+    restart: unless-stopped
+    environment:
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:?Define S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:?Define S3_SECRET_KEY}
+      S3_BUCKET_PUBLIC: ${S3_BUCKET_PUBLIC:-arena-public}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        printf '{"identities":[{"name":"arena_api","credentials":[{"accessKey":"%s","secretKey":"%s"}],"actions":["Admin","Read","Write","List","Tagging"]},{"name":"anonymous","actions":["Read:%s"]}]}' \
+          "$$S3_ACCESS_KEY" "$$S3_SECRET_KEY" "$$S3_BUCKET_PUBLIC" > /tmp/s3.json
+        exec weed server -dir=/data -ip.bind=0.0.0.0 -s3 -s3.port=8333 -s3.config=/tmp/s3.json
+    volumes:
+      - storage_data:/data
+    # Con dos redes, sin -ip.bind=0.0.0.0 SeaweedFS escucha solo en la IP de una de ellas
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 8333"]
+      interval: 5s
+      timeout: 3s
+      start_period: 10s
+      retries: 30
+    networks: [default, dokploy-network]
+
+  # Migraciones y datos base (planes, catálogo y primer SUPERADMIN) antes de arrancar la API. Nunca crea datos demo.
+  migrate:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: "no"
+    command: ["sh", "-c", "npx prisma migrate deploy && SEED_MODE=base npx tsx prisma/seed.ts"]
+    environment: &api-env
+      NODE_ENV: production
+      PORT: 4100
+      DATABASE_URL: postgresql://${POSTGRES_USER:-arena}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-arena}?schema=public
+      CORS_ORIGINS: ${PUBLIC_WEB_URL:?Define PUBLIC_WEB_URL}
+      PUBLIC_WEB_URL: ${PUBLIC_WEB_URL}
+      PUBLIC_API_URL: ${PUBLIC_API_URL:?Define PUBLIC_API_URL}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?Define JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?Define JWT_REFRESH_SECRET}
+      S3_ENDPOINT: http://storage:8333
+      S3_PUBLIC_URL: ${PUBLIC_FILES_URL:?Define PUBLIC_FILES_URL}
+      S3_REGION: us-east-1
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
+      S3_BUCKET_PUBLIC: ${S3_BUCKET_PUBLIC:-arena-public}
+      S3_BUCKET_PRIVATE: ${S3_BUCKET_PRIVATE:-arena-private}
+      S3_FORCE_PATH_STYLE: "true"
+      BILLING_SANDBOX: ${BILLING_SANDBOX:-false}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      MERCADOPAGO_ACCESS_TOKEN: ${MERCADOPAGO_ACCESS_TOKEN:-}
+      MERCADOPAGO_WEBHOOK_SECRET: ${MERCADOPAGO_WEBHOOK_SECRET:-}
+      MERCADOPAGO_CLIENT_ID: ${MERCADOPAGO_CLIENT_ID:-}
+      MERCADOPAGO_CLIENT_SECRET: ${MERCADOPAGO_CLIENT_SECRET:-}
+      MERCADOPAGO_MARKETPLACE_WEBHOOK_SECRET: ${MERCADOPAGO_MARKETPLACE_WEBHOOK_SECRET:-}
+      PAYMENTS_ENCRYPTION_KEY: ${PAYMENTS_ENCRYPTION_KEY:-}
+      REGISTRATION_PAYMENT_HOLD_MINUTES: ${REGISTRATION_PAYMENT_HOLD_MINUTES:-30}
+      STREAM_EXTRA_DOMAINS: ${STREAM_EXTRA_DOMAINS:-}
+      SUPERADMIN_EMAIL: ${SUPERADMIN_EMAIL:-}
+      SUPERADMIN_USERNAME: ${SUPERADMIN_USERNAME:-admin}
+      SUPERADMIN_PASSWORD: ${SUPERADMIN_PASSWORD:-}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    command: ["node", "dist/main.js"]
+    environment: *api-env
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      storage:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4100/api/health >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      start_period: 20s
+      retries: 5
+    networks: [default, dokploy-network]
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        # Queda incrustada en el JavaScript del navegador: si cambia, hay que volver a desplegar
+        NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL}
+    restart: unless-stopped
+    environment:
+      API_INTERNAL_URL: http://api:4100
+      NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL}
+      # false solo con dominios de prueba servidos por HTTP (traefik.me)
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/healthz >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      start_period: 20s
+      retries: 5
+    networks: [default, dokploy-network]
+
+  # Copia diaria de la base (pg_dump comprimido) en el volumen backups_data
+  backup:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      PGHOST: db
+      PGUSER: ${POSTGRES_USER:-arena}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB:-arena}
+      BACKUP_KEEP_DAYS: ${BACKUP_KEEP_DAYS:-14}
+    volumes:
+      - backups_data:/backups
+      - ./infra/scripts/backup-loop.sh:/backup-loop.sh:ro
+    entrypoint: ["sh", "/backup-loop.sh"]
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db_data:
+  storage_data:
+  backups_data:
+
+networks:
+  dokploy-network:
+    external: true

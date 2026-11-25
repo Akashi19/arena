@@ -39,7 +39,8 @@ export async function proxy(request: NextRequest) {
         request.cookies.set(ACCESS, tokens.accessToken);
         request.cookies.set(REFRESH, tokens.refreshToken);
         const response = NextResponse.next({ request: { headers: request.headers } });
-        const secure = process.env.NODE_ENV === 'production';
+        // Igual que secureCookies() en lib/session.ts (el proxy no importa módulos server-only)
+        const secure = process.env.COOKIE_SECURE ? process.env.COOKIE_SECURE === 'true' : process.env.NODE_ENV === 'production';
         response.cookies.set(ACCESS, tokens.accessToken, { httpOnly: true, sameSite: 'lax', secure, path: '/', maxAge: 60 * 15 });
         response.cookies.set(REFRESH, tokens.refreshToken, { httpOnly: true, sameSite: 'lax', secure, path: '/', maxAge: 60 * 60 * 24 * 30 });
         return response;

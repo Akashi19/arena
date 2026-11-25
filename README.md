@@ -183,4 +183,5 @@ desde tu máquina: el contenedor de Postgres publica el puerto 5433, el mismo qu
 
 - [Arquitectura y modelo entidad-relación](docs/ARQUITECTURA.md)
 - [Despliegue, integración continua y operación](docs/DESPLIEGUE.md)
+- [Despliegue en Dokploy](docs/DOKPLOY.md)
 - [API REST](docs/API.md) · especificación OpenAPI en [docs/openapi.json](docs/openapi.json) y Swagger en `/api/docs`

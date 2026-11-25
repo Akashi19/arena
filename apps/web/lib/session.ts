@@ -24,9 +24,18 @@ export async function requireOrganizer(next = '/dashboard') {
   return me;
 }
 
+/**
+ * Cookies de sesión solo por HTTPS en producción. COOKIE_SECURE=false permite servir la web por HTTP
+ * (p. ej. dominios de prueba traefik.me de Dokploy); nunca lo uses con un dominio real.
+ */
+export function secureCookies() {
+  const flag = process.env.COOKIE_SECURE;
+  return flag ? flag === 'true' : process.env.NODE_ENV === 'production';
+}
+
 export async function setSessionCookies(tokens: { accessToken: string; refreshToken: string }) {
   const jar = await cookies();
-  const secure = process.env.NODE_ENV === 'production';
+  const secure = secureCookies();
   jar.set(ACCESS_COOKIE, tokens.accessToken, { httpOnly: true, sameSite: 'lax', secure, path: '/', maxAge: 60 * 15 });
   jar.set(REFRESH_COOKIE, tokens.refreshToken, {
     httpOnly: true,
