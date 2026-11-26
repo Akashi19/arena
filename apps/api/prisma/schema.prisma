@@ -336,6 +336,7 @@ model User {
   subscriptionChanges    SubscriptionHistory[]
   subscriptionPayments   SubscriptionPayment[]    @relation("PaymentCreatedBy")
   registrationPayments   RegistrationPayment[]    @relation("RegistrationPayer")
+  payoutsRecorded        OrganizerPayout[]
   rankingAudits          RankingAuditLog[]
   resultReports          RankingResultReport[]    @relation("ResultReporter")
   streamsCreated         MatchStream[]
@@ -401,6 +402,8 @@ model OrganizerProfile {
   reputation           OrganizerReputation?
   incidents            OrganizerIncident[]
   paymentAccount       OrganizerPaymentAccount?
+  payoutProfile        OrganizerPayoutProfile?
+  payouts              OrganizerPayout[]
   registrationPayments RegistrationPayment[]
 
   @@index([verificationStatus])
@@ -1736,9 +1739,17 @@ model RegistrationPayment {
   refundedAt           DateTime?       @map("refunded_at")
   refundReason         String?         @map("refund_reason")
   failureReason        String?         @map("failure_reason")
+  /// ORGANIZER_ACCOUNT: cobro en la cuenta del organizador. PLATFORM: cobra Arena y luego liquida al organizador
+  collectionMode       CollectionMode  @default(ORGANIZER_ACCOUNT) @map("collection_mode")
+  /// Liquidación en la que se transfirió el neto al organizador (solo PLATFORM)
+  payoutId             String?         @map("payout_id") @db.Uuid
+  /// Liquidación en la que se descontó un reembolso de un pago ya liquidado
+  recoveredInPayoutId  String?         @map("recovered_in_payout_id") @db.Uuid
   createdAt            DateTime        @default(now()) @map("created_at")
   updatedAt            DateTime        @updatedAt @map("updated_at")
 
+  payout       OrganizerPayout?         @relation("PayoutPayments", fields: [payoutId], references: [id], onDelete: SetNull)
+  recoveredIn  OrganizerPayout?         @relation("PayoutRecoveries", fields: [recoveredInPayoutId], references: [id], onDelete: SetNull)
   registration TournamentRegistration   @relation(fields: [registrationId], references: [id], onDelete: Cascade)
   tournament   Tournament               @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
   organizer    OrganizerProfile         @relation(fields: [organizerId], references: [id], onDelete: Cascade)
@@ -1748,5 +1759,58 @@ model RegistrationPayment {
   @@index([registrationId])
   @@index([organizerId, status])
   @@index([status, expiresAt])
+  @@index([organizerId, collectionMode, status])
   @@map("registration_payments")
+}
+
+enum CollectionMode {
+  ORGANIZER_ACCOUNT
+  PLATFORM
+}
+
+/// Datos para liquidar al organizador que cobra a través de Arena (cobro centralizado). El número de cuenta va cifrado.
+model OrganizerPayoutProfile {
+  id                 String   @id @default(uuid()) @db.Uuid
+  organizerId        String   @unique @map("organizer_id") @db.Uuid
+  /// El organizador eligió cobrar a través de Arena
+  enabled            Boolean  @default(true)
+  holderName         String   @map("holder_name") @db.VarChar(120)
+  documentId         String   @map("document_id") @db.VarChar(30)
+  bankName           String   @map("bank_name") @db.VarChar(80)
+  accountType        String   @map("account_type") @db.VarChar(30)
+  accountNumberEnc   String   @map("account_number_enc")
+  accountNumberLast4 String   @map("account_number_last4") @db.VarChar(4)
+  country            String   @db.Char(2)
+  updatedById        String?  @map("updated_by_id") @db.Uuid
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  organizer OrganizerProfile @relation(fields: [organizerId], references: [id], onDelete: Cascade)
+
+  @@map("organizer_payout_profiles")
+}
+
+/// Transferencia de Arena al organizador con el neto de los pagos cobrados de forma centralizada.
+model OrganizerPayout {
+  id          String   @id @default(uuid()) @db.Uuid
+  organizerId String   @map("organizer_id") @db.Uuid
+  currency    String   @db.Char(3)
+  gross       Decimal  @db.Decimal(12, 2)
+  fee         Decimal  @db.Decimal(12, 2)
+  /// Reembolsos de pagos ya liquidados que se descuentan en esta transferencia
+  deductions  Decimal  @default(0) @db.Decimal(12, 2)
+  amount      Decimal  @db.Decimal(12, 2)
+  reference   String   @db.VarChar(120)
+  note        String?  @db.VarChar(300)
+  paidAt      DateTime @default(now()) @map("paid_at")
+  paidById    String   @map("paid_by_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  organizer  OrganizerProfile      @relation(fields: [organizerId], references: [id], onDelete: Cascade)
+  paidBy     User                  @relation(fields: [paidById], references: [id])
+  payments   RegistrationPayment[] @relation("PayoutPayments")
+  recoveries RegistrationPayment[] @relation("PayoutRecoveries")
+
+  @@index([organizerId, paidAt])
+  @@map("organizer_payouts")
 }

@@ -1,5 +1,5 @@
 /**
- * Cobro de inscripciones en línea con la cuenta del organizador (cuenta y pagos de prueba, sin dinero real):
+ * Cobro de inscripciones en línea con la cuenta del organizador o centralizado por Arena (pagos de prueba, sin dinero real):
  * reserva de cupo, aprobación al pagar, reintentos, vencimiento, pago tardío, comisión y reembolsos.
  */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -224,5 +224,110 @@ describe('cobro de inscripciones en línea', () => {
       delete process.env.MERCADOPAGO_CLIENT_SECRET;
       delete process.env.MERCADOPAGO_MARKETPLACE_WEBHOOK_SECRET;
     }
+  });
+});
+
+describe('cobro centralizado (Arena cobra y liquida al organizador)', () => {
+  let org: Auth;
+  let admin: Auth;
+  let organizerId: string;
+  let tournamentId: string;
+  let paymentId: string;
+  let player: Auth;
+  const bank = { holderName: 'Ana Pérez', documentId: '45678912', bankName: 'BCP', accountType: 'SAVINGS', accountNumber: '191-12345678-0-12', country: 'pe' };
+
+  it('el organizador sin Mercado Pago activa el cobro a través de Arena con sus datos bancarios', async () => {
+    org = await register('central');
+    const login = await http.post('/api/auth/login').send({ identifier: 'superadmin', password: 'Arena2026demo' }).expect(200);
+    admin = { authorization: `Bearer ${login.body.accessToken}` };
+
+    const { accountNumber: _n, ...withoutNumber } = bank;
+    await http.put('/api/me/payout-profile').set(org).send(withoutNumber).expect(400);
+    await http.put('/api/me/payout-profile').set(org).send({ ...bank, accountNumber: '12' }).expect(400);
+    const saved = await http.put('/api/me/payout-profile').set(org).send(bank).expect(200);
+    expect(saved.body).toMatchObject({ enabled: true, bankName: 'BCP', country: 'PE', accountNumberMasked: '•••• 8012' });
+    expect(JSON.stringify(saved.body)).not.toContain('12345678');
+
+    // Editar sin número conserva la cuenta guardada
+    const edited = await http.put('/api/me/payout-profile').set(org).send({ ...withoutNumber, bankName: 'Interbank' }).expect(200);
+    expect(edited.body).toMatchObject({ bankName: 'Interbank', accountNumberMasked: '•••• 8012' });
+
+    const account = await http.get('/api/me/payment-account').set(org).expect(200);
+    expect(account.body).toMatchObject({ account: null, canCollect: true, collectionMode: 'PLATFORM' });
+    expect(account.body.providers.central).toBe(true);
+    const stored = await prisma.organizerPayoutProfile.findFirstOrThrow({ where: { organizer: { user: { username: { startsWith: 'central_' } } } }, orderBy: { createdAt: 'desc' } });
+    organizerId = stored.organizerId;
+    expect(stored.accountNumberEnc).not.toContain('12345678');
+  });
+
+  it('las inscripciones se cobran en la cuenta de Arena con la comisión del plan', async () => {
+    const t = await http.post('/api/tournaments').set(org).send(tournament()).expect(201);
+    tournamentId = t.body.id;
+    player = await register('pcentral', false);
+    const joined = await join(tournamentId, player).expect(201);
+    paymentId = joined.body.payment.id;
+    const p = await prisma.registrationPayment.findUniqueOrThrow({ where: { id: paymentId } });
+    expect(p).toMatchObject({ collectionMode: 'PLATFORM', accountId: null, provider: 'SANDBOX' });
+    expect(Number(p.platformFee)).toBe(1);
+    await http.post(`/api/registration-payments/${paymentId}/sandbox`).set(player).send({ approve: true }).expect(201);
+    const reg = await prisma.tournamentRegistration.findUniqueOrThrow({ where: { id: p.registrationId } });
+    expect(reg.status).toBe('APPROVED');
+  });
+
+  it('el saldo queda retenido hasta que la partida termina', async () => {
+    const mine = await http.get('/api/me/payouts').set(org).expect(200);
+    expect(mine.body.balances).toEqual([
+      expect.objectContaining({ currency: 'PEN', payable: 0, held: { payments: 1, gross: 20, fee: 1, net: 19 } }),
+    ]);
+    await http.post('/api/admin/payouts').set(admin).send({ organizerId, currency: 'PEN', reference: 'OP-1' }).expect(400);
+    // No se puede desactivar con una partida activa con cuota
+    const blocked = await http.delete('/api/me/payout-profile').set(org).expect(400);
+    expect(blocked.body.message).toContain('partida activa con cuota');
+  });
+
+  it('el superadmin ve el saldo, consulta la cuenta y registra la transferencia', async () => {
+    await prisma.tournament.update({ where: { id: tournamentId }, data: { status: 'FINISHED' } });
+    const panel = await http.get('/api/admin/payouts').set(admin).expect(200);
+    const row = panel.body.balances.find((b: { organizerId: string }) => b.organizerId === organizerId);
+    expect(row).toMatchObject({ currency: 'PEN', payable: 19, eligible: { payments: 1, gross: 20, fee: 1, net: 19 } });
+    expect(row.payoutProfile.accountNumberMasked).toBe('•••• 8012');
+    expect(JSON.stringify(panel.body)).not.toContain('12345678');
+
+    await http.get('/api/admin/payouts').set(org).expect(403);
+    await http.get(`/api/admin/payouts/organizers/${organizerId}/bank`).set(org).expect(403);
+    const bankView = await http.get(`/api/admin/payouts/organizers/${organizerId}/bank`).set(admin).expect(200);
+    expect(bankView.body.accountNumber).toBe('19112345678012');
+
+    const payout = await http.post('/api/admin/payouts').set(admin).send({ organizerId, currency: 'PEN', reference: 'OP-123456', amount: 999 }).expect(400);
+    expect(payout.body.message).toBeDefined(); // el importe no se envía: lo calcula la API
+    const done = await http.post('/api/admin/payouts').set(admin).send({ organizerId, currency: 'PEN', reference: 'OP-123456' }).expect(201);
+    expect(done.body).toMatchObject({ gross: 20, fee: 1, deductions: 0, amount: 19, reference: 'OP-123456' });
+    // Nada más que liquidar
+    await http.post('/api/admin/payouts').set(admin).send({ organizerId, currency: 'PEN', reference: 'OP-2' }).expect(400);
+
+    const mine = await http.get('/api/me/payouts').set(org).expect(200);
+    expect(mine.body.balances).toEqual([]);
+    expect(mine.body.payouts[0]).toMatchObject({ amount: 19, reference: 'OP-123456', _count: { payments: 1 } });
+    const notes = await http.get('/api/me/notifications').set(org).expect(200);
+    expect(notes.body.items.some((n: { type: string }) => n.type === 'ORGANIZER_PAYOUT_SENT')).toBe(true);
+  });
+
+  it('un reembolso de un pago ya liquidado se descuenta de la siguiente liquidación', async () => {
+    await payments.apply(paymentId, 'REFUNDED', { reason: 'Contracargo' });
+    const mine = await http.get('/api/me/payouts').set(org).expect(200);
+    expect(mine.body.balances).toEqual([expect.objectContaining({ currency: 'PEN', deductions: 19, payable: -19 })]);
+    await http.post('/api/admin/payouts').set(admin).send({ organizerId, currency: 'PEN', reference: 'OP-3' }).expect(400);
+  });
+
+  it('con cuenta propia conectada, los nuevos cobros van al organizador', async () => {
+    await http.post('/api/me/payment-account/sandbox').set(org).expect(201);
+    const account = await http.get('/api/me/payment-account').set(org).expect(200);
+    expect(account.body.collectionMode).toBe('ORGANIZER_ACCOUNT');
+    const t = await http.post('/api/tournaments').set(org).send(tournament()).expect(201);
+    const joined = await join(t.body.id, await register('pcentral2', false)).expect(201);
+    const p = await prisma.registrationPayment.findUniqueOrThrow({ where: { id: joined.body.payment.id } });
+    expect(p.collectionMode).toBe('ORGANIZER_ACCOUNT');
+    // Con el cobro a través de Arena activo, desconectar Mercado Pago está permitido
+    await http.delete('/api/me/payment-account').set(org).expect(200);
   });
 });

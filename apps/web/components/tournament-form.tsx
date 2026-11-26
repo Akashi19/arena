@@ -236,8 +236,8 @@ export function TournamentForm({ sports, games, maxParticipantsLimit, initial, c
 
       <Section title="Cuota de participación">
         <p className="-mt-2 mb-3 text-xs text-muted">
-          Con monto 0 la inscripción es gratuita. Si fijas una cuota, los jugadores la pagan al inscribirse con Mercado Pago y el
-          dinero llega a tu cuenta. No es una apuesta.
+          Con monto 0 la inscripción es gratuita. Si fijas una cuota, los jugadores la pagan al inscribirse con Mercado Pago: el
+          dinero llega a tu cuenta o, si cobras a través de Arena, te lo transferimos al terminar la partida. No es una apuesta.
         </p>
         <div className="grid max-w-md grid-cols-2 gap-4">
           <label className="block">
@@ -269,7 +269,7 @@ export function TournamentForm({ sports, games, maxParticipantsLimit, initial, c
             <p className="mt-4 rounded-xl border border-amber/40 bg-amber/5 p-3 text-xs">
               Las cuotas se cobran con Mercado Pago. Para publicar una partida con cuota, primero{' '}
               <Link href="/dashboard/cobros" className="font-semibold text-neon underline">
-                conecta tu cuenta en «Cobros»
+                conecta tu cuenta o activa el cobro a través de Arena en «Cobros»
               </Link>{' '}
               o deja el monto en 0.
             </p>

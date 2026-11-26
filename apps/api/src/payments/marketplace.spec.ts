@@ -69,6 +69,7 @@ describe('cobro de inscripciones: funciones puras', () => {
     const expiresAt = new Date('2026-11-10T12:30:00Z');
     const body = preferenceBody({ paymentId: 'pay-1', title: 'Inscripción: Copa', tournamentId: 't-1', amount: 25, currency: 'PEN', fee: 1.25, expiresAt });
     expect(body.marketplace_fee).toBe(1.25);
+    expect(preferenceBody({ paymentId: 'pay-2', title: 'x', tournamentId: 't-1', amount: 25, currency: 'PEN', fee: 0, expiresAt })).not.toHaveProperty('marketplace_fee');
     expect(body.external_reference).toBe('pay-1');
     expect(body.items[0]).toMatchObject({ unit_price: 25, currency_id: 'PEN', quantity: 1 });
     expect(body.expires).toBe(true);

@@ -384,6 +384,50 @@ export async function disconnectPaymentAccountAction(_: ActionState): Promise<Ac
   }
 }
 
+export async function savePayoutProfileAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    await api('/me/payout-profile', {
+      method: 'PUT',
+      body: {
+        holderName: str(fd, 'holderName'),
+        documentId: str(fd, 'documentId'),
+        bankName: str(fd, 'bankName'),
+        accountType: str(fd, 'accountType'),
+        // Vacío conserva la cuenta ya guardada
+        accountNumber: str(fd, 'accountNumber'),
+        country: str(fd, 'country'),
+      },
+    });
+    revalidatePath('/dashboard/cobros');
+    return { ok: true, message: 'Datos guardados. Las inscripciones de tus partidas con cuota se cobran a través de Arena.' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function disablePayoutProfileAction(_: ActionState): Promise<ActionState> {
+  try {
+    await api('/me/payout-profile', { method: 'DELETE' });
+    revalidatePath('/dashboard/cobros');
+    return { ok: true, message: 'Cobro a través de Arena desactivado.' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function createPayoutAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    await api('/admin/payouts', {
+      method: 'POST',
+      body: { organizerId: str(fd, 'organizerId'), currency: str(fd, 'currency'), reference: str(fd, 'reference'), note: str(fd, 'note') },
+    });
+    revalidatePath('/admin/liquidaciones', 'layout');
+    return { ok: true, message: 'Transferencia registrada. Le avisamos al organizador.' };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
 export async function refundRegistrationPaymentAction(_: ActionState, fd: FormData): Promise<ActionState> {
   try {
     await api(`/registration-payments/${str(fd, 'paymentId')}/refund`, { method: 'POST', body: { reason: str(fd, 'reason') } });

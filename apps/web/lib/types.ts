@@ -1028,8 +1028,11 @@ export interface PaymentAccountInfo {
     tokenExpiresAt: string | null;
     lastError: string | null;
   } | null;
+  payoutProfile: PayoutProfile | null;
   canCollect: boolean;
-  providers: { mercadopago: boolean; sandbox: boolean };
+  /** Quién cobra hoy: la cuenta del organizador o Arena (cobro centralizado) */
+  collectionMode: 'ORGANIZER_ACCOUNT' | 'PLATFORM' | null;
+  providers: { mercadopago: boolean; sandbox: boolean; central: boolean };
   feePercent: number;
   plan: string;
   holdMinutes: number;
@@ -1053,10 +1056,72 @@ export interface RegistrationPaymentView {
   participant: string | null;
   expired: boolean;
   sandbox?: boolean;
+  collectionMode: 'ORGANIZER_ACCOUNT' | 'PLATFORM';
+  payoutId: string | null;
   tournament: { id: string; name: string; slug: string; status: TournamentStatus };
   registration: { id: string; status: RegistrationStatus };
   payer: { username: string };
   organizer?: { displayName: string };
+}
+
+export interface PayoutProfile {
+  enabled: boolean;
+  holderName: string;
+  documentId: string;
+  bankName: string;
+  accountType: 'SAVINGS' | 'CHECKING' | 'INTERBANK' | 'WALLET';
+  accountNumberMasked: string;
+  country: string;
+  updatedAt: string;
+}
+
+export interface PayoutBucket {
+  payments: number;
+  gross: number;
+  fee: number;
+  net: number;
+}
+
+export interface PayoutBalance {
+  organizerId: string;
+  currency: string;
+  eligible: PayoutBucket;
+  held: PayoutBucket;
+  deductions: number;
+  payable: number;
+}
+
+export interface OrganizerPayout {
+  id: string;
+  currency: string;
+  gross: number;
+  fee: number;
+  deductions: number;
+  amount: number;
+  reference: string;
+  note: string | null;
+  paidAt: string;
+  _count: { payments: number };
+  organizer?: { id: string; displayName: string };
+  paidBy?: { username: string };
+}
+
+export interface OrganizerPayoutsInfo {
+  balances: PayoutBalance[];
+  payouts: OrganizerPayout[];
+}
+
+export interface AdminPayouts {
+  balances: (PayoutBalance & {
+    organizer: { id: string; displayName: string; username: string; email: string } | null;
+    payoutProfile: PayoutProfile | null;
+  })[];
+  payouts: OrganizerPayout[];
+}
+
+export interface PayoutBankDetails extends PayoutProfile {
+  organizer: string;
+  accountNumber: string;
 }
 
 export interface RegistrationPaymentList extends Paginated<RegistrationPaymentView> {

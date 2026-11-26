@@ -31,6 +31,26 @@ export function marketplaceConfig() {
   };
 }
 
+/**
+ * Cobro centralizado: el jugador paga a la cuenta de Mercado Pago de Arena (MERCADOPAGO_ACCESS_TOKEN) y Arena
+ * liquida después el neto al organizador por transferencia. Opción para organizadores sin cuenta propia.
+ */
+export function centralConfig() {
+  const b = billingConfig();
+  return {
+    token: b.mercadoPagoToken,
+    enabled: !!(b.mercadoPagoToken && webhookSecrets().length),
+    sandbox: b.sandbox,
+  };
+}
+
+/** Secretos válidos para la firma de las notificaciones de cobro de inscripciones (marketplace y cuenta de Arena). */
+export function webhookSecrets() {
+  const b = billingConfig();
+  const marketplace = process.env.MERCADOPAGO_MARKETPLACE_WEBHOOK_SECRET || b.mercadoPagoWebhookSecret;
+  return [...new Set([marketplace, b.mercadoPagoWebhookSecret].filter(Boolean))];
+}
+
 // -------------------------------------------------------------------------------- cifrado de tokens
 
 function encryptionKey() {
@@ -40,8 +60,8 @@ function encryptionKey() {
     if (key.length !== 32) throw new Error('PAYMENTS_ENCRYPTION_KEY debe ser de 32 bytes en base64 (openssl rand -base64 32)');
     return key;
   }
-  if (env.isProduction && marketplaceConfig().enabled) {
-    throw new Error('Define PAYMENTS_ENCRYPTION_KEY para guardar los tokens de Mercado Pago de los organizadores');
+  if (env.isProduction && (marketplaceConfig().enabled || centralConfig().enabled)) {
+    throw new Error('Define PAYMENTS_ENCRYPTION_KEY para guardar los tokens de Mercado Pago y los datos bancarios de los organizadores');
   }
   // Desarrollo y pruebas: clave derivada del secreto JWT
   return createHash('sha256').update(`arena-payments:${env.jwt.refreshSecret}`).digest();
@@ -177,6 +197,7 @@ export interface PreferenceInput {
   tournamentId: string;
   amount: number;
   currency: string;
+  /** Comisión de Arena como marketplace_fee (0 en el cobro centralizado: el pago ya entra a la cuenta de Arena) */
   fee: number;
   expiresAt: Date;
   payerEmail?: string;
@@ -188,7 +209,7 @@ export function preferenceBody(p: PreferenceInput) {
   return {
     items: [{ id: p.tournamentId, title: p.title.slice(0, 250), quantity: 1, unit_price: p.amount, currency_id: p.currency }],
     external_reference: p.paymentId,
-    marketplace_fee: p.fee,
+    ...(p.fee > 0 ? { marketplace_fee: p.fee } : {}),
     notification_url: `${c.publicApiUrl}/api/registration-payments/webhooks/mercadopago?ref=${p.paymentId}`,
     back_urls: { success: back('ok'), pending: back('pendiente'), failure: back('error') },
     auto_return: 'approved',

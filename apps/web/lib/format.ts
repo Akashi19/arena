@@ -269,6 +269,13 @@ export const PERIOD_LABEL: Record<string, string> = { MONTHLY: 'Mensual', YEARLY
 export const PROVIDER_LABEL: Record<string, string> = { STRIPE: 'Stripe', MERCADOPAGO: 'Mercado Pago', SANDBOX: 'Pago de prueba', MANUAL: 'Sin cobro' };
 
 /** Importe exacto (a diferencia de formatMoney, 0 no se muestra como «Gratis»). */
+export const PAYOUT_ACCOUNT_TYPE_LABEL: Record<string, string> = {
+  SAVINGS: 'Cuenta de ahorros',
+  CHECKING: 'Cuenta corriente',
+  INTERBANK: 'Código interbancario (CCI, CBU, CLABE)',
+  WALLET: 'Billetera digital',
+};
+
 export function formatAmount(amount: string | number, currency: string) {
   const n = Number(amount);
   try {

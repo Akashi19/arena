@@ -17,14 +17,15 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  Put,
   Query,
   Req,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiProperty, ApiPropertyOptional, ApiTags } from '@nestjs/swagger';
 import { SkipThrottle, Throttle } from '@nestjs/throttler';
-import { Type } from 'class-transformer';
-import { IsBoolean, IsIn, IsInt, IsOptional, IsString, Length, Max, MaxLength, Min } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { IsBoolean, IsIn, IsInt, IsISO31661Alpha2, IsOptional, IsString, IsUUID, Length, Matches, Max, MaxLength, Min } from 'class-validator';
 import type { Request } from 'express';
 import { randomUUID } from 'node:crypto';
 import { PrismaService } from '../prisma/prisma.service.js';
@@ -37,9 +38,10 @@ import { AuthUser, CurrentUser, Public, Roles } from '../common/decorators/auth.
 import { assertCanManageOrganizer, requireOwnOrganizer } from '../common/utils/access.js';
 import { ProviderError, verifyMercadoPagoSignature } from '../billing/providers.js';
 import { Prisma } from '../generated/prisma/client.js';
-import type { OrganizerPaymentAccount, RegistrationPayment, Tournament } from '../generated/prisma/client.js';
+import type { OrganizerPaymentAccount, OrganizerPayoutProfile, PaymentProvider, RegistrationPayment, Tournament } from '../generated/prisma/client.js';
 import {
   authorizeUrl,
+  centralConfig,
   createPreference,
   decryptSecret,
   encryptSecret,
@@ -53,6 +55,7 @@ import {
   registrationOutcome,
   signOAuthState,
   verifyOAuthState,
+  webhookSecrets,
   type PaymentOutcome,
 } from './marketplace.js';
 
@@ -76,6 +79,36 @@ export class RefundDto {
 
 export class SandboxPaymentDto {
   @ApiProperty() @IsBoolean() approve: boolean;
+}
+
+const trim = ({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value);
+
+export const ACCOUNT_TYPES = ['SAVINGS', 'CHECKING', 'INTERBANK', 'WALLET'] as const;
+
+export class PayoutProfileDto {
+  @ApiProperty({ description: 'Titular de la cuenta' }) @Transform(trim) @IsString() @Length(3, 120) holderName: string;
+  @ApiProperty({ description: 'DNI, RUC, RUT, CUIT…' })
+  @Transform(trim)
+  @Matches(/^[A-Za-z0-9.-]{5,30}$/, { message: 'Documento inválido' })
+  documentId: string;
+  @ApiProperty({ description: 'Banco o billetera' }) @Transform(trim) @IsString() @Length(2, 80) bankName: string;
+  @ApiProperty({ enum: ACCOUNT_TYPES }) @IsIn(ACCOUNT_TYPES) accountType: (typeof ACCOUNT_TYPES)[number];
+  @ApiPropertyOptional({ description: 'Número de cuenta, CCI, CBU o CLABE. Omitir para conservar el guardado' })
+  @IsOptional()
+  @Transform(({ value }) => (typeof value === 'string' ? value.replace(/[\s-]/g, '') || undefined : value))
+  @Matches(/^[0-9A-Za-z]{6,34}$/, { message: 'Número de cuenta inválido' })
+  accountNumber?: string;
+  @ApiProperty()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim().toUpperCase() : value))
+  @IsISO31661Alpha2()
+  country: string;
+}
+
+export class CreatePayoutDto {
+  @ApiProperty() @IsUUID() organizerId: string;
+  @ApiProperty() @Matches(/^[A-Z]{3}$/) currency: string;
+  @ApiProperty({ description: 'Número de operación de la transferencia' }) @Transform(trim) @IsString() @Length(3, 120) reference: string;
+  @ApiPropertyOptional() @IsOptional() @Transform(trim) @IsString() @MaxLength(300) note?: string;
 }
 
 export class PaymentListQuery {
@@ -106,6 +139,8 @@ const paymentSelect = {
   refundReason: true,
   failureReason: true,
   providerPaymentId: true,
+  collectionMode: true,
+  payoutId: true,
   createdAt: true,
   payerId: true,
   tournament: { select: { id: true, name: true, slug: true, status: true, organizerId: true } },
@@ -121,6 +156,26 @@ const paymentSelect = {
 } satisfies Prisma.RegistrationPaymentSelect;
 
 type PaymentView = Prisma.RegistrationPaymentGetPayload<{ select: typeof paymentSelect }>;
+
+const money = (n: number) => Math.round(n * 100) / 100;
+
+interface BalanceRow {
+  organizerId: string;
+  currency: string;
+  /** Pagos de partidas terminadas, listos para liquidar */
+  eligible: { payments: number; gross: number; fee: number; net: number };
+  /** Pagos de partidas que aún no terminan (retenidos por si hay reembolsos) */
+  held: { payments: number; gross: number; fee: number; net: number };
+  /** Reembolsos de pagos ya liquidados, a descontar */
+  deductions: number;
+  /** Lo que corresponde transferir ahora */
+  payable: number;
+}
+
+/** Quién recibe el dinero de una inscripción: la cuenta del organizador o Arena (cobro centralizado). */
+type Collector =
+  | { mode: 'ORGANIZER_ACCOUNT'; provider: PaymentProvider; account: OrganizerPaymentAccount }
+  | { mode: 'PLATFORM'; provider: PaymentProvider; account: null };
 
 @Injectable()
 export class RegistrationPaymentsService implements OnModuleInit, OnModuleDestroy {
@@ -161,6 +216,42 @@ export class RegistrationPaymentsService implements OnModuleInit, OnModuleDestro
     );
   }
 
+  private presentPayoutProfile(p: OrganizerPayoutProfile | null) {
+    return (
+      p && {
+        enabled: p.enabled,
+        holderName: p.holderName,
+        documentId: p.documentId,
+        bankName: p.bankName,
+        accountType: p.accountType,
+        accountNumberMasked: `•••• ${p.accountNumberLast4}`,
+        country: p.country,
+        updatedAt: p.updatedAt,
+      }
+    );
+  }
+
+  /** El cobro centralizado está disponible en esta plataforma (cuenta real de Arena o modo de prueba). */
+  private centralProvider(): PaymentProvider | null {
+    const c = centralConfig();
+    return c.enabled ? 'MERCADOPAGO' : c.sandbox ? 'SANDBOX' : null;
+  }
+
+  /**
+   * Quién cobra las inscripciones del organizador: su cuenta de Mercado Pago si está conectada; si no, Arena
+   * cuando el organizador activó el cobro centralizado.
+   */
+  private async collector(organizerId: string): Promise<Collector | null> {
+    const [account, profile] = await Promise.all([
+      this.prisma.organizerPaymentAccount.findUnique({ where: { organizerId } }),
+      this.prisma.organizerPayoutProfile.findUnique({ where: { organizerId } }),
+    ]);
+    if (this.usable(account)) return { mode: 'ORGANIZER_ACCOUNT', provider: account.provider, account };
+    const central = this.centralProvider();
+    if (profile?.enabled && central) return { mode: 'PLATFORM', provider: central, account: null };
+    return null;
+  }
+
   /** Cuenta activa y utilizable para cobrar (según la configuración actual de la plataforma). */
   private usable(a: OrganizerPaymentAccount | null): a is OrganizerPaymentAccount {
     const c = marketplaceConfig();
@@ -170,14 +261,18 @@ export class RegistrationPaymentsService implements OnModuleInit, OnModuleDestro
   async account(user: AuthUser) {
     const organizer = await requireOwnOrganizer(this.prisma, user.id);
     const c = marketplaceConfig();
-    const [account, { plan }] = await Promise.all([
+    const [account, profile, collector, { plan }] = await Promise.all([
       this.prisma.organizerPaymentAccount.findUnique({ where: { organizerId: organizer.id } }),
+      this.prisma.organizerPayoutProfile.findUnique({ where: { organizerId: organizer.id } }),
+      this.collector(organizer.id),
       this.limits.effectivePlan(organizer.id),
     ]);
     return {
       account: this.presentAccount(account),
-      canCollect: this.usable(account),
-      providers: { mercadopago: c.enabled, sandbox: c.sandbox },
+      payoutProfile: this.presentPayoutProfile(profile),
+      canCollect: !!collector,
+      collectionMode: collector?.mode ?? null,
+      providers: { mercadopago: c.enabled, sandbox: c.sandbox, central: !!this.centralProvider() },
       feePercent: Number(plan.registrationFeePercent),
       plan: plan.name,
       holdMinutes: c.holdMinutes,
@@ -262,13 +357,15 @@ export class RegistrationPaymentsService implements OnModuleInit, OnModuleDestro
     const organizer = await requireOwnOrganizer(this.prisma, user.id);
     const account = await this.prisma.organizerPaymentAccount.findUnique({ where: { organizerId: organizer.id } });
     if (!account || account.status === 'DISCONNECTED') return this.presentAccount(account);
-    // Las cuotas solo se cobran con Mercado Pago: sin cuenta, una partida con cuota no podría recibir inscripciones
-    const paid = await this.prisma.tournament.count({
+    // Sin otra forma de cobro, una partida con cuota no podría recibir inscripciones
+    const profile = await this.prisma.organizerPayoutProfile.findUnique({ where: { organizerId: organizer.id } });
+    const fallback = !!profile?.enabled && !!this.centralProvider();
+    const paid = fallback ? 0 : await this.prisma.tournament.count({
       where: { organizerId: organizer.id, entryFee: { gt: 0 }, status: { in: ['DRAFT', 'OPEN', 'IN_PROGRESS'] } },
     });
     if (paid) {
       throw new BadRequestException(
-        `Tienes ${paid} ${paid === 1 ? 'partida activa con cuota' : 'partidas activas con cuota'}: déjalas gratis, termínalas o cancélalas antes de desconectar Mercado Pago`,
+        `Tienes ${paid} ${paid === 1 ? 'partida activa con cuota' : 'partidas activas con cuota'}: déjalas gratis, termínalas, cancélalas o activa el cobro a través de Arena antes de desconectar Mercado Pago`,
       );
     }
     const updated = await this.prisma.organizerPaymentAccount.update({
@@ -281,10 +378,63 @@ export class RegistrationPaymentsService implements OnModuleInit, OnModuleDestro
 
   /** Usado al crear o editar una partida con cuota (siempre se cobra con Mercado Pago). */
   async assertCanCollect(organizerId: string) {
-    const account = await this.prisma.organizerPaymentAccount.findUnique({ where: { organizerId } });
-    if (!this.usable(account)) {
-      throw new BadRequestException('Las inscripciones con cuota se pagan con Mercado Pago: conecta tu cuenta en «Cobros» o deja la partida gratis');
+    if (!(await this.collector(organizerId))) {
+      throw new BadRequestException(
+        'Las inscripciones con cuota se pagan con Mercado Pago: conecta tu cuenta o activa el cobro a través de Arena en «Cobros», o deja la partida gratis',
+      );
     }
+  }
+
+  // ------------------------------------------------------------------------ cobro centralizado: datos de liquidación
+
+  async savePayoutProfile(user: AuthUser, dto: PayoutProfileDto) {
+    const organizer = await requireOwnOrganizer(this.prisma, user.id);
+    if (!this.centralProvider()) throw new BadRequestException('El cobro a través de Arena no está disponible en esta plataforma');
+    const current = await this.prisma.organizerPayoutProfile.findUnique({ where: { organizerId: organizer.id } });
+    if (!current && !dto.accountNumber) throw new BadRequestException('Ingresa el número de cuenta donde recibirás las liquidaciones');
+    const account = dto.accountNumber ? { accountNumberEnc: encryptSecret(dto.accountNumber), accountNumberLast4: dto.accountNumber.slice(-4) } : null;
+    const data = {
+      enabled: true,
+      holderName: dto.holderName,
+      documentId: dto.documentId,
+      bankName: dto.bankName,
+      accountType: dto.accountType,
+      country: dto.country,
+      updatedById: user.id,
+      ...(account ?? {}),
+    };
+    const saved = current
+      ? await this.prisma.organizerPayoutProfile.update({ where: { id: current.id }, data })
+      : await this.prisma.organizerPayoutProfile.create({ data: { ...data, ...account!, organizerId: organizer.id } });
+    await this.audit.log({
+      actorId: user.id,
+      action: current ? 'PAYOUT_PROFILE_UPDATED' : 'PAYOUT_PROFILE_CREATED',
+      entityType: 'OrganizerPayoutProfile',
+      entityId: saved.id,
+      // Nunca el número completo en la auditoría
+      after: { bankName: saved.bankName, accountType: saved.accountType, last4: saved.accountNumberLast4, accountChanged: !!account },
+    });
+    return this.presentPayoutProfile(saved);
+  }
+
+  async disablePayoutProfile(user: AuthUser) {
+    const organizer = await requireOwnOrganizer(this.prisma, user.id);
+    const profile = await this.prisma.organizerPayoutProfile.findUnique({ where: { organizerId: organizer.id } });
+    if (!profile?.enabled) return this.presentPayoutProfile(profile);
+    const account = await this.prisma.organizerPaymentAccount.findUnique({ where: { organizerId: organizer.id } });
+    if (!this.usable(account)) {
+      const paid = await this.prisma.tournament.count({
+        where: { organizerId: organizer.id, entryFee: { gt: 0 }, status: { in: ['DRAFT', 'OPEN', 'IN_PROGRESS'] } },
+      });
+      if (paid) {
+        throw new BadRequestException(
+          `Tienes ${paid} ${paid === 1 ? 'partida activa con cuota' : 'partidas activas con cuota'}: conecta tu cuenta de Mercado Pago, déjalas gratis, termínalas o cancélalas antes de desactivar el cobro a través de Arena`,
+        );
+      }
+    }
+    const updated = await this.prisma.organizerPayoutProfile.update({ where: { id: profile.id }, data: { enabled: false, updatedById: user.id } });
+    await this.audit.log({ actorId: user.id, action: 'PAYOUT_PROFILE_DISABLED', entityType: 'OrganizerPayoutProfile', entityId: profile.id });
+    return this.presentPayoutProfile(updated);
   }
 
   /** Token del vendedor; se renueva si vence en menos de 7 días. */
@@ -344,10 +494,11 @@ export class RegistrationPaymentsService implements OnModuleInit, OnModuleDestro
     target: { teamId: string | null; playerId: string | null; notes?: string },
   ) {
     const c = marketplaceConfig();
-    const account = await this.prisma.organizerPaymentAccount.findUnique({ where: { organizerId: t.organizerId } });
-    if (!this.usable(account)) {
+    const collector = await this.collector(t.organizerId);
+    if (!collector) {
       throw new BadRequestException('El organizador todavía no tiene activo el cobro en línea. Inténtalo más tarde o contáctalo.');
     }
+    const { account } = collector;
     const { plan } = await this.limits.effectivePlan(t.organizerId);
     const amount = Number(t.entryFee);
     const feePercent = Number(plan.registrationFeePercent);
@@ -395,9 +546,10 @@ export class RegistrationPaymentsService implements OnModuleInit, OnModuleDestro
             registrationId: registration.id,
             tournamentId: t.id,
             organizerId: t.organizerId,
-            accountId: account.id,
+            accountId: account?.id ?? null,
             payerId: user.id,
-            provider: account.provider,
+            provider: collector.provider,
+            collectionMode: collector.mode,
             amount,
             currency: t.currency,
             feePercent,
@@ -415,17 +567,18 @@ export class RegistrationPaymentsService implements OnModuleInit, OnModuleDestro
     try {
       let checkoutUrl: string;
       let providerPreferenceId: string | null = null;
-      if (account.provider === 'SANDBOX') {
+      if (collector.provider === 'SANDBOX') {
         checkoutUrl = `${c.publicWebUrl}/inscripciones/pago/${payment.id}`;
       } else {
         const me = await this.prisma.user.findUnique({ where: { id: user.id }, select: { email: true } });
-        const pref = await createPreference(await this.sellerToken(account), {
+        const pref = await createPreference(account ? await this.sellerToken(account) : centralConfig().token, {
           paymentId: payment.id,
           title: `Inscripción: ${t.name}`,
           tournamentId: t.id,
           amount,
           currency: t.currency,
-          fee,
+          // Cobro centralizado: Arena recibe el total y descuenta su comisión al liquidar
+          fee: account ? fee : 0,
           expiresAt,
           payerEmail: me?.email,
         });
@@ -438,7 +591,7 @@ export class RegistrationPaymentsService implements OnModuleInit, OnModuleDestro
         action: 'REGISTRATION_PAYMENT_STARTED',
         entityType: 'RegistrationPayment',
         entityId: payment.id,
-        after: { registrationId: registration.id, amount, currency: t.currency, platformFee: fee, provider: account.provider },
+        after: { registrationId: registration.id, amount, currency: t.currency, platformFee: fee, provider: collector.provider, collectionMode: collector.mode },
       });
       this.realtime.emitToTournament(t.id, 'registration:changed', { tournamentId: t.id });
       return { ...registration, payment: { id: saved.id, checkoutUrl: saved.checkoutUrl, expiresAt: saved.expiresAt } };
@@ -448,7 +601,8 @@ export class RegistrationPaymentsService implements OnModuleInit, OnModuleDestro
         this.prisma.tournamentRegistration.update({ where: { id: registration.id }, data: { status: 'WITHDRAWN' } }),
       ]);
       if (e instanceof ProviderError) {
-        if ((e as ProviderError & { status?: number }).status === 401) await this.markReconnect(account, e);
+        if (account && (e as ProviderError & { status?: number }).status === 401) await this.markReconnect(account, e);
+        if (!account) this.logger.error(`Cobro centralizado: Mercado Pago rechazó la preferencia ${payment.id}: ${e.message}`);
         throw new BadRequestException('No se pudo iniciar el pago con Mercado Pago. Inténtalo de nuevo en unos minutos.');
       }
       throw e;
@@ -470,10 +624,10 @@ export class RegistrationPaymentsService implements OnModuleInit, OnModuleDestro
 
   private async executeRefund(p: RegistrationPayment, reason: string, actorId: string | null) {
     if (p.provider === 'MERCADOPAGO') {
-      const account = p.accountId ? await this.prisma.organizerPaymentAccount.findUnique({ where: { id: p.accountId } }) : null;
-      if (!account || !p.providerPaymentId) throw new BadRequestException('No se encontró el pago en Mercado Pago para reembolsarlo');
+      const token = p.providerPaymentId ? await this.tokenFor(p) : null;
+      if (!token || !p.providerPaymentId) throw new BadRequestException('No se encontró el pago en Mercado Pago para reembolsarlo');
       try {
-        await refundPayment(await this.sellerToken(account), p.providerPaymentId, `refund-${p.id}`);
+        await refundPayment(token, p.providerPaymentId, `refund-${p.id}`);
       } catch (e) {
         if (e instanceof ProviderError) throw new BadRequestException(`Mercado Pago no permitió el reembolso. ${e.message}`);
         throw e;
@@ -481,6 +635,13 @@ export class RegistrationPaymentsService implements OnModuleInit, OnModuleDestro
     }
     await this.apply(p.id, 'REFUNDED', { reason });
     await this.audit.log({ actorId, action: 'REGISTRATION_PAYMENT_REFUNDED', entityType: 'RegistrationPayment', entityId: p.id, reason });
+  }
+
+  /** Token de la cuenta que recibió el pago: la del organizador o la de Arena (cobro centralizado). */
+  private async tokenFor(p: RegistrationPayment) {
+    if (p.collectionMode === 'PLATFORM') return centralConfig().token || null;
+    const account = p.accountId ? await this.prisma.organizerPaymentAccount.findUnique({ where: { id: p.accountId } }) : null;
+    return account ? this.sellerToken(account) : null;
   }
 
   // ------------------------------------------------------------------------ resultado del pago
@@ -729,26 +890,199 @@ export class RegistrationPaymentsService implements OnModuleInit, OnModuleDestro
     return this.payment(user, id);
   }
 
+  // ------------------------------------------------------------------------ liquidaciones (cobro centralizado)
+
+  /**
+   * Saldos por organizador y moneda de lo cobrado por Arena. Un pago se puede liquidar cuando su partida
+   * terminó (antes queda retenido por si hay que reembolsar). Los reembolsos de pagos ya liquidados se descuentan.
+   */
+  private async balances(organizerId?: string) {
+    const scope = { collectionMode: 'PLATFORM' as const, ...(organizerId ? { organizerId } : {}) };
+    const [open, recoveries] = await Promise.all([
+      this.prisma.registrationPayment.findMany({
+        where: { ...scope, status: 'SUCCEEDED', payoutId: null },
+        select: { organizerId: true, currency: true, amount: true, platformFee: true, tournament: { select: { status: true } } },
+      }),
+      this.prisma.registrationPayment.findMany({
+        where: { ...scope, status: 'REFUNDED', payoutId: { not: null }, recoveredInPayoutId: null },
+        select: { organizerId: true, currency: true, amount: true, platformFee: true },
+      }),
+    ]);
+    const rows = new Map<string, BalanceRow>();
+    const row = (o: string, cur: string) => {
+      const key = `${o}:${cur}`;
+      let r = rows.get(key);
+      if (!r) {
+        const empty = () => ({ payments: 0, gross: 0, fee: 0, net: 0 });
+        r = { organizerId: o, currency: cur, eligible: empty(), held: empty(), deductions: 0, payable: 0 };
+        rows.set(key, r);
+      }
+      return r;
+    };
+    for (const p of open) {
+      const bucket = row(p.organizerId, p.currency)[p.tournament.status === 'FINISHED' ? 'eligible' : 'held'];
+      bucket.payments++;
+      bucket.gross = money(bucket.gross + Number(p.amount));
+      bucket.fee = money(bucket.fee + Number(p.platformFee));
+      bucket.net = money(bucket.gross - bucket.fee);
+    }
+    for (const p of recoveries) {
+      const r = row(p.organizerId, p.currency);
+      r.deductions = money(r.deductions + Number(p.amount) - Number(p.platformFee));
+    }
+    for (const r of rows.values()) r.payable = money(r.eligible.net - r.deductions);
+    return [...rows.values()];
+  }
+
+  private presentPayout(p: { gross: Prisma.Decimal; fee: Prisma.Decimal; deductions: Prisma.Decimal; amount: Prisma.Decimal } & Record<string, unknown>) {
+    return { ...p, gross: Number(p.gross), fee: Number(p.fee), deductions: Number(p.deductions), amount: Number(p.amount) };
+  }
+
+  /** Vista del organizador: saldo pendiente por moneda e historial de transferencias recibidas. */
+  async organizerPayouts(user: AuthUser) {
+    const organizer = await requireOwnOrganizer(this.prisma, user.id);
+    const [balances, payouts] = await Promise.all([
+      this.balances(organizer.id),
+      this.prisma.organizerPayout.findMany({
+        where: { organizerId: organizer.id },
+        orderBy: { paidAt: 'desc' },
+        take: 50,
+        select: { id: true, currency: true, gross: true, fee: true, deductions: true, amount: true, reference: true, note: true, paidAt: true, _count: { select: { payments: true } } },
+      }),
+    ]);
+    return { balances, payouts: payouts.map((p) => this.presentPayout(p)) };
+  }
+
+  /** Panel del superadmin: saldos por organizador con sus datos de liquidación (enmascarados) e historial reciente. */
+  async adminPayouts() {
+    const balances = await this.balances();
+    const ids = [...new Set(balances.map((b) => b.organizerId))];
+    const [organizers, payouts] = await Promise.all([
+      this.prisma.organizerProfile.findMany({
+        where: { id: { in: ids } },
+        select: { id: true, displayName: true, user: { select: { username: true, email: true } }, payoutProfile: true },
+      }),
+      this.prisma.organizerPayout.findMany({
+        orderBy: { paidAt: 'desc' },
+        take: 50,
+        select: {
+          id: true,
+          currency: true,
+          gross: true,
+          fee: true,
+          deductions: true,
+          amount: true,
+          reference: true,
+          note: true,
+          paidAt: true,
+          organizer: { select: { id: true, displayName: true } },
+          paidBy: { select: { username: true } },
+          _count: { select: { payments: true } },
+        },
+      }),
+    ]);
+    const byId = new Map(organizers.map((o) => [o.id, o]));
+    return {
+      balances: balances
+        .map((b) => {
+          const o = byId.get(b.organizerId);
+          return {
+            ...b,
+            organizer: o && { id: o.id, displayName: o.displayName, username: o.user.username, email: o.user.email },
+            payoutProfile: this.presentPayoutProfile(o?.payoutProfile ?? null),
+          };
+        })
+        .sort((a, b) => b.payable - a.payable),
+      payouts: payouts.map((p) => this.presentPayout(p)),
+    };
+  }
+
+  /** Datos bancarios completos para hacer la transferencia (solo superadmin; queda en la auditoría). */
+  async adminPayoutProfile(user: AuthUser, organizerId: string) {
+    const profile = await this.prisma.organizerPayoutProfile.findUnique({
+      where: { organizerId },
+      include: { organizer: { select: { displayName: true } } },
+    });
+    if (!profile) throw new NotFoundException('El organizador no registró datos de liquidación');
+    await this.audit.log({ actorId: user.id, action: 'PAYOUT_PROFILE_VIEWED', entityType: 'OrganizerPayoutProfile', entityId: profile.id });
+    return { ...this.presentPayoutProfile(profile), organizer: profile.organizer.displayName, accountNumber: decryptSecret(profile.accountNumberEnc) };
+  }
+
+  /**
+   * Registra una transferencia ya hecha al organizador: toma todo lo liquidable de esa moneda en ese momento
+   * (el importe lo calcula la API, no se envía) y descuenta los reembolsos de pagos ya liquidados.
+   */
+  async createPayout(user: AuthUser, dto: CreatePayoutDto) {
+    const payout = await this.prisma.$transaction(
+      async (tx) => {
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`payout:${dto.organizerId}`}))`;
+        const base = { organizerId: dto.organizerId, currency: dto.currency, collectionMode: 'PLATFORM' as const };
+        const [eligible, recoveries] = await Promise.all([
+          tx.registrationPayment.findMany({
+            where: { ...base, status: 'SUCCEEDED', payoutId: null, tournament: { status: 'FINISHED' } },
+            select: { id: true, amount: true, platformFee: true },
+          }),
+          tx.registrationPayment.findMany({
+            where: { ...base, status: 'REFUNDED', payoutId: { not: null }, recoveredInPayoutId: null },
+            select: { id: true, amount: true, platformFee: true },
+          }),
+        ]);
+        const gross = money(eligible.reduce((a, p) => a + Number(p.amount), 0));
+        const fee = money(eligible.reduce((a, p) => a + Number(p.platformFee), 0));
+        const deductions = money(recoveries.reduce((a, p) => a + Number(p.amount) - Number(p.platformFee), 0));
+        const amount = money(gross - fee - deductions);
+        if (!eligible.length || amount <= 0) throw new BadRequestException('No hay saldo para liquidar en esa moneda');
+        const created = await tx.organizerPayout.create({
+          data: { organizerId: dto.organizerId, currency: dto.currency, gross, fee, deductions, amount, reference: dto.reference, note: dto.note, paidById: user.id },
+        });
+        await tx.registrationPayment.updateMany({ where: { id: { in: eligible.map((p) => p.id) } }, data: { payoutId: created.id } });
+        if (recoveries.length) {
+          await tx.registrationPayment.updateMany({ where: { id: { in: recoveries.map((p) => p.id) } }, data: { recoveredInPayoutId: created.id } });
+        }
+        return { ...created, payments: eligible.length };
+      },
+      { timeout: 15_000 },
+    );
+    await this.audit.log({
+      actorId: user.id,
+      action: 'ORGANIZER_PAYOUT_RECORDED',
+      entityType: 'OrganizerPayout',
+      entityId: payout.id,
+      after: { organizerId: dto.organizerId, currency: dto.currency, amount: Number(payout.amount), payments: payout.payments, reference: dto.reference },
+    });
+    const organizer = await this.prisma.organizerProfile.findUnique({ where: { id: dto.organizerId }, select: { userId: true } });
+    if (organizer) {
+      await this.notifications.notify({
+        userId: organizer.userId,
+        type: 'ORGANIZER_PAYOUT_SENT',
+        title: 'Te transferimos tus inscripciones',
+        body: `Arena te transfirió ${dto.currency} ${Number(payout.amount).toFixed(2)} (operación ${dto.reference}).`,
+        link: '/dashboard/cobros',
+      });
+    }
+    return this.presentPayout(payout);
+  }
+
   // ------------------------------------------------------------------------ webhook
 
   async webhook(query: Record<string, unknown>, body: Record<string, unknown>, headers: { signature?: string; requestId?: string }) {
-    const c = marketplaceConfig();
     const data = (body?.data ?? {}) as { id?: unknown };
     const dataId = String(query['data.id'] ?? data.id ?? '');
     const type = String(query.type ?? body?.type ?? query.topic ?? '');
     if (type !== 'payment' || !dataId) return { ok: true, ignored: true };
-    if (!c.enabled || !verifyMercadoPagoSignature({ dataId, requestId: headers.requestId, signature: headers.signature }, c.webhookSecret)) {
+    const signed = { dataId, requestId: headers.requestId, signature: headers.signature };
+    if (!webhookSecrets().some((secret) => verifyMercadoPagoSignature(signed, secret))) {
       throw new UnauthorizedException('Firma inválida');
     }
     const ref = query.ref;
     if (!isUuid(ref)) return { ok: true, ignored: true };
     const p = await this.prisma.registrationPayment.findUnique({ where: { id: ref } });
-    if (!p || p.provider !== 'MERCADOPAGO' || !p.accountId) return { ok: true, ignored: true };
-    const account = await this.prisma.organizerPaymentAccount.findUnique({ where: { id: p.accountId } });
-    if (!account) return { ok: true, ignored: true };
+    if (!p || p.provider !== 'MERCADOPAGO') return { ok: true, ignored: true };
+    const token = await this.tokenFor(p);
+    if (!token) return { ok: true, ignored: true };
 
-    // Se consulta el pago real con el token del organizador (no se confía en el cuerpo de la notificación)
-    const mpPayment = await getPayment(await this.sellerToken(account), dataId);
+    // Se consulta el pago real con el token de la cuenta que cobró (no se confía en el cuerpo de la notificación)
+    const mpPayment = await getPayment(token, dataId);
     const eventId = `reg:${mpPayment.id}:${mpPayment.status}`;
     try {
       await this.prisma.paymentWebhookEvent.create({
@@ -811,6 +1145,43 @@ export class RegistrationPaymentsController {
   @Delete('me/payment-account')
   disconnect(@CurrentUser() user: AuthUser) {
     return this.service.disconnect(user);
+  }
+
+  @Roles('ORGANIZER')
+  @Throttle({ default: { ttl: 60_000, limit: 10 } })
+  @Put('me/payout-profile')
+  savePayoutProfile(@CurrentUser() user: AuthUser, @Body() dto: PayoutProfileDto) {
+    return this.service.savePayoutProfile(user, dto);
+  }
+
+  @Roles('ORGANIZER')
+  @Delete('me/payout-profile')
+  disablePayoutProfile(@CurrentUser() user: AuthUser) {
+    return this.service.disablePayoutProfile(user);
+  }
+
+  @Roles('ORGANIZER')
+  @Get('me/payouts')
+  myPayouts(@CurrentUser() user: AuthUser) {
+    return this.service.organizerPayouts(user);
+  }
+
+  @Roles('SUPERADMIN')
+  @Get('admin/payouts')
+  adminPayouts() {
+    return this.service.adminPayouts();
+  }
+
+  @Roles('SUPERADMIN')
+  @Get('admin/payouts/organizers/:organizerId/bank')
+  adminPayoutProfile(@CurrentUser() user: AuthUser, @Param('organizerId', ParseUUIDPipe) organizerId: string) {
+    return this.service.adminPayoutProfile(user, organizerId);
+  }
+
+  @Roles('SUPERADMIN')
+  @Post('admin/payouts')
+  createPayout(@CurrentUser() user: AuthUser, @Body() dto: CreatePayoutDto) {
+    return this.service.createPayout(user, dto);
   }
 
   @Roles('ORGANIZER')
