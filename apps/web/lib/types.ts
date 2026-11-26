@@ -98,6 +98,8 @@ export interface Participant {
 export interface TournamentDetail extends TournamentCard {
   rules: string | null;
   refundPolicy: string | null;
+  /** Canales oficiales de transmisión del torneo (URLs validadas por la API) */
+  streamChannels: { platform: string; url: string }[];
   groupCount: number | null;
   qualifiersPerGroup: number | null;
   minLevel: CompetitiveLevel | null;

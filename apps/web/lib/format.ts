@@ -218,6 +218,15 @@ export const BRACKET_LABEL: Record<string, string> = {
   PLAYOFF: 'Playoffs',
 };
 
+export const STREAM_PLATFORM_NAME: Record<string, string> = {
+  YOUTUBE: 'YouTube',
+  TWITCH: 'Twitch',
+  FACEBOOK: 'Facebook',
+  TIKTOK: 'TikTok',
+  KICK: 'Kick',
+  OTHER: 'Otra plataforma',
+};
+
 export const STREAM_STATUS_LABEL: Record<string, string> = {
   NOT_CONFIGURED: 'Sin transmisión',
   SCHEDULED: 'Próximamente',

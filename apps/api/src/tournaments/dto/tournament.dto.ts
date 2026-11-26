@@ -1,6 +1,8 @@
 import { ApiProperty, ApiPropertyOptional, OmitType, PartialType } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import {
+  ArrayMaxSize,
+  IsArray,
   IsBoolean,
   IsDate,
   IsEnum,
@@ -104,6 +106,21 @@ export class CreateTournamentDto {
   @IsString()
   @MaxLength(200)
   prize?: string | null;
+
+  @ApiPropertyOptional({
+    description: 'Canales oficiales de transmisión (YouTube, Twitch, Facebook, TikTok, Kick…). Las entradas vacías se ignoran; [] los quita',
+    type: [String],
+    example: ['https://www.twitch.tv/ligaandina', 'https://www.youtube.com/@ligaandina'],
+  })
+  @IsOptional()
+  @Transform(({ value }) =>
+    Array.isArray(value) ? value.map((v) => (typeof v === 'string' ? v.trim() : v)).filter((v) => v !== '') : value,
+  )
+  @IsArray()
+  @ArrayMaxSize(6, { message: 'Máximo 6 canales de transmisión' })
+  @IsString({ each: true })
+  @MaxLength(500, { each: true })
+  streamChannels?: string[];
 
   @ApiPropertyOptional() @IsOptional() @Transform(trim) @IsString() @MaxLength(20000) rules?: string;
   @ApiPropertyOptional() @IsOptional() @Transform(trim) @IsString() @MaxLength(5000) refundPolicy?: string;

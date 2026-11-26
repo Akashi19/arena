@@ -16,6 +16,8 @@ interface Props {
   collect: { canCollect: boolean; feePercent: number };
 }
 
+const CHANNEL_PLACEHOLDERS = ['https://www.twitch.tv/tu-canal', 'https://www.youtube.com/@tu-canal', 'https://www.tiktok.com/@tu-canal', 'https://www.facebook.com/tu-pagina'];
+
 /** Formulario de creación/edición de partidas. Toda validación definitiva ocurre en la API. */
 export function TournamentForm({ sports, games, maxParticipantsLimit, initial, collect }: Props) {
   const editing = !!initial;
@@ -25,6 +27,9 @@ export function TournamentForm({ sports, games, maxParticipantsLimit, initial, c
   const [online, setOnline] = useState(initial?.isOnline ?? category === 'ESPORT');
   const [gameId, setGameId] = useState(initial?.game?.id ?? games[0]?.id ?? '');
   const [fee, setFee] = useState(initial ? Number(initial.entryFee) : 0);
+  // 4 casillas como mínimo (máx. 6 en la API); los canales ya guardados ocupan las primeras
+  const savedChannels = (initial?.streamChannels ?? []).map((c) => c.url);
+  const channelSlots = [...savedChannels, ...Array(Math.max(0, 4 - savedChannels.length)).fill('')] as string[];
   // Toda cuota mayor que cero se cobra con Mercado Pago
   const paid = fee > 0;
   const locked = initial?.status === 'IN_PROGRESS';
@@ -269,6 +274,29 @@ export function TournamentForm({ sports, games, maxParticipantsLimit, initial, c
               o deja el monto en 0.
             </p>
           ))}
+      </Section>
+
+      <Section title="Transmisión en redes sociales">
+        <p className="-mt-2 mb-3 text-xs text-muted">
+          Opcional. Enlaces a los canales donde transmitirás los encuentros (YouTube, Twitch, Facebook, TikTok o Kick). Se
+          muestran en la página de la partida junto a las transmisiones que configures en cada encuentro.
+        </p>
+        <div className="grid gap-3 md:grid-cols-2">
+          {channelSlots.map((url, i) => (
+            <label key={i} className="block">
+              <span className="label">Canal {i + 1}</span>
+              <input
+                type="url"
+                inputMode="url"
+                name="streamChannels"
+                maxLength={500}
+                defaultValue={url}
+                placeholder={CHANNEL_PLACEHOLDERS[i % CHANNEL_PLACEHOLDERS.length]}
+                className="input"
+              />
+            </label>
+          ))}
+        </div>
       </Section>
 
       <Section title="Premio">

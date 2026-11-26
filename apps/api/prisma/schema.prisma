@@ -548,6 +548,8 @@ model Tournament {
   currency               String             @default("USD") @db.Char(3)
   // Premio para el ganador o los mejores puestos (texto libre: "500 USD", "Teclado mecánico")
   prize                  String?            @db.VarChar(200)
+  // Canales oficiales donde se transmiten los encuentros: [{ platform, url }] validados como las transmisiones
+  streamChannels         Json               @default("[]") @map("stream_channels")
   rules                  String?
   refundPolicy           String?            @map("refund_policy")
   minLevel               CompetitiveLevel?  @map("min_level")

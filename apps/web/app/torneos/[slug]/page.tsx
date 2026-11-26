@@ -26,6 +26,7 @@ import { ShareButton } from '@/components/share-button';
 import { FixtureView } from '@/components/fixture-view';
 import { FeedbackPanel } from '@/components/feedback-panel';
 import { TournamentStreamsList } from '@/components/tournament-streams';
+import { ChannelLinks } from '@/components/stream';
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -50,7 +51,7 @@ export default async function TournamentPage({ params }: Props) {
     me && t.mode === 'TEAM' ? api<Team[]>('/me/teams').catch(() => []) : Promise.resolve([] as Team[]),
     t.status === 'IN_PROGRESS' || t.status === 'FINISHED' ? apiOrNull<Fixture>(`/tournaments/${t.id}/fixture`) : Promise.resolve(null),
     me && started && !t.viewer?.canManage ? apiOrNull<TournamentFeedback>(`/tournaments/${t.id}/feedback`) : Promise.resolve(null),
-    t.status === 'IN_PROGRESS' || t.status === 'FINISHED' ? apiOrNull<TournamentStreams>(`/tournaments/${t.id}/streams`) : Promise.resolve(null),
+    t.status !== 'DRAFT' && t.status !== 'CANCELLED' ? apiOrNull<TournamentStreams>(`/tournaments/${t.id}/streams`) : Promise.resolve(null),
   ]);
   const showFeedback = !!feedback && (feedback.canRate || !!feedback.rating || feedback.canReportIncident);
   const ownedTeams = teams.filter((team) => team.ownerId === me?.id || team.captainId === me?.player?.id);
@@ -165,9 +166,37 @@ export default async function TournamentPage({ params }: Props) {
             )}
           </Block>
 
-          {streams && streams.items.length > 0 && (
-            <Block title="Partidas transmitidas">
-              <TournamentStreamsList data={streams} />
+          {t.status !== 'DRAFT' && t.status !== 'CANCELLED' && (
+            <Block title="Transmisiones">
+              <div className="space-y-4">
+                {t.streamChannels.length > 0 && (
+                  <div>
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted">Canales oficiales</p>
+                    <ChannelLinks channels={t.streamChannels} />
+                  </div>
+                )}
+                {streams && streams.items.length > 0 ? (
+                  <div>
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted">Encuentros transmitidos</p>
+                    <TournamentStreamsList data={streams} />
+                  </div>
+                ) : (
+                  <p className="rounded-xl bg-surface-2 p-4 text-sm text-muted">
+                    {t.streamChannels.length
+                      ? 'Las transmisiones de cada encuentro aparecerán aquí cuando el organizador las programe.'
+                      : 'El organizador todavía no anunció transmisiones para esta partida.'}
+                  </p>
+                )}
+                {t.viewer?.canManage && (
+                  <p className="text-xs text-muted">
+                    Agrega los canales en{' '}
+                    <Link href={`/dashboard/torneos/${t.id}?tab=editar`} className="text-neon underline">
+                      Editar partida
+                    </Link>{' '}
+                    y la transmisión de cada encuentro desde el fixture.
+                  </p>
+                )}
+              </div>
             </Block>
           )}
 

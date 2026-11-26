@@ -158,6 +158,25 @@ describe('Aislamiento entre organizadores e inscripciones', () => {
     await http.post('/api/tournaments').set('authorization', `Bearer ${org.token}`).send(tournamentPayload({ prize: 'x'.repeat(201) })).expect(400);
   });
 
+  it('guarda los canales oficiales de transmisión validados y sin duplicados', async () => {
+    const org = await register('canales');
+    const auth = { authorization: `Bearer ${org.token}` };
+    const t = await http
+      .post('/api/tournaments')
+      .set(auth)
+      .send(tournamentPayload({ streamChannels: ['https://www.twitch.tv/arena', '', 'https://www.twitch.tv/arena', ' https://www.youtube.com/@arena '] }))
+      .expect(201);
+    const detail = await http.get(`/api/tournaments/${t.body.slug}`).expect(200);
+    expect(detail.body.streamChannels).toEqual([
+      { platform: 'TWITCH', url: 'https://www.twitch.tv/arena' },
+      { platform: 'YOUTUBE', url: 'https://www.youtube.com/@arena' },
+    ]);
+    await http.patch(`/api/tournaments/${t.body.id}`).set(auth).send({ streamChannels: ['https://evil.example.com/live'] }).expect(400);
+    await http.patch(`/api/tournaments/${t.body.id}`).set(auth).send({ streamChannels: ['http://www.twitch.tv/arena'] }).expect(400);
+    await http.patch(`/api/tournaments/${t.body.id}`).set(auth).send({ streamChannels: [] }).expect(200);
+    expect((await http.get(`/api/tournaments/${t.body.slug}`).expect(200)).body.streamChannels).toEqual([]);
+  });
+
   it('los borradores no son visibles públicamente', async () => {
     const org = await register('draft');
     const t = await http.post('/api/tournaments').set('authorization', `Bearer ${org.token}`).send(tournamentPayload({ draft: true })).expect(201);

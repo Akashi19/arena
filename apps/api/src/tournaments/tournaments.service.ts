@@ -16,6 +16,7 @@ import { refreshPlayerStats, tournamentPlayerIds } from '../players/stats.js';
 import { ReputationService } from '../trust/reputation.js';
 import { RankingEngineService } from '../rankings/rankings.js';
 import { RegistrationPaymentsService } from '../payments/registration-payments.js';
+import { parseStreamUrl, StreamUrlError } from '../streams/platforms.js';
 import type { AuthUser } from '../common/decorators/auth.decorators.js';
 import { organizerPublicSelect, paginate, slugify, uniqueSlug } from '../common/utils/index.js';
 import { assertCanManageOrganizer, levelIndex, requireOwnOrganizer } from '../common/utils/access.js';
@@ -225,6 +226,7 @@ export class TournamentsService {
         ...tournamentCardSelect,
         rules: true,
         refundPolicy: true,
+        streamChannels: true,
         endsAt: true,
         groupCount: true,
         qualifiersPerGroup: true,
@@ -358,6 +360,21 @@ export class TournamentsService {
     );
   }
 
+  /** Canales oficiales: mismas reglas que los enlaces de transmisión (HTTPS, dominios permitidos), sin duplicados. */
+  private normalizeChannels(urls: string[]) {
+    const out: { platform: string; url: string }[] = [];
+    for (const raw of urls) {
+      try {
+        const { url, platform } = parseStreamUrl(raw);
+        if (!out.some((c) => c.url === url)) out.push({ platform, url });
+      } catch (e) {
+        if (e instanceof StreamUrlError) throw new BadRequestException(`Canal de transmisión «${raw.slice(0, 80)}»: ${e.message}`);
+        throw e;
+      }
+    }
+    return out;
+  }
+
   async create(user: AuthUser, dto: CreateTournamentDto) {
     const organizer = await requireOwnOrganizer(this.prisma, user.id);
     await this.validateDiscipline(dto.category, dto.sportId, dto.gameId);
@@ -367,6 +384,7 @@ export class TournamentsService {
     await this.validateRanks(dto.category === 'ESPORT' ? dto.gameId : undefined, dto.minRankId, dto.maxRankId);
     if (!dto.isOnline && !dto.location) throw new BadRequestException('Indica la ubicación o marca la partida como online');
     await this.validateOnlineCollection(organizer.id, dto.entryFee ?? 0);
+    const streamChannels = this.normalizeChannels(dto.streamChannels ?? []);
 
     const created = await this.prisma.$transaction(
       async (tx) => {
@@ -385,7 +403,7 @@ export class TournamentsService {
           competitionId = competition.id;
         }
 
-        const { competitionName: _c, draft, ...data } = dto;
+        const { competitionName: _c, draft, streamChannels: _s, ...data } = dto;
         const tournament = await tx.tournament.create({
           data: {
             ...data,
@@ -399,6 +417,7 @@ export class TournamentsService {
             entryFee: dto.entryFee ?? 0,
             // Toda cuota mayor que cero se cobra con Mercado Pago
             collectOnline: (dto.entryFee ?? 0) > 0,
+            streamChannels,
             country: dto.country ?? (dto.isOnline ? null : organizer.country),
             city: dto.city ?? (dto.isOnline ? null : organizer.city),
           },
@@ -471,7 +490,8 @@ export class TournamentsService {
       }
     }
 
-    const { competitionName, changeReason, ...data } = dto;
+    const { competitionName, changeReason, streamChannels: channelUrls, ...data } = dto;
+    const streamChannels = channelUrls !== undefined ? this.normalizeChannels(channelUrls) : undefined;
     let competitionId: string | null | undefined;
     if (competitionName !== undefined) {
       if (!competitionName) competitionId = null;
@@ -492,6 +512,7 @@ export class TournamentsService {
       data: {
         ...data,
         ...(collectOnline !== undefined ? { collectOnline } : {}),
+        ...(streamChannels !== undefined ? { streamChannels } : {}),
         competitionId,
         sportId: category === 'SPORT' ? sportId : null,
         gameId: category === 'ESPORT' ? gameId : null,

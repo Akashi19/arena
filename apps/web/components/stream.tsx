@@ -2,7 +2,7 @@ import Link from 'next/link';
 import clsx from 'clsx';
 import { CalendarClock, ExternalLink, Lock, Radio, Tv } from 'lucide-react';
 import type { FixtureEntrant, StreamListItem, StreamStatus } from '@/lib/types';
-import { formatDateTime, STREAM_STATUS_LABEL } from '@/lib/format';
+import { formatDateTime, STREAM_PLATFORM_NAME, STREAM_STATUS_LABEL } from '@/lib/format';
 import { entrantName, formatScore } from '@/lib/fixture';
 import { Avatar } from '@/components/ui';
 
@@ -47,6 +47,36 @@ export function WatchLink({ url, platformName, className, compact = false }: { u
       <ExternalLink className={compact ? 'size-3' : 'size-4'} aria-hidden />
       Ver transmisión
     </a>
+  );
+}
+
+/** Canales oficiales del torneo: enlaces a cada red, con el nombre de la plataforma y el canal. */
+export function ChannelLinks({ channels }: { channels: { platform: string; url: string }[] }) {
+  return (
+    <ul className="flex flex-wrap gap-2">
+      {channels.map((c) => {
+        const name = STREAM_PLATFORM_NAME[c.platform] ?? STREAM_PLATFORM_NAME.OTHER;
+        const u = new URL(c.url);
+        const handle = `${u.hostname.replace(/^(www|m)\./, '')}${u.pathname.replace(/\/$/, '')}`;
+        return (
+          <li key={c.url} className="min-w-0 max-w-full">
+            <a
+              href={c.url}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              referrerPolicy="strict-origin-when-cross-origin"
+              className="flex min-w-0 items-center gap-2 rounded-xl border border-line bg-surface-2/60 px-3 py-2 text-sm transition hover:border-neon/60 hover:text-neon"
+              aria-label={`Canal de ${name}: ${handle} (se abre en una pestaña nueva)`}
+            >
+              <Tv className="size-4 shrink-0 text-neon" aria-hidden />
+              <span className="font-semibold">{name}</span>
+              <span className="truncate text-xs text-muted">{handle}</span>
+              <ExternalLink className="size-3 shrink-0 text-muted" aria-hidden />
+            </a>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
 
