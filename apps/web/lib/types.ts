@@ -72,6 +72,7 @@ export interface TournamentCard {
   city: string | null;
   entryFee: string;
   currency: string;
+  prize: string | null;
   collectOnline?: boolean;
   coverUrl: string | null;
   platform: string | null;

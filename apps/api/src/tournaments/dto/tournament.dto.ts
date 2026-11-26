@@ -98,6 +98,13 @@ export class CreateTournamentDto {
   @Matches(/^[A-Z]{3}$/, { message: 'Moneda inválida (código ISO 4217)' })
   currency?: string;
 
+  @ApiPropertyOptional({ description: 'Premio de la partida (texto libre, "" para quitarlo)', example: '500 USD al campeón' })
+  @IsOptional()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() || null : value))
+  @IsString()
+  @MaxLength(200)
+  prize?: string | null;
+
   @ApiPropertyOptional() @IsOptional() @Transform(trim) @IsString() @MaxLength(20000) rules?: string;
   @ApiPropertyOptional() @IsOptional() @Transform(trim) @IsString() @MaxLength(5000) refundPolicy?: string;
 
@@ -145,7 +152,7 @@ export class CancelTournamentDto {
 }
 
 export class TournamentListQuery extends PaginationQuery {
-  @ApiPropertyOptional({ description: 'Búsqueda por nombre de partida, torneo u organizador' })
+  @ApiPropertyOptional({ description: 'Búsqueda por nombre de partida, torneo, organizador o premio' })
   @IsOptional()
   @Transform(trim)
   @IsString()

@@ -52,6 +52,7 @@ export const tournamentCardSelect = {
   city: true,
   entryFee: true,
   currency: true,
+  prize: true,
   collectOnline: true,
   coverUrl: true,
   platform: true,
@@ -108,6 +109,7 @@ export class TournamentsService {
           { name: { contains: q.q, mode: 'insensitive' } },
           { competition: { name: { contains: q.q, mode: 'insensitive' } } },
           { organizer: { displayName: { contains: q.q, mode: 'insensitive' } } },
+          { prize: { contains: q.q, mode: 'insensitive' } },
         ],
       });
     }

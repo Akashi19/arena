@@ -141,6 +141,23 @@ describe('Aislamiento entre organizadores e inscripciones', () => {
     expect(notes.body.items.some((n: { type: string }) => n.type === 'REGISTRATION_APPROVED')).toBe(true);
   });
 
+  it('el premio se guarda, aparece en el buscador y se puede quitar', async () => {
+    const org = await register('prize');
+    const prize = `Premio ${randomBytes(3).toString('hex')} al campeón`;
+    const t = await http
+      .post('/api/tournaments')
+      .set('authorization', `Bearer ${org.token}`)
+      .send(tournamentPayload({ prize: `  ${prize}  ` }))
+      .expect(201);
+    expect(t.body.prize).toBe(prize);
+    const found = await http.get('/api/tournaments').query({ q: prize.split(' ')[1] }).expect(200);
+    expect(found.body.items.map((i: { id: string; prize: string }) => [i.id, i.prize])).toContainEqual([t.body.id, prize]);
+    await http.patch(`/api/tournaments/${t.body.id}`).set('authorization', `Bearer ${org.token}`).send({ prize: '' }).expect(200);
+    const detail = await http.get(`/api/tournaments/${t.body.slug}`).expect(200);
+    expect(detail.body.prize).toBeNull();
+    await http.post('/api/tournaments').set('authorization', `Bearer ${org.token}`).send(tournamentPayload({ prize: 'x'.repeat(201) })).expect(400);
+  });
+
   it('los borradores no son visibles públicamente', async () => {
     const org = await register('draft');
     const t = await http.post('/api/tournaments').set('authorization', `Bearer ${org.token}`).send(tournamentPayload({ draft: true })).expect(201);

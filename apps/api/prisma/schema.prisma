@@ -546,6 +546,8 @@ model Tournament {
   // Cuota informativa de inscripción (NO es apuesta ni cuota de pronóstico)
   entryFee               Decimal            @default(0) @map("entry_fee") @db.Decimal(12, 2)
   currency               String             @default("USD") @db.Char(3)
+  // Premio para el ganador o los mejores puestos (texto libre: "500 USD", "Teclado mecánico")
+  prize                  String?            @db.VarChar(200)
   rules                  String?
   refundPolicy           String?            @map("refund_policy")
   minLevel               CompetitiveLevel?  @map("min_level")

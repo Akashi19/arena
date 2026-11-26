@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { CalendarDays, Gamepad2, MapPin, Trophy, Users, Wifi } from 'lucide-react';
+import { CalendarDays, Gamepad2, Gift, MapPin, Trophy, Users, Wifi } from 'lucide-react';
 import { flag, formatDateTime, formatMoney, FORMAT_LABEL, MODE_LABEL } from '@/lib/format';
 import type { TournamentCard as Card } from '@/lib/types';
 import { OrganizerTag, StatusBadge } from './ui';
@@ -58,6 +58,12 @@ export function TournamentCard({ t }: { t: Card }) {
           <li className="flex items-center gap-2">
             <Users className="size-4 shrink-0 text-neon" /> {MODE_LABEL[t.mode]} · {FORMAT_LABEL[t.format]}
           </li>
+          {t.prize && (
+            <li className="flex items-center gap-2 font-semibold text-ink" title={t.prize}>
+              <Gift className="size-4 shrink-0 text-lime" />
+              <span className="truncate">Premio: {t.prize}</span>
+            </li>
+          )}
         </ul>
 
         <div>

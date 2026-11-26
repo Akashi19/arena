@@ -271,6 +271,24 @@ export function TournamentForm({ sports, games, maxParticipantsLimit, initial, c
           ))}
       </Section>
 
+      <Section title="Premio">
+        <p className="-mt-2 mb-3 text-xs text-muted">
+          Opcional. Se muestra en el buscador y en la página de la partida. Ejemplo: «500 USD al campeón» o «Teclado mecánico + 200
+          USD».
+        </p>
+        <label className="block max-w-xl">
+          <span className="label">Premio</span>
+          <input
+            type="text"
+            name="prize"
+            maxLength={200}
+            defaultValue={initial?.prize ?? ''}
+            placeholder="Sin premio"
+            className="input"
+          />
+        </label>
+      </Section>
+
       <Section title="Reglamento">
         <div className="grid gap-4">
           <label className="block">

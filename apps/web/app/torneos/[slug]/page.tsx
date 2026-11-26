@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { CalendarClock, CalendarDays, Crown, Gamepad2, MapPin, Medal, Settings, Star, Trophy, Users, Wifi } from 'lucide-react';
+import { CalendarClock, CalendarDays, Crown, Gamepad2, Gift, MapPin, Medal, Settings, Star, Trophy, Users, Wifi } from 'lucide-react';
 import { api, apiOrNull } from '@/lib/api';
 import { getMe } from '@/lib/session';
 import type { Fixture, Team, TournamentDetail, TournamentFeedback, TournamentStreams } from '@/lib/types';
@@ -140,6 +140,7 @@ export default async function TournamentPage({ params }: Props) {
             <Info icon={<Trophy />} label="Formato" value={FORMAT_LABEL[t.format]} />
             <Info icon={<Users />} label="Modalidad" value={MODE_LABEL[t.mode]} />
             <Info icon={<Trophy />} label="Cuota de inscripción" value={formatMoney(t.entryFee, t.currency)} />
+            {t.prize && <Info icon={<Gift />} label="Premio" value={t.prize} />}
             {(t.minLevel || t.maxLevel) && (
               <Info icon={<Gamepad2 />} label="Nivel requerido" value={`${t.minLevel ? LEVEL_LABEL[t.minLevel] : '—'} a ${t.maxLevel ? LEVEL_LABEL[t.maxLevel] : '—'}`} />
             )}

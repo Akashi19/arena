@@ -295,6 +295,7 @@ export class OrganizersService {
       maxParticipants: true,
       entryFee: true,
       currency: true,
+      prize: true,
       mode: true,
       format: true,
       sport: { select: { name: true, slug: true } },
